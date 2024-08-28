@@ -1,6 +1,3 @@
-const dotenv = require("dotenv");
-dotenv.config();
-
 const { app } = require("./app.js");
 const { env } = require("./config");
 

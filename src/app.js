@@ -1,5 +1,8 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const dotenv = require("dotenv");
+dotenv.config();
+
 const { handle404Error, handleGlobalError, } = require("./middlewares");
 const { v1Routes } = require("./routes/v1");
 const { cors } = require("./config");
