@@ -5,7 +5,7 @@ const setAccessTokenCookie = (res, accessToken) => {
         httpOnly: true,
         maxAge: env.jwtAccessTokenTimeInMS,
         secure: true,
-        sameSite: "lax"
+        sameSite: "none"
     });
 }
 const setRefreshTokenCookie = (res, refreshToken) => {
@@ -13,7 +13,7 @@ const setRefreshTokenCookie = (res, refreshToken) => {
         httpOnly: true,
         maxAge: env.jwtRefreshTokenTimeInMS,
         secure: true,
-        sameSite: "lax"
+        sameSite: "none"
     });
 }
 const setCsrfTokenCookie = (res, csrfToken) => {
@@ -21,7 +21,7 @@ const setCsrfTokenCookie = (res, csrfToken) => {
         httpOnly: false,
         maxAge: env.csrfTokenTimeInMS,
         secure: true,
-        sameSite: "lax"
+        sameSite: "none"
     });
 }
 const setAllCookies = (res, accessToken, refreshToken, csrfToken) => {
