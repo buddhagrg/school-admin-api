@@ -1,30 +1,30 @@
 const { env } = require("./config");
 
+const cookieOptions = {
+    secure: true,
+    sameSite: "lax",
+    domain: env.cookieDomain
+};
+
 const setAccessTokenCookie = (res, accessToken) => {
     res.cookie("accessToken", accessToken, {
         httpOnly: true,
         maxAge: env.jwtAccessTokenTimeInMS,
-        secure: true,
-        sameSite: "lax",
-        domain: env.cookieDomain
+        ...cookieOptions
     });
 }
 const setRefreshTokenCookie = (res, refreshToken) => {
     res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         maxAge: env.jwtRefreshTokenTimeInMS,
-        secure: true,
-        sameSite: "lax",
-        domain: env.cookieDomain
+        ...cookieOptions
     });
 }
 const setCsrfTokenCookie = (res, csrfToken) => {
     res.cookie("csrfToken", csrfToken, {
         httpOnly: false,
         maxAge: env.csrfTokenTimeInMS,
-        secure: true,
-        sameSite: "lax",
-        domain: env.cookieDomain
+        ...cookieOptions
     });
 }
 const setAllCookies = (res, accessToken, refreshToken, csrfToken) => {
@@ -34,9 +34,9 @@ const setAllCookies = (res, accessToken, refreshToken, csrfToken) => {
 }
 
 const clearAllCookies = (res) => {
-    res.clearCookie("accessToken");
-    res.clearCookie("refreshToken");
-    res.clearCookie("csrfToken");
+    res.clearCookie("accessToken", cookieOptions);
+    res.clearCookie("refreshToken", cookieOptions);
+    res.clearCookie("csrfToken", cookieOptions);
 }
 
 module.exports = {
