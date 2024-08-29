@@ -16,6 +16,7 @@ const env = {
     pwdSetupTokenSecret: process.env.PASSWORD_SETUP_TOKEN_SECRET,
     uiRoute: process.env.UI_ROUTE,
     apiRoute: process.env.API_ROUTE,
+    cookieDomain: process.env.COOKIE_DOMAIN
 };
 
 module.exports = { env };
