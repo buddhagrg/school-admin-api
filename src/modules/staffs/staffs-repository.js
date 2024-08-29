@@ -77,13 +77,18 @@ const addOrUpdateStaff = async (payload) => {
 };
 
 const reviewStaffStatus = async (payload) => {
-    const { status, userId } = payload;
+    const now = new Date();
+    const { status, userId, reviewerId } = payload;
     const query = `
         UPDATE users
-        SET is_active = $1
+        SET
+            is_active = $1,
+            status_last_reviewed_dt = $3,
+            status_last_reviewer_id = $4
         WHERE id = $2
+        AND is_email_verified = true
     `;
-    const queryParams = [status, userId];
+    const queryParams = [status, userId, now, reviewerId];
     const { rowCount } = await processDBRequest({ query, queryParams });
     return rowCount;
 }
