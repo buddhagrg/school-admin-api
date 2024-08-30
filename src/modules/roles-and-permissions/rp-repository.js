@@ -15,7 +15,7 @@ const doesRoleIdExist = async (id) => {
 };
 
 const insertRole = async (name) => {
-    const query = "INSERT INTO roles(name, is_editable) VALUES($1, false)";
+    const query = "INSERT INTO roles(name) VALUES($1)";
     const queryParams = [name];
     const { rowCount } = await processDBRequest({ query, queryParams });
     return rowCount;
