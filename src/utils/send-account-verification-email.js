@@ -1,6 +1,7 @@
 const { env } = require("../config");
 const { generateToken } = require("./jwt-handle");
 const { sendMail } = require("./send-email");
+const { emailVerificationTemplate } = require("../templates");
 
 const sendAccountVerificationEmail = async ({ userId, userEmail }) => {
     const pwdToken = generateToken(
@@ -13,12 +14,7 @@ const sendAccountVerificationEmail = async ({ userId, userEmail }) => {
         from: env.mailAuthUser,
         to: userEmail,
         subject: "Verify account",
-        html: `
-        <p>
-            Click on the link below to verify your account.
-            <br />
-            <a href=${link}>${link}</a>
-        </p>`,
+        html: emailVerificationTemplate(link)
     };
     await sendMail(mailOptions);
 }

@@ -1,6 +1,7 @@
 const { env } = require("../config");
 const { generateToken } = require("./jwt-handle");
 const { sendMail } = require("./send-email");
+const { pwdSetupTemplate } = require("../templates");
 
 const sendPasswordSetupEmail = async ({ userId, userEmail }) => {
     const pwdToken = generateToken(
@@ -13,12 +14,7 @@ const sendPasswordSetupEmail = async ({ userId, userEmail }) => {
         from: env.mailAuthUser,
         to: userEmail,
         subject: "Setup account password",
-        html: `
-        <p>
-            Click on the link below to setup your account password.
-            <br />
-            <a href=${link}>${link}</a>
-        </p>`,
+        html: pwdSetupTemplate(link)
     };
     await sendMail(mailOptions);
 }

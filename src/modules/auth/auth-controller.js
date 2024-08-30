@@ -1,5 +1,5 @@
 const asyncHandler = require("express-async-handler");
-const { login, logout, getNewAccessAndCsrfToken, processAccountEmailVerify, processPasswordSetup } = require("./auth-service");
+const { login, logout, getNewAccessAndCsrfToken, processAccountEmailVerify, processPasswordSetup, processResendEmailVerification, processResendPwdSetupLink, processPwdReset } = require("./auth-service");
 const { setAccessTokenCookie, setCsrfTokenCookie, setAllCookies, clearAllCookies } = require("../../cookie");
 
 const handleLogin = asyncHandler(async (req, res) => {
@@ -47,10 +47,31 @@ const handleAccountPasswordSetup = asyncHandler(async (req, res) => {
     res.json(message);
 });
 
+const handleResendEmailVerification = asyncHandler(async (req, res) => {
+    const { userId } = req.body;
+    const message = await processResendEmailVerification(userId);
+    res.json(message);
+});
+
+const handleResendPwdSetupLink = asyncHandler(async (req, res) => {
+    const { userId } = req.body;
+    const message = await processResendPwdSetupLink(userId);
+    res.json(message);
+});
+
+const handlePwdReset = asyncHandler(async (req, res) => {
+    const { userId } = req.body;
+    const message = await processPwdReset(userId);
+    res.json(message);
+});
+
 module.exports = {
     handleLogin,
     handleLogout,
     handleTokenRefresh,
     handleAccountEmailVerify,
-    handleAccountPasswordSetup
+    handleAccountPasswordSetup,
+    handleResendEmailVerification,
+    handleResendPwdSetupLink,
+    handlePwdReset
 };
