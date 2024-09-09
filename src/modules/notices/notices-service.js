@@ -107,10 +107,10 @@ const handleStatusCheck = (currentUserRole, currentUserId, authorId, status) => 
 const processAddNoticeRecipient = async (payload) => {
     const affectedRow = await addNoticeRecipient(payload);
     if (affectedRow <= 0) {
-        throw new ApiError(500, "Unable to add notice recipients");
+        throw new ApiError(500, "Unable to add notice recipient");
     }
 
-    return { message: "Notice Recipients added successfully" };
+    return { message: "Notice Recipient added successfully" };
 }
 
 const processUpdateNoticeRecipient = async (payload) => {
