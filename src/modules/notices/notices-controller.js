@@ -1,9 +1,39 @@
 const asyncHandler = require("express-async-handler");
-const { fetchNoticeRecipients, fetchAllNotices, fetchNoticeDetailById, addNotice, updateNotice, processNoticeStatus } = require("./notices-service");
+const { fetchNoticeRecipients, fetchAllNotices, fetchNoticeDetailById, addNotice, updateNotice, processNoticeStatus, processAddNoticeRecipient, processUpdateNoticeRecipient, processGetNoticeRecipients, processDeleteNoticeRecipient, processGetNoticeRecipient } = require("./notices-service");
 
 const handleFetchNoticeRecipients = asyncHandler(async (req, res) => {
     const noticeRecipients = await fetchNoticeRecipients();
     res.json({ noticeRecipients });
+});
+
+const handleGetNoticeRecipients = asyncHandler(async (req, res) => {
+    const noticeRecipients = await processGetNoticeRecipients();
+    res.json({ noticeRecipients });
+});
+
+const handleGetNoticeRecipient = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const noticeRecipient = await processGetNoticeRecipient(id);
+    res.json(noticeRecipient);
+});
+
+const handleAddNoticeRecipient = asyncHandler(async (req, res) => {
+    const payload = req.body;
+    const message = await processAddNoticeRecipient(payload);
+    res.json(message);
+});
+
+const handleUpdateNoticeRecipient = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const payload = req.body;
+    const message = await processUpdateNoticeRecipient({ ...payload, id });
+    res.json(message);
+});
+
+const handleDeleteNoticeRecipient = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const message = await processDeleteNoticeRecipient(id);
+    res.json(message);
 });
 
 const handleFetchAllNotices = asyncHandler(async (req, res) => {
@@ -43,9 +73,14 @@ const handleNoticeStatus = asyncHandler(async (req, res) => {
 
 module.exports = {
     handleFetchNoticeRecipients,
+    handleGetNoticeRecipients,
     handleFetchAllNotices,
     handleFetchNoticeDetailById,
     handleAddNotice,
     handleUpdateNotice,
     handleNoticeStatus,
+    handleAddNoticeRecipient,
+    handleUpdateNoticeRecipient,
+    handleDeleteNoticeRecipient,
+    handleGetNoticeRecipient,
 };

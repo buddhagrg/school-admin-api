@@ -80,7 +80,7 @@ const updateNoticeById = async (payload) => {
     return rowCount;
 }
 
-const getNoticeRecipients = async () => {
+const getNoticeRecipientList = async () => {
     try {
         const noticeRecipientTypesQuery = "SELECT * FROM notice_recipient_types";
         const { rows: noticeRecipientTypes } = await db.query(noticeRecipientTypesQuery);
@@ -91,6 +91,7 @@ const getNoticeRecipients = async () => {
 
         const recipientPromises = noticeRecipientTypes.map(async (recipientType) => {
             const {
+                id,
                 role_id,
                 primary_dependent_name,
                 primary_dependent_select
@@ -98,7 +99,7 @@ const getNoticeRecipients = async () => {
 
             const selectRoleQuery = `SELECT name FROM roles WHERE id = $1`;
             const { rows } = await db.query(selectRoleQuery, [role_id]);
-            const recipient = { id: role_id, name: rows[0].name };
+            const recipient = { id, roleId: role_id, name: rows[0].name };
 
             const { rows: dependentRows } = primary_dependent_select
                 ? await db.query(primary_dependent_select)
@@ -116,6 +117,68 @@ const getNoticeRecipients = async () => {
     }
 }
 
+const getNoticeRecipients = async () => {
+    const query = `
+        SELECT
+            t1.id,
+            t1.role_id AS "roleId",
+            t1.primary_dependent_name AS "primaryDependentName",
+            t1.primary_dependent_select AS "primaryDependentSelect",
+            t2.name as "roleName"
+        FROM notice_recipient_types t1
+        JOIN roles t2 ON t1.role_id = t2.id
+    `;
+    const { rows } = await processDBRequest({ query });
+    return rows;
+}
+
+const addNoticeRecipient = async (payload) => {
+    const { roleId, primaryDependentName, primaryDependentSelect } = payload;
+    const query = `
+        INSERT INTO notice_recipient_types
+            (role_id, primary_dependent_name, primary_dependent_select)
+        VALUES ($1, $2, $3)
+    `;
+    const queryParams = [roleId, primaryDependentName, primaryDependentSelect];
+    const { rowCount } = await processDBRequest({ query, queryParams });
+    return rowCount;
+}
+
+const updateNoticeRecipient = async (payload) => {
+    const { id, roleId, primaryDependentName, primaryDependentSelect } = payload;
+    const query = `
+        UPDATE notice_recipient_types
+        SET
+            primary_dependent_name = $1,
+            primary_dependent_select = $2
+        WHERE id = $3 and role_id = $4
+    `;
+    const queryParams = [primaryDependentName, primaryDependentSelect, id, roleId];
+    const { rowCount } = await processDBRequest({ query, queryParams });
+    return rowCount;
+}
+
+const deleteNoticeRecipient = async (id) => {
+    const query = `DELETE FROM notice_recipient_types WHERE id = $1`;
+    const queryParams = [id];
+    const { rowCount } = await processDBRequest({ query, queryParams });
+    return rowCount;
+}
+
+const getNoticeRecipientById = async (id) => {
+    const query = `
+        SELECT
+            id,
+            role_id AS "roleId",
+            primary_dependent_name AS "primaryDependentName",
+            primary_dependent_select AS "primaryDependentSelect"
+        FROM notice_recipient_types WHERE id = $1
+    `;
+    const queryParams = [id];
+    const { rows } = await processDBRequest({ query, queryParams });
+    return rows[0];
+}
+
 const manageNoticeStatus = async (payload) => {
     const { status, reviewerId, noticeId, reviewDate } = payload;
     const query = `
@@ -127,15 +190,20 @@ const manageNoticeStatus = async (payload) => {
         WHERE id = $4
     `;
     const queryParams = [status, reviewDate, reviewerId, noticeId];
-    const { affectedRow } = await processDBRequest({ query, queryParams });
-    return affectedRow;
+    const { rowCount } = await processDBRequest({ query, queryParams });
+    return rowCount;
 }
 
 module.exports = {
     getNoticeById,
     addNewNotice,
     updateNoticeById,
+    getNoticeRecipientList,
     getNoticeRecipients,
     manageNoticeStatus,
-    getNotices
+    getNotices,
+    addNoticeRecipient,
+    updateNoticeRecipient,
+    deleteNoticeRecipient,
+    getNoticeRecipientById,
 };

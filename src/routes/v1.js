@@ -13,6 +13,8 @@ const { noticesRoutes } = require("../modules/notices/notices-router.js");
 const { handleGetAllTeachers } = require("../modules/class-teacher/class-teacher-controller.js");
 const { staffsRoutes } = require("../modules/staffs/staffs-router.js");
 const { accountRoutes } = require("../modules/account/account-router.js");
+const { sectionRoutes } = require("../modules/sections/section-router.js");
+const { departmentRoutes } = require("../modules/departments/department-router.js");
 
 router.use("/auth", authRoutes);
 router.use("/account", authenticateToken, csrfProtection, accountRoutes);
@@ -26,7 +28,8 @@ router.use("/notices", authenticateToken, csrfProtection, noticesRoutes);
 router.use("/roles", authenticateToken, csrfProtection, rpRoutes);
 router.use("/staffs", authenticateToken, csrfProtection, staffsRoutes);
 router.use("/students", authenticateToken, csrfProtection, studentsRoutes);
-
+router.use("/sections", authenticateToken, csrfProtection, sectionRoutes);
+router.use("/departments", authenticateToken, csrfProtection, departmentRoutes);
 router.use(handle404Error);
 
 module.exports = { v1Routes: router };

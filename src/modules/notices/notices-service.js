@@ -1,12 +1,29 @@
 const { ApiError } = require("../../utils");
-const { getNoticeRecipients, getNoticeById, addNewNotice, updateNoticeById, manageNoticeStatus, getNotices } = require("./notices-repository")
+const { getNoticeRecipients, getNoticeById, addNewNotice, updateNoticeById, manageNoticeStatus, getNotices, addNoticeRecipient, updateNoticeRecipient, getNoticeRecipientList, deleteNoticeRecipient, getNoticeRecipientById } = require("./notices-repository")
 
 const fetchNoticeRecipients = async () => {
+    const recipients = await getNoticeRecipientList();
+    if (!Array.isArray(recipients) || recipients.length <= 0) {
+        throw new ApiError(404, "Recipients not found");
+    }
+    return recipients;
+}
+
+const processGetNoticeRecipients = async () => {
     const recipients = await getNoticeRecipients();
     if (!Array.isArray(recipients) || recipients.length <= 0) {
         throw new ApiError(404, "Recipients not found");
     }
     return recipients;
+}
+
+const processGetNoticeRecipient = async (id) => {
+    const recipient = await getNoticeRecipientById(id);
+    if (!recipient) {
+        throw new ApiError(404, "Recipient detail not found");
+    }
+
+    return recipient;
 }
 
 const fetchAllNotices = async (userId) => {
@@ -87,6 +104,33 @@ const handleStatusCheck = (currentUserRole, currentUserId, authorId, status) => 
     return false;
 }
 
+const processAddNoticeRecipient = async (payload) => {
+    const affectedRow = await addNoticeRecipient(payload);
+    if (affectedRow <= 0) {
+        throw new ApiError(500, "Unable to add notice recipients");
+    }
+
+    return { message: "Notice Recipients added successfully" };
+}
+
+const processUpdateNoticeRecipient = async (payload) => {
+    const affectedRow = await updateNoticeRecipient(payload);
+    if (affectedRow <= 0) {
+        throw new ApiError(500, "Unable to update notice recipient");
+    }
+
+    return { message: "Notice Recipient updated successfully" };
+}
+
+const processDeleteNoticeRecipient = async (id) => {
+    const affectedRow = await deleteNoticeRecipient(id);
+    if (affectedRow <= 0) {
+        throw new ApiError(500, "Unable to delete notice recipient");
+    }
+
+    return { message: "Notice Recipient deleted successfully" };
+}
+
 module.exports = {
     fetchNoticeRecipients,
     fetchAllNotices,
@@ -94,4 +138,9 @@ module.exports = {
     addNotice,
     updateNotice,
     processNoticeStatus,
+    processAddNoticeRecipient,
+    processUpdateNoticeRecipient,
+    processGetNoticeRecipients,
+    processDeleteNoticeRecipient,
+    processGetNoticeRecipient,
 };
