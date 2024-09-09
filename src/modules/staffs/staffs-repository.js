@@ -87,7 +87,6 @@ const reviewStaffStatus = async (payload) => {
             status_last_reviewer_id = $4
         WHERE id = $2
         AND is_email_verified = true
-        AND role_id != 1
     `;
     const queryParams = [status, userId, now, reviewerId];
     const { rowCount } = await processDBRequest({ query, queryParams });
