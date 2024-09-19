@@ -3,8 +3,9 @@ const { checkPermission } = require("../modules/roles-and-permissions/rp-reposit
 const { ApiError } = require("../utils");
 
 const checkApiAccess = expressAsyncHandler(async (req, res, next) => {
-    const { originalUrl, method } = req;
+    const { baseUrl, route: { path }, method } = req;
     const { roleId } = req.user;
+    const originalUrl = `${baseUrl}${path}`
 
     if (roleId !== 1) {
         const affectedRow = await checkPermission(roleId, originalUrl, method);
