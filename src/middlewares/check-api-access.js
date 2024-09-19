@@ -10,7 +10,7 @@ const checkApiAccess = expressAsyncHandler(async (req, res, next) => {
     if (roleId !== 1) {
         const affectedRow = await checkPermission(roleId, originalUrl, method);
         if (affectedRow <= 0) {
-            throw new ApiError(403, "You do not have permission to access to this resource.");
+            throw new ApiError(403, `You do not have permission to access to this resource - ${originalUrl}`);
         }
     }
     next();
