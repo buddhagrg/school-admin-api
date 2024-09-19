@@ -1,6 +1,6 @@
 const { db } = require("../../config");
-const { ApiError, isObjectEmpty, } = require("../../utils");
-const { insertRole, getRoles, doesRoleNameExist, doesRoleIdExist, enableOrDisableRoleStatusByRoleId, getRoleById, updateRoleById, insertUpdateRolePermission, getPermissionsById, getUsersByRoleId, getAccessControlByIds, insertPermissionForRoleId, switchUserRole } = require("./rp-repository")
+const { ApiError, isObjectEmpty, getAccessItemHierarchy, formatMyPermission, } = require("../../utils");
+const { insertRole, getRoles, doesRoleNameExist, doesRoleIdExist, enableOrDisableRoleStatusByRoleId, getRoleById, updateRoleById, getPermissionsById, getUsersByRoleId, getAccessControlByIds, insertPermissionForRoleId, switchUserRole, getAllPermissions, getMyPermission } = require("./rp-repository")
 
 const checkIfRoleIdExist = async (id) => {
     const affectedRow = await doesRoleIdExist(id);
@@ -94,7 +94,7 @@ const getRolePermissions = async (roleId) => {
     await checkIfRoleIdExist(roleId);
 
     const permissions = await getPermissionsById(roleId);
-    if (!Array.isArray(permissions) || permissions.length <= 0) {
+    if (permissions.length <= 0) {
         throw new ApiError(404, "Permissions for given role not found");
     }
 
@@ -120,6 +120,29 @@ const processSwitchRole = async (userId, newRoleId) => {
     return { message: "Role switched successfully" };
 }
 
+const processGetSystemPermissions = async () => {
+    const permissions = await getAllPermissions();
+    if (permissions.length <= 0) {
+        throw new ApiError(404, "Permissions not found");
+    }
+
+    const hierarchialMenus = getAccessItemHierarchy(permissions);
+    return hierarchialMenus;
+}
+
+const processGetMyPermission = async (roleId) => {
+    const permissions = await getMyPermission(roleId);
+    if (permissions.length <= 0) {
+        throw new ApiError(404, "You do not have permission to the system.");
+    }
+    const { hierarchialMenus, apis, uis } = formatMyPermission(permissions);
+    return {
+        menus: hierarchialMenus,
+        apis,
+        uis
+    };
+}
+
 module.exports = {
     addRole,
     fetchRoles,
@@ -130,4 +153,6 @@ module.exports = {
     getRolePermissions,
     fetchUsersByRoleId,
     processSwitchRole,
+    processGetSystemPermissions,
+    processGetMyPermission
 };

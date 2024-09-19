@@ -4,7 +4,7 @@ const { csrfProtection } = require("./csrf-protection");
 const { handleGlobalError } = require("./handle-global-error");
 const { handleEmailVerificationToken } = require("./handle-email-verification-token");
 const { handlePasswordSetupToken } = require("./handle-password-setup-token");
-const { checkRoleAccess } = require("./check-role-access");
+const { checkApiAccess } = require("./check-api-access");
 
 module.exports = {
     authenticateToken,
@@ -13,5 +13,5 @@ module.exports = {
     handle404Error,
     handleEmailVerificationToken,
     handlePasswordSetupToken,
-    checkRoleAccess,
+    checkApiAccess,
 };

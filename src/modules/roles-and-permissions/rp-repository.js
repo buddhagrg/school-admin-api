@@ -68,12 +68,6 @@ const getAccessControlByIds = async (ids, client) => {
     return rows;
 }
 
-const deleteAllPermissionsByRoleId = async (roleId, client) => {
-    const query = "DELETE FROM permissions WHERE role_id = $1";
-    const queryParams = [roleId];
-    await client.query(query, queryParams);
-}
-
 const insertPermissionForRoleId = async (queryParams, client) => {
     const query = `
         INSERT INTO permissions(role_id, access_control_id, type)
@@ -84,16 +78,18 @@ const insertPermissionForRoleId = async (queryParams, client) => {
 }
 
 const getPermissionsById = async (roleId) => {
-    const query = `
-        SELECT
-            ac.id,
-            ac.name,
-            ac.path
-        FROM permissions p
-        JOIN access_controls ac ON p.access_control_id = ac.id
-        WHERE p.role_id = $1 AND p.type = 'menu'
+    const isUserAdmin = Number(roleId) === 1 ? true : false;
+    const query = isUserAdmin
+        ? `SELECT id, name FROM access_controls`
+        : `
+            SELECT
+                ac.id,
+                ac.name
+            FROM permissions p
+            JOIN access_controls ac ON p.access_control_id = ac.id
+            WHERE p.role_id = $1
     `;
-    const queryParams = [roleId];
+    const queryParams = isUserAdmin ? [] : [roleId];
     const { rows } = await processDBRequest({ query, queryParams });
     return rows;
 }
@@ -119,6 +115,40 @@ const switchUserRole = async (userId, newRoleId) => {
     return rowCount;
 }
 
+const getAllPermissions = async () => {
+    const query = `SELECT * FROM access_controls`;
+    const { rows } = await processDBRequest({ query });
+    return rows;
+}
+
+const getMyPermission = async (roleId) => {
+    const isUserAdmin = Number(roleId) === 1 ? true : false;
+    const query = isUserAdmin
+        ? `SELECT * FROM access_controls`
+        : `
+            SELECT
+                ac.*
+            FROM permissions p
+            JOIN access_controls ac ON p.access_control_id = ac.id
+            WHERE p.role_id = $1    
+        `;
+    const queryParams = isUserAdmin ? [] : [roleId];
+    const { rows } = await processDBRequest({ query, queryParams });
+    return rows;
+}
+
+const checkPermission = async (roleId, apiPath, apiMethod) => {
+    const query = `
+        SELECT 1
+        FROM permissions p
+        JOIN access_controls ac ON p.access_control_id = ac.id
+        WHERE p.role_id = $1 AND ac.path = $2 AND ac.method = $3
+    `;
+    const queryParams = [roleId, apiPath, apiMethod];
+    const { rowCount } = await processDBRequest({ query, queryParams });
+    return rowCount;
+}
+
 module.exports = {
     insertRole,
     getRoles,
@@ -130,7 +160,9 @@ module.exports = {
     getPermissionsById,
     getUsersByRoleId,
     getAccessControlByIds,
-    deleteAllPermissionsByRoleId,
     insertPermissionForRoleId,
     switchUserRole,
+    getAllPermissions,
+    checkPermission,
+    getMyPermission
 };

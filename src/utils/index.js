@@ -15,6 +15,7 @@ const {
     checkNoticeRejectPermission
 } = require("./check-notice-permission");
 const { validateRequest } = require("./validate-request");
+const { formatMyPermission } = require("./format-my-permission");
 
 module.exports = {
     ApiError,
@@ -34,5 +35,6 @@ module.exports = {
     checkNoticeApprovePermission,
     checkNoticeDeletePermission,
     checkNoticeRejectPermission,
-    validateRequest
+    validateRequest,
+    formatMyPermission
 };

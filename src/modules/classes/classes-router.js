@@ -1,11 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const classesController = require("./classes-controller");
+const { checkApiAccess } = require("../../middlewares");
 
-router.get("", classesController.handleFetchAllClasses);
-router.get("/:id", classesController.handleFetchClassDetail);
-router.post("", classesController.handleAddClass);
-router.put("/:id", classesController.handleUpdateClass);
-router.delete("/:id", classesController.handleDeleteClass);
+router.get("", checkApiAccess, classesController.handleFetchAllClasses);
+router.get("/:id", checkApiAccess, classesController.handleFetchClassDetail);
+router.post("", checkApiAccess, classesController.handleAddClass);
+router.put("/:id", checkApiAccess, classesController.handleUpdateClass);
+router.delete("/:id", checkApiAccess, classesController.handleDeleteClass);
 
 module.exports = { classesRoutes: router };

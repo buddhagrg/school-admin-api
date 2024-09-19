@@ -1,4 +1,4 @@
-const { ApiError, generateToken, generateCsrfHmacHash, getAccessItemHierarchy, verifyToken, sendPasswordSetupEmail, verifyPassword, generateHashedPassword, sendAccountVerificationEmail } = require("../../utils");
+const { ApiError, generateToken, generateCsrfHmacHash, verifyToken, sendPasswordSetupEmail, verifyPassword, generateHashedPassword, sendAccountVerificationEmail, formatMyPermission } = require("../../utils");
 const { findUserByUsername, invalidateRefreshToken, findUserByRefreshToken, getMenusByRoleId, getRoleNameByRoleId, saveUserLastLoginDate, deleteOldRefreshTokenByUserId, isEmailVerified, verifyAccountEmail, doesEmailExist, setupUserPassword } = require("./auth-repository");
 const { v4: uuidV4 } = require("uuid");
 const { env, db } = require("../../config");
@@ -30,12 +30,12 @@ const login = async (username, passwordFromUser) => {
         const csrfToken = uuidV4();
         const csrfHmacHash = generateCsrfHmacHash(csrfToken);
         const accessToken = generateToken(
-            { id: userId, role: roleName, csrf_hmac: csrfHmacHash },
+            { id: userId, role: roleName, roleId: role_id, csrf_hmac: csrfHmacHash },
             env.jwtAccessTokenSecret,
             env.jwtAccessTokenTimeInMS
         );
         const refreshToken = generateToken(
-            { id: userId, role: roleName, },
+            { id: userId, role: roleName, roleId: role_id },
             env.jwtRefreshTokenSecret,
             env.jwtRefreshTokenTimeInMS
         );
@@ -44,10 +44,8 @@ const login = async (username, passwordFromUser) => {
         await insertRefreshToken({ userId, refreshToken }, client);
         await saveUserLastLoginDate(userId, client);
 
-        const role = await getRoleNameByRoleId(role_id, client);
-
-        const menus = await getMenusByRoleId(role_id, client);
-        const hierarchialMenus = getAccessItemHierarchy(menus);
+        const permissions = await getMenusByRoleId(role_id, client);
+        const { hierarchialMenus, apis, uis } = formatMyPermission(permissions);
 
         await client.query("COMMIT");
 
@@ -55,8 +53,10 @@ const login = async (username, passwordFromUser) => {
             id: userId,
             name,
             email,
-            role,
-            menus: hierarchialMenus
+            role: roleName,
+            menus: hierarchialMenus,
+            uis,
+            apis
         };
 
         return { accessToken, refreshToken, csrfToken, accountBasic };
@@ -100,7 +100,7 @@ const getNewAccessAndCsrfToken = async (refreshToken) => {
         const csrfToken = uuidV4();
         const csrfHmacHash = generateCsrfHmacHash(csrfToken);
         const accessToken = generateToken(
-            { id: userId, role: roleName, csrf_hmac: csrfHmacHash },
+            { id: userId, role: roleName, roleId: role_id, csrf_hmac: csrfHmacHash },
             env.jwtAccessTokenSecret,
             env.jwtAccessTokenTimeInMS
         );

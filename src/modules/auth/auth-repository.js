@@ -33,19 +33,23 @@ const updateUserRefreshToken = async (newRefreshToken, expiresAt, userId, oldRef
 };
 
 const getMenusByRoleId = async (roleId, client) => {
-    const query = `
-        SELECT
-            ac.id,
-            ac.name,
-            ac.path,
-            ac.icon,
-            ac.parent_id,
-            ac.hierarchy_id
-        FROM permissions p
-        JOIN access_controls ac ON p.access_control_id = ac.id
-        WHERE p.type = 'menu' AND p.role_id = $1
-    `;
-    const queryParams = [roleId];
+    const isUserAdmin = Number(roleId) === 1 ? true : false;
+    const query = isUserAdmin
+        ? `SELECT * FROM access_controls`
+        : `
+            SELECT
+                ac.id,
+                ac.name,
+                ac.path,
+                ac.icon,
+                ac.parent_path,
+                ac.hierarchy_id,
+                ac.type
+            FROM permissions p
+            JOIN access_controls ac ON p.access_control_id = ac.id
+            WHERE p.role_id = $1
+        `;
+    const queryParams = isUserAdmin ? [] : [roleId];
     const { rows } = await client.query(query, queryParams);
     return rows;
 }
