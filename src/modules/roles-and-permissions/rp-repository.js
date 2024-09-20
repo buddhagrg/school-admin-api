@@ -76,6 +76,10 @@ const insertPermissionForRoleId = async (queryParams, client) => {
     `;
     await client.query(query);
 }
+const deletePermissionForRoleId = async (roleId, client) => {
+    const query = `DELETE FROM permissions WHERE role_id = ${roleId}`;
+    await client.query(query);
+}
 
 const getPermissionsById = async (roleId) => {
     const isUserAdmin = Number(roleId) === 1 ? true : false;
@@ -164,5 +168,6 @@ module.exports = {
     switchUserRole,
     getAllPermissions,
     checkPermission,
-    getMyPermission
+    getMyPermission,
+    deletePermissionForRoleId
 };

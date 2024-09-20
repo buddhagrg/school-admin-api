@@ -1,6 +1,6 @@
 const { db } = require("../../config");
 const { ApiError, isObjectEmpty, getAccessItemHierarchy, formatMyPermission, } = require("../../utils");
-const { insertRole, getRoles, doesRoleNameExist, doesRoleIdExist, enableOrDisableRoleStatusByRoleId, getRoleById, updateRoleById, getPermissionsById, getUsersByRoleId, getAccessControlByIds, insertPermissionForRoleId, switchUserRole, getAllPermissions, getMyPermission } = require("./rp-repository")
+const { insertRole, getRoles, doesRoleNameExist, doesRoleIdExist, enableOrDisableRoleStatusByRoleId, getRoleById, updateRoleById, getPermissionsById, getUsersByRoleId, getAccessControlByIds, insertPermissionForRoleId, switchUserRole, getAllPermissions, getMyPermission, deletePermissionForRoleId } = require("./rp-repository")
 
 const checkIfRoleIdExist = async (id) => {
     const affectedRow = await doesRoleIdExist(id);
@@ -72,7 +72,13 @@ const addRolePermission = async (roleId, permissionIds) => {
     try {
         await client.query("BEGIN");
 
-        const ids = permissionIds.split(",").map(id => parseInt(id.trim(), 10));
+        const idArray = permissionIds.split(",").map(id => id.trim()).filter(Boolean);
+        if (idArray.length === 0) {
+            await deletePermissionForRoleId(roleId, client);
+            await client.query("COMMIT");
+            return { message: "Permission of given role deleted successfully" };
+        }
+        const ids = idArray.map(id => parseInt(id, 10));
         const accessControls = await getAccessControlByIds(ids, client);
 
         if (accessControls.length > 0) {
@@ -82,9 +88,10 @@ const addRolePermission = async (roleId, permissionIds) => {
 
         await client.query("COMMIT");
 
-        return { message: "Permission to role saved successfully" };
+        return { message: "Permission of given role saved successfully" };
     } catch (error) {
         await client.query("ROLLBACK");
+        throw new ApiError(500, "Unable to assign permission to given role")
     } finally {
         client.release();
     }
