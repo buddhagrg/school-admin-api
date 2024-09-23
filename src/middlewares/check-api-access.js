@@ -1,8 +1,8 @@
-const expressAsyncHandler = require("express-async-handler");
+const asyncHandler = require("express-async-handler");
 const { checkPermission } = require("../modules/roles-and-permissions/rp-repository");
 const { ApiError } = require("../utils");
 
-const checkApiAccess = expressAsyncHandler(async (req, res, next) => {
+const checkApiAccess = asyncHandler(async (req, res, next) => {
     const { baseUrl, route: { path }, method } = req;
     const { roleId } = req.user;
     const originalUrl = `${baseUrl}${path}`

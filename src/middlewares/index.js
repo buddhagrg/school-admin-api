@@ -5,6 +5,7 @@ const { handleGlobalError } = require("./handle-global-error");
 const { handleEmailVerificationToken } = require("./handle-email-verification-token");
 const { handlePasswordSetupToken } = require("./handle-password-setup-token");
 const { checkApiAccess } = require("./check-api-access");
+const { isUserAdmin } = require("./is-user-admin");
 
 module.exports = {
     authenticateToken,
@@ -14,4 +15,5 @@ module.exports = {
     handleEmailVerificationToken,
     handlePasswordSetupToken,
     checkApiAccess,
+    isUserAdmin
 };

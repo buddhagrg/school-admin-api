@@ -119,28 +119,6 @@ const switchUserRole = async (userId, newRoleId) => {
     return rowCount;
 }
 
-const getAllPermissions = async () => {
-    const query = `SELECT * FROM access_controls`;
-    const { rows } = await processDBRequest({ query });
-    return rows;
-}
-
-const getMyPermission = async (roleId) => {
-    const isUserAdmin = Number(roleId) === 1 ? true : false;
-    const query = isUserAdmin
-        ? `SELECT * FROM access_controls`
-        : `
-            SELECT
-                ac.*
-            FROM permissions p
-            JOIN access_controls ac ON p.access_control_id = ac.id
-            WHERE p.role_id = $1    
-        `;
-    const queryParams = isUserAdmin ? [] : [roleId];
-    const { rows } = await processDBRequest({ query, queryParams });
-    return rows;
-}
-
 const checkPermission = async (roleId, apiPath, apiMethod) => {
     const query = `
         SELECT 1
@@ -166,8 +144,6 @@ module.exports = {
     getAccessControlByIds,
     insertPermissionForRoleId,
     switchUserRole,
-    getAllPermissions,
     checkPermission,
-    getMyPermission,
     deletePermissionForRoleId
 };

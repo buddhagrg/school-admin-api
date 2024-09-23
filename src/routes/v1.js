@@ -14,13 +14,12 @@ const { staffsRoutes } = require("../modules/staffs/staffs-router.js");
 const { accountRoutes } = require("../modules/account/account-router.js");
 const { sectionRoutes } = require("../modules/sections/section-router.js");
 const { departmentRoutes } = require("../modules/departments/department-router.js");
-const { handleGetSystemPermissions, handleGetMyPermission } = require("../modules/roles-and-permissions/rp-controller.js");
 const { handleGetDashboardData } = require("../modules/dashboard/dashboard-controller.js");
+const { accessControlRoutes } = require("../modules/access-control/access-control-router.js");
 
-router.get("/permissions/all", authenticateToken, csrfProtection, checkApiAccess, handleGetSystemPermissions);
-router.get("/permissions/me", authenticateToken, csrfProtection, handleGetMyPermission);
 router.get("/teachers", authenticateToken, csrfProtection, checkApiAccess, handleGetAllTeachers);
 router.get("/dashboard", authenticateToken, csrfProtection, checkApiAccess, handleGetDashboardData);
+router.use("/access-controls", authenticateToken, csrfProtection, accessControlRoutes);
 router.use("/auth", authRoutes);
 router.use("/account", authenticateToken, csrfProtection, accountRoutes);
 router.use("/leave", authenticateToken, csrfProtection, leaveRoutes);

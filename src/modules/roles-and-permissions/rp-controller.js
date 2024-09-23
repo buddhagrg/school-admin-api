@@ -1,5 +1,5 @@
 const asyncHandler = require("express-async-handler");
-const { fetchRoles, addRole, updateRole, processRoleStatus, fetchRole, addRolePermission, getRolePermissions, fetchUsersByRoleId, processSwitchRole, processGetSystemPermissions, processGetMyPermission } = require("./rp-service");
+const { fetchRoles, addRole, updateRole, processRoleStatus, fetchRole, addRolePermission, getRolePermissions, fetchUsersByRoleId, processSwitchRole } = require("./rp-service");
 
 const handleGetRoles = asyncHandler(async (req, res) => {
     const roles = await fetchRoles();
@@ -57,17 +57,6 @@ const handleSwitchRole = asyncHandler(async (req, res) => {
     res.json(message);
 });
 
-const handleGetSystemPermissions = asyncHandler(async (req, res) => {
-    const permissions = await processGetSystemPermissions();
-    res.json({ permissions });
-});
-
-const handleGetMyPermission = asyncHandler(async (req, res) => {
-    const { roleId } = req.user;
-    const permissions = await processGetMyPermission(roleId);
-    res.json({ permissions });
-});
-
 module.exports = {
     handleAddRole,
     handleGetRoles,
@@ -78,6 +67,4 @@ module.exports = {
     handleGetRolePermission,
     handleGetUsersByRoleId,
     handleSwitchRole,
-    handleGetSystemPermissions,
-    handleGetMyPermission
 };
