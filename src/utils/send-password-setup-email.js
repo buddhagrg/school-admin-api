@@ -4,19 +4,19 @@ const { sendMail } = require("./send-email");
 const { pwdSetupTemplate } = require("../templates");
 
 const sendPasswordSetupEmail = async ({ userId, userEmail }) => {
-    const pwdToken = generateToken(
-        { id: userId },
-        env.pwdSetupTokenSecret,
-        env.pwdSetupTokenTimeInMS
-    );
-    const link = `${env.uiRoute}/auth/setup-password/${pwdToken}`;
-    const mailOptions = {
-        from: env.mailAuthUser,
-        to: userEmail,
-        subject: "Setup account password",
-        html: pwdSetupTemplate(link)
-    };
-    await sendMail(mailOptions);
-}
+  const pwdToken = generateToken(
+    { id: userId },
+    env.pASSWORD_SETUP_TOKEN_SECRET,
+    env.pASSWORD_SETUP_TOKEN_TIME_IN_MS
+  );
+  const link = `${env.UI_URL}/auth/setup-password/${pwdToken}`;
+  const mailOptions = {
+    from: env.MAIL_FROM_USER,
+    to: userEmail,
+    subject: "Setup account password",
+    html: pwdSetupTemplate(link),
+  };
+  await sendMail(mailOptions);
+};
 
 module.exports = { sendPasswordSetupEmail };
