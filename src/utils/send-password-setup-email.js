@@ -6,8 +6,8 @@ const { pwdSetupTemplate } = require("../templates");
 const sendPasswordSetupEmail = async ({ userId, userEmail }) => {
   const pwdToken = generateToken(
     { id: userId },
-    env.pASSWORD_SETUP_TOKEN_SECRET,
-    env.pASSWORD_SETUP_TOKEN_TIME_IN_MS
+    env.PASSWORD_SETUP_TOKEN_SECRET,
+    env.PASSWORD_SETUP_TOKEN_TIME_IN_MS
   );
   const link = `${env.UI_URL}/auth/setup-password/${pwdToken}`;
   const mailOptions = {
