@@ -1,48 +1,49 @@
 const { processDBRequest } = require("../../utils");
 
-const getAllDepartments = async () => {
-    const query = "SELECT * FROM departments";
-    const { rows } = await processDBRequest({ query });
-    return rows;
-}
+const getAllDepartments = async (schoolId) => {
+  const query = "SELECT * FROM departments WHERE school_id = $1";
+  const queryParams = [schoolId];
+  const { rows } = await processDBRequest({ query, queryParams });
+  return rows;
+};
 
-const addNewDepartment = async (name) => {
-    const query = "INSERT INTO departments(name) VALUES ($1)";
-    const queryParams = [name];
-    const { rowCount } = await processDBRequest({ query, queryParams });
-    return rowCount;
-}
+const addNewDepartment = async ({ name, schoolId }) => {
+  const query = "INSERT INTO departments(name, school_id) VALUES ($1, $2)";
+  const queryParams = [name, schoolId];
+  const { rowCount } = await processDBRequest({ query, queryParams });
+  return rowCount;
+};
 
-const getDepartmentById = async (id) => {
-    const query = "SELECT * FROM departments WHERE id = $1";
-    const queryParams = [id];
-    const { rows } = await processDBRequest({ query, queryParams });
-    return rows[0];
-}
+const getDepartmentById = async ({ id, schoolId }) => {
+  const query = "SELECT * FROM departments WHERE id = $1 AND school_id = $2";
+  const queryParams = [id, schoolId];
+  const { rows } = await processDBRequest({ query, queryParams });
+  return rows[0];
+};
 
 const updateDepartmentById = async (payload) => {
-    const { id, name } = payload;
-    const query = `
-        UPDATE departments
-            SET name = $1
-        WHERE id = $2
-    `;
-    const queryParams = [name, id];
-    const { rowCount } = await processDBRequest({ query, queryParams });
-    return rowCount;
-}
+  const { id, name, schoolId } = payload;
+  const query = `
+    UPDATE departments
+    SET name = $1
+    WHERE id = $2 AND school_id = $3
+  `;
+  const queryParams = [name, id, schoolId];
+  const { rowCount } = await processDBRequest({ query, queryParams });
+  return rowCount;
+};
 
-const deleteDepartmentById = async (id) => {
-    const query = `DELETE FROM departments WHERE id = $1`;
-    const queryParams = [id];
-    const { rowCount } = await processDBRequest({ query, queryParams });
-    return rowCount;
-}
+const deleteDepartmentById = async ({ id, schoolId }) => {
+  const query = `DELETE FROM departments WHERE id = $1 AND school_id = $2`;
+  const queryParams = [id, schoolId];
+  const { rowCount } = await processDBRequest({ query, queryParams });
+  return rowCount;
+};
 
 module.exports = {
-    getAllDepartments,
-    getDepartmentById,
-    updateDepartmentById,
-    deleteDepartmentById,
-    addNewDepartment
+  getAllDepartments,
+  getDepartmentById,
+  updateDepartmentById,
+  deleteDepartmentById,
+  addNewDepartment,
 };

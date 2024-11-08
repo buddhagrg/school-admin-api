@@ -1,51 +1,56 @@
 const { processDBRequest } = require("../../utils");
 
-const getAllClasses = async () => {
-    const query = "SELECT * FROM classes ORDER BY name";
-    const { rows } = await processDBRequest({ query });
-    return rows;
-}
+const getAllClasses = async (schoolId) => {
+  const query = "SELECT * FROM classes WHERE school_id = $1 ORDER BY name";
+  const queryParams = [schoolId];
+  const { rows } = await processDBRequest({ query, queryParams });
+  return rows;
+};
 
-const getClassDetail = async (id) => {
-    const query = "SELECT * from classes WHERE id = $1";
-    const { rows } = await processDBRequest({ query, queryParams: [id] });
-    return rows[0];
-}
+const getClassDetail = async ({ id, schoolId }) => {
+  const query = "SELECT * from classes WHERE id = $1 AND school_id = $2";
+  const queryParams = [id, schoolId];
+  const { rows } = await processDBRequest({
+    query,
+    queryParams,
+  });
+  return rows[0];
+};
 
 const addNewClass = async (payload) => {
-    const { name, sections } = payload;
-    const query = `
-        INSERT INTO classes (name, sections)
-        VALUES ($1, $2)
-    `;
-    const queryParams = [name, sections];
-    const { rowCount } = await processDBRequest({ query, queryParams });
-    return rowCount;
-}
+  const { name, sections, schoolId } = payload;
+  const query = `
+    INSERT INTO classes (name, sections, school_id)
+    VALUES ($1, $2, $3)
+  `;
+  const queryParams = [name, sections, schoolId];
+  const { rowCount } = await processDBRequest({ query, queryParams });
+  return rowCount;
+};
 
 const updateClassDetailById = async (payload) => {
-    const { id, name, sections } = payload;
-    const query = `
-        UPDATE classes
-        SET name = $1, sections = $2
-        WHERE id = $3
-    `;
-    const queryParams = [name, sections, id];
-    const { rowCount } = await processDBRequest({ query, queryParams });
-    return rowCount;
-}
+  const { id, name, sections, schoolId } = payload;
+  const query = `
+    UPDATE classes
+    SET name = $1, sections = $2
+    WHERE id = $3 AND school_id = $4
+  `;
+  const queryParams = [name, sections, id, schoolId];
+  const { rowCount } = await processDBRequest({ query, queryParams });
+  return rowCount;
+};
 
-const deleteClassById = async (id) => {
-    const query = "DELETE FROM classes WHERE id = $1";
-    const queryParams = [id];
-    const { rowCount } = await processDBRequest({ query, queryParams });
-    return rowCount;
-}
+const deleteClassById = async ({ id, schoolId }) => {
+  const query = "DELETE FROM classes WHERE id = $1 AND school_id = $2";
+  const queryParams = [id, schoolId];
+  const { rowCount } = await processDBRequest({ query, queryParams });
+  return rowCount;
+};
 
 module.exports = {
-    getAllClasses,
-    getClassDetail,
-    addNewClass,
-    updateClassDetailById,
-    deleteClassById
+  getAllClasses,
+  getClassDetail,
+  addNewClass,
+  updateClassDetailById,
+  deleteClassById,
 };

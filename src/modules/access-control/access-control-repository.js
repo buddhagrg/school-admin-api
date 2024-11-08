@@ -44,18 +44,19 @@ const getAllAccessControls = async () => {
   return rows;
 };
 
-const getMyAccessControl = async (roleId) => {
-  const isUserAdmin = Number(roleId) === 1 ? true : false;
-  const query = isUserAdmin
-    ? `SELECT * FROM access_controls`
+const getMyAccessControl = async ({ staticRoleId, roleId, schoolId }) => {
+  const isUserAdmin = Number(staticRoleId) === 2 ? true : false;
+  const isAllowedForSuperAdmin = !isUserAdmin;
+  const query = [1, 2].includes(staticRoleId)
+    ? `SELECT * FROM access_controls WHERE is_allowed_for_super_admin = $1`
     : `
-            SELECT
-                ac.*
-            FROM permissions p
-            JOIN access_controls ac ON p.access_control_id = ac.id
-            WHERE p.role_id = $1    
-        `;
-  const queryParams = isUserAdmin ? [] : [roleId];
+      SELECT ac.*
+      FROM permissions p
+      JOIN access_controls ac ON p.access_control_id = ac.id
+      WHERE p.role_id = $1 AND p.school_id = $2`;
+  const queryParams = isUserAdmin
+    ? [isAllowedForSuperAdmin]
+    : [roleId, schoolId];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
 };

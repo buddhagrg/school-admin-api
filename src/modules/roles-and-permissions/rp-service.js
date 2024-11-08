@@ -1,12 +1,10 @@
 const { db } = require("../../config");
-const { ApiError, isObjectEmpty } = require("../../utils");
+const { ApiError } = require("../../utils");
 const {
   insertRole,
   getRoles,
-  doesRoleNameExist,
-  doesRoleIdExist,
+  getRoleDetail,
   enableOrDisableRoleStatusByRoleId,
-  getRoleById,
   updateRoleById,
   getPermissionsById,
   getUsersByRoleId,
@@ -14,22 +12,18 @@ const {
   insertPermissionForRoleId,
   switchUserRole,
   deletePermissionForRoleId,
+  getStaticRoleIdById,
 } = require("./rp-repository");
 
 const checkIfRoleIdExist = async (id) => {
-  const affectedRow = await doesRoleIdExist(id);
-  if (affectedRow <= 0) {
+  const role = await getRoleDetail(id);
+  if (!role) {
     throw new ApiError(404, "Invalid role id");
   }
 };
 
-const addRole = async (name) => {
-  const roleNameExist = await doesRoleNameExist(name);
-  if (roleNameExist > 0) {
-    throw new ApiError(409, "Role Name already exists.");
-  }
-
-  const affectedRow = await insertRole(name);
+const addRole = async ({ name, schoolId }) => {
+  const affectedRow = await insertRole({ name, schoolId });
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to add role");
   }
@@ -37,30 +31,17 @@ const addRole = async (name) => {
   return { message: "Role added successfully" };
 };
 
-const fetchRoles = async () => {
-  const roles = await getRoles();
+const fetchRoles = async (schoolId) => {
+  const roles = await getRoles(schoolId);
   if (!Array.isArray(roles) || roles.length <= 0) {
-    throw new ApiError(500, "Roles not found");
+    throw new ApiError(404, "Roles not found");
   }
 
   return roles;
 };
 
-const fetchRole = async (id) => {
-  await checkIfRoleIdExist(id);
-
-  const role = await getRoleById(id);
-  if (isObjectEmpty(role)) {
-    throw new ApiError(500, "Unable to get role detail");
-  }
-
-  return role;
-};
-
-const updateRole = async (id, name) => {
-  await checkIfRoleIdExist(id);
-
-  const affectedRow = await updateRoleById(id, name);
+const updateRole = async (payload) => {
+  const affectedRow = await updateRoleById(payload);
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to update role");
   }
@@ -68,10 +49,14 @@ const updateRole = async (id, name) => {
   return { message: "Role updated successfully" };
 };
 
-const processRoleStatus = async (id, status) => {
+const processRoleStatus = async ({ id, status, schoolId }) => {
   await checkIfRoleIdExist(id);
 
-  const affectedRow = await enableOrDisableRoleStatusByRoleId(id, status);
+  const affectedRow = await enableOrDisableRoleStatusByRoleId({
+    id,
+    status,
+    schoolId,
+  });
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to disable role");
   }
@@ -80,30 +65,30 @@ const processRoleStatus = async (id, status) => {
   return { message: `Role ${stsText} successfully` };
 };
 
-const addRolePermission = async (roleId, permissionIds) => {
+const addRolePermission = async ({ roleId, permissions, schoolId }) => {
   await checkIfRoleIdExist(roleId);
 
   const client = await db.connect();
   try {
     await client.query("BEGIN");
 
-    const idArray = permissionIds
+    const idArray = permissions
       .split(",")
       .map((id) => id.trim())
       .filter(Boolean);
     if (idArray.length === 0) {
-      await deletePermissionForRoleId(roleId, client);
+      await deletePermissionForRoleId({ roleId, schoolId, client });
       await client.query("COMMIT");
       return { message: "Permission of given role deleted successfully" };
     }
     const ids = idArray.map((id) => parseInt(id, 10));
-    const accessControls = await getAccessControlByIds(ids, client);
+    const accessControls = await getAccessControlByIds({ ids, client });
 
     if (accessControls.length > 0) {
       const queryParams = accessControls
-        .map(({ id, type }) => `(${roleId}, ${id}, '${type}')`)
+        .map(({ id, type }) => `(${roleId}, ${id}, '${type}', '${schoolId}')`)
         .join(", ");
-      await insertPermissionForRoleId(queryParams, client);
+      await insertPermissionForRoleId({ queryParams, client });
     }
 
     await client.query("COMMIT");
@@ -118,9 +103,12 @@ const addRolePermission = async (roleId, permissionIds) => {
 };
 
 const getRolePermissions = async (roleId) => {
-  await checkIfRoleIdExist(roleId);
+  const staticRoleId = await getStaticRoleIdById(roleId);
+  if (!staticRoleId) {
+    throw new ApiError(404, "Role does not exist");
+  }
 
-  const permissions = await getPermissionsById(roleId);
+  const permissions = await getPermissionsById({ roleId, staticRoleId });
   if (permissions.length <= 0) {
     throw new ApiError(404, "Permissions for given role not found");
   }
@@ -128,10 +116,10 @@ const getRolePermissions = async (roleId) => {
   return permissions;
 };
 
-const fetchUsersByRoleId = async (id) => {
-  await checkIfRoleIdExist(id);
+const fetchUsersByRoleId = async ({ roleId, schoolId }) => {
+  await checkIfRoleIdExist(roleId);
 
-  const users = await getUsersByRoleId(id);
+  const users = await getUsersByRoleId({ roleId, schoolId });
   if (!Array.isArray(users) || users.length <= 0) {
     throw new ApiError(404, "Users not found");
   }
@@ -139,8 +127,8 @@ const fetchUsersByRoleId = async (id) => {
   return users;
 };
 
-const processSwitchRole = async (userId, newRoleId) => {
-  const affectedRow = await switchUserRole(userId, newRoleId);
+const processSwitchRole = async (payload) => {
+  const affectedRow = await switchUserRole(payload);
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to switch role");
   }
@@ -152,7 +140,6 @@ module.exports = {
   fetchRoles,
   updateRole,
   processRoleStatus,
-  fetchRole,
   addRolePermission,
   getRolePermissions,
   fetchUsersByRoleId,

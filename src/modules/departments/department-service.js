@@ -1,54 +1,60 @@
 const { ApiError } = require("../../utils");
-const { getAllDepartments, addNewDepartment, getDepartmentById, updateDepartmentById, deleteDepartmentById } = require("./department-repository");
+const {
+  getAllDepartments,
+  addNewDepartment,
+  getDepartmentById,
+  updateDepartmentById,
+  deleteDepartmentById,
+} = require("./department-repository");
 
-const processGetAllDepartments = async () => {
-    const departments = await getAllDepartments();
-    if (departments.length <= 0) {
-        throw new ApiError(404, "Departments not found");
-    }
+const processGetAllDepartments = async (schoolId) => {
+  const departments = await getAllDepartments(schoolId);
+  if (departments.length <= 0) {
+    throw new ApiError(404, "Departments not found");
+  }
 
-    return departments;
-}
+  return departments;
+};
 
-const processAddNewDepartment = async (name) => {
-    const affectedRow = await addNewDepartment(name);
-    if (affectedRow <= 0) {
-        throw new ApiError(500, "Unable to add new department");
-    }
+const processAddNewDepartment = async (payload) => {
+  const affectedRow = await addNewDepartment(payload);
+  if (affectedRow <= 0) {
+    throw new ApiError(500, "Unable to add new department");
+  }
 
-    return { message: "Department added successfully" };
-}
+  return { message: "Department added successfully" };
+};
 
-const processGetDepartmentById = async (id) => {
-    const department = await getDepartmentById(id);
-    if (!department) {
-        throw new ApiError(404, "Department does not exist");
-    }
+const processGetDepartmentById = async (payload) => {
+  const department = await getDepartmentById(payload);
+  if (!department) {
+    throw new ApiError(404, "Department does not exist");
+  }
 
-    return department;
-}
+  return department;
+};
 
 const processUpdateDepartmentById = async (payload) => {
-    const affectedRow = await updateDepartmentById(payload);
-    if (affectedRow <= 0) {
-        throw new ApiError(500, "Unable to update department detail");
-    }
+  const affectedRow = await updateDepartmentById(payload);
+  if (affectedRow <= 0) {
+    throw new ApiError(500, "Unable to update department detail");
+  }
 
-    return { message: "Department updated successfully" };
-}
+  return { message: "Department updated successfully" };
+};
 
-const processDeleteDepartmentById = async (id) => {
-    const affectedRow = await deleteDepartmentById(id);
-    if (affectedRow <= 0) {
-        throw new ApiError(500, "Unable to delete department detail");
-    }
+const processDeleteDepartmentById = async (payload) => {
+  const affectedRow = await deleteDepartmentById(payload);
+  if (affectedRow <= 0) {
+    throw new ApiError(500, "Unable to delete department detail");
+  }
 
-    return { message: "Department deleted successfully" };
-}
+  return { message: "Department deleted successfully" };
+};
 module.exports = {
-    processGetAllDepartments,
-    processGetDepartmentById,
-    processUpdateDepartmentById,
-    processDeleteDepartmentById,
-    processAddNewDepartment
+  processGetAllDepartments,
+  processGetDepartmentById,
+  processUpdateDepartmentById,
+  processDeleteDepartmentById,
+  processAddNewDepartment,
 };

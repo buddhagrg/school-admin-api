@@ -10,7 +10,6 @@ const {
 } = require("../../utils");
 const {
   changePassword,
-  getUserRoleNameByUserId,
   getStudentAccountDetail,
   getStaffAccountDetail,
 } = require("./account-repository");
@@ -19,7 +18,7 @@ const { insertRefreshToken, findUserById } = require("../../shared/repository");
 const processPasswordChange = async (payload) => {
   const client = await db.connect();
   try {
-    const { userId, oldPassword, newPassword } = payload;
+    const { userId, oldPassword, newPassword, schoolId, roleName } = payload;
     await client.query("BEGIN");
 
     const user = await findUserById(userId);
@@ -30,13 +29,8 @@ const processPasswordChange = async (payload) => {
     const { password: passwordFromDB } = user;
     await verifyPassword(passwordFromDB, oldPassword);
 
-    const roleName = await getUserRoleNameByUserId(userId, client);
-    if (!roleName) {
-      throw new ApiError(404, "Role does not exist for user");
-    }
-
     const hashedPassword = await generateHashedPassword(newPassword);
-    await changePassword({ userId, hashedPassword }, client);
+    await changePassword({ userId, hashedPassword, schoolId, client });
 
     const csrfToken = uuidV4();
     const csrfHmacHash = generateCsrfHmacHash(csrfToken);
@@ -51,7 +45,7 @@ const processPasswordChange = async (payload) => {
       env.JWT_REFRESH_TOKEN_TIME_IN_MS
     );
 
-    await insertRefreshToken({ userId, refreshToken }, client);
+    await insertRefreshToken({ userId, refreshToken, schoolId, client });
 
     await client.query("COMMIT");
 
@@ -69,15 +63,18 @@ const processPasswordChange = async (payload) => {
   }
 };
 
-const processGetAccountDetail = async (userId) => {
-  const user = await findUserById(userId);
-  if (!user || !user.id) {
-    throw new ApiError(404, "User does not exist");
-  }
-
-  const { role_id } = user;
-  if (role_id === 3) {
-    const studentAccountDetail = await getStudentAccountDetail(userId);
+const processGetAccountDetail = async ({
+  userId,
+  schoolId,
+  roleId,
+  staticRoleId,
+}) => {
+  if (staticRoleId === 4) {
+    const studentAccountDetail = await getStudentAccountDetail({
+      userId,
+      schoolId,
+      roleId,
+    });
     if (!studentAccountDetail) {
       throw new ApiError(404, "Account detail not found");
     }
@@ -85,7 +82,11 @@ const processGetAccountDetail = async (userId) => {
     return studentAccountDetail;
   }
 
-  const staffAccountDetail = await getStaffAccountDetail(userId, role_id);
+  const staffAccountDetail = await getStaffAccountDetail({
+    userId,
+    roleId,
+    schoolId,
+  });
   if (!staffAccountDetail) {
     throw new ApiError(404, "Account detail not found");
   }

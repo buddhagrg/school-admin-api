@@ -14,24 +14,24 @@ const {
   getAllPendingNotices,
 } = require("./notices-repository");
 
-const fetchNoticeRecipients = async () => {
-  const recipients = await getNoticeRecipientList();
+const fetchNoticeRecipients = async (schoolId) => {
+  const recipients = await getNoticeRecipientList(schoolId);
   if (!Array.isArray(recipients) || recipients.length <= 0) {
     throw new ApiError(404, "Recipients not found");
   }
   return recipients;
 };
 
-const processGetNoticeRecipients = async () => {
-  const recipients = await getNoticeRecipients();
+const processGetNoticeRecipients = async (schoolId) => {
+  const recipients = await getNoticeRecipients(schoolId);
   if (!Array.isArray(recipients) || recipients.length <= 0) {
     throw new ApiError(404, "Recipients not found");
   }
   return recipients;
 };
 
-const processGetNoticeRecipient = async (id) => {
-  const recipient = await getNoticeRecipientById(id);
+const processGetNoticeRecipient = async (payload) => {
+  const recipient = await getNoticeRecipientById(payload);
   if (!recipient) {
     throw new ApiError(404, "Recipient detail not found");
   }
@@ -47,8 +47,8 @@ const fetchAllNotices = async (userId) => {
   return notices;
 };
 
-const fetchNoticeDetailById = async (id) => {
-  const noticeDetail = await getNoticeById(id);
+const fetchNoticeDetailById = async (payload) => {
+  const noticeDetail = await getNoticeById(payload);
   if (!noticeDetail) {
     throw new ApiError(404, "Notice detail not found");
   }
@@ -74,20 +74,16 @@ const updateNotice = async (payload) => {
 };
 
 const processNoticeStatus = async (payload) => {
-  const { noticeId, status, currentUserId, currentUserRole } = payload;
-  const notice = await getNoticeById(noticeId);
+  const { noticeId, status, currentUserId, currentUserRoleId, schoolId } =
+    payload;
+  const notice = await getNoticeById({ noticeId, schoolId });
   if (!notice) {
     throw new ApiError(404, "Notice not found");
   }
 
-  const now = new Date();
-  const {
-    authorId,
-    reviewer_id: reviewerIdFromDB,
-    reviewed_dt: reviewedDateFromDB,
-  } = notice;
+  const { authorId } = notice;
   const userCanManageStatus = handleStatusCheck(
-    currentUserRole,
+    currentUserRoleId,
     currentUserId,
     authorId,
     status
@@ -102,8 +98,7 @@ const processNoticeStatus = async (payload) => {
   const affectedRow = await manageNoticeStatus({
     noticeId,
     status,
-    reviewerId: currentUserRole === "admin" ? currentUserId : reviewerIdFromDB,
-    reviewDate: currentUserRole === "admin" ? now : reviewedDateFromDB,
+    currentUserId,
   });
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to review notice");
@@ -113,12 +108,12 @@ const processNoticeStatus = async (payload) => {
 };
 
 const handleStatusCheck = (
-  currentUserRole,
+  currentUserRoleId,
   currentUserId,
   authorId,
   status
 ) => {
-  if (currentUserRole === "admin") {
+  if (currentUserRoleId === 2) {
     return true;
   } else if (authorId === currentUserId) {
     switch (status) {
@@ -152,8 +147,8 @@ const processUpdateNoticeRecipient = async (payload) => {
   return { message: "Notice Recipient updated successfully" };
 };
 
-const processDeleteNoticeRecipient = async (id) => {
-  const affectedRow = await deleteNoticeRecipient(id);
+const processDeleteNoticeRecipient = async (payload) => {
+  const affectedRow = await deleteNoticeRecipient(payload);
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to delete notice recipient");
   }
@@ -161,8 +156,8 @@ const processDeleteNoticeRecipient = async (id) => {
   return { message: "Notice Recipient deleted successfully" };
 };
 
-const processGetAllPendingNotices = async () => {
-  const notices = await getAllPendingNotices();
+const processGetAllPendingNotices = async (schoolId) => {
+  const notices = await getAllPendingNotices(schoolId);
   if (notices.length <= 0) {
     throw new ApiError(404, "Pending Notices not found");
   }

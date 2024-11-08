@@ -1,15 +1,15 @@
 const { getUserDashboardData } = require("./dashboard-repository");
 
-const fetchDashboardData = async (id) => {
-    const data = await getUserDashboardData(id);
+const fetchDashboardData = async (userId) => {
+  const data = await getUserDashboardData(userId);
 
-    if (!data) {
-        throw new ApiError(404, "Dashboard data not found");
-    }
+  if (!data) {
+    throw new ApiError(404, "Dashboard data not found");
+  }
 
-    return data;
-}
+  return data;
+};
 
 module.exports = {
-    fetchDashboardData
+  fetchDashboardData,
 };

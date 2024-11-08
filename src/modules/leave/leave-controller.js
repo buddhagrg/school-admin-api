@@ -1,119 +1,159 @@
 const asyncHandler = require("express-async-handler");
-const { addNewLeaveRequest, reviewPendingLeaveRequest, makeNewLeavePolicy, fetchLeavePolicies, updateLeavePolicy, updatePolicyUsers, fetchPolicyUsers, deletePolicyUser, fetchPolicyEligibleUsers, reviewLeavePolicy, getUserLeaveHistory, deleteLeaveRequest, fetchPendingLeaveRequests, updateLeaveRequest, processGetMyLeavePolicy } = require("./leave-service");
+const {
+  addNewLeaveRequest,
+  reviewPendingLeaveRequest,
+  makeNewLeavePolicy,
+  fetchLeavePolicies,
+  updateLeavePolicy,
+  updatePolicyUsers,
+  fetchPolicyUsers,
+  deletePolicyUser,
+  fetchPolicyEligibleUsers,
+  reviewLeavePolicy,
+  getUserLeaveHistory,
+  deleteLeaveRequest,
+  fetchPendingLeaveRequests,
+  updateLeaveRequest,
+  processGetMyLeavePolicy,
+} = require("./leave-service");
 
 const handleMakeNewPolicy = asyncHandler(async (req, res) => {
-    const { name } = req.body;
-    const newPolicy = await makeNewLeavePolicy(name);
-    res.json(newPolicy);
+  const { name } = req.body;
+  const { schoolId } = req.user;
+  const newPolicy = await makeNewLeavePolicy({ name, schoolId });
+  res.json(newPolicy);
 });
 
 const handleGetLeavePolicies = asyncHandler(async (req, res) => {
-    const leavePolicies = await fetchLeavePolicies();
-    res.json({ leavePolicies });
+  const { schoolId } = req.user;
+  const leavePolicies = await fetchLeavePolicies(schoolId);
+  res.json({ leavePolicies });
 });
 
 const handleGetMyLeavePolicy = asyncHandler(async (req, res) => {
-    const { id } = req.user;
-    const leavePolicies = await processGetMyLeavePolicy(id);
-    res.json({ leavePolicies });
+  const { id, schoolId } = req.user;
+  const leavePolicies = await processGetMyLeavePolicy({ id, schoolId });
+  res.json({ leavePolicies });
 });
 
-const handleUpdateLeavePlicy = asyncHandler(async (req, res) => {
-    const { name } = req.body;
-    const { id } = req.params;
-    const updatedPolicy = await updateLeavePolicy(name, id);
-    res.json(updatedPolicy);
+const handleUpdateLeavePolicy = asyncHandler(async (req, res) => {
+  const { name } = req.body;
+  const { id } = req.params;
+  const { schoolId } = req.user;
+  const updatedPolicy = await updateLeavePolicy({ name, id, schoolId });
+  res.json(updatedPolicy);
 });
 
 const handleUpdatePolicyUsers = asyncHandler(async (req, res) => {
-    const { users } = req.body;
-    const { id } = req.params;
-    const message = await updatePolicyUsers(id, users);
-    res.json(message);
+  const { users } = req.body;
+  const { id: policyId } = req.params;
+  const { schoolId } = req.user;
+  const message = await updatePolicyUsers({ policyId, users, schoolId });
+  res.json(message);
 });
 
 const handleGetPolicyUsers = asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    const users = await fetchPolicyUsers(id);
-    res.json({ users });
+  const { id } = req.params;
+  const { schoolId } = req.user;
+  const users = await fetchPolicyUsers({ id, schoolId });
+  res.json({ users });
 });
 
 const handleRemovePolicyUser = asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    const { user } = req.body;
-    const message = await deletePolicyUser(user, id);
-    res.json(message);
+  const { id } = req.params;
+  const { user } = req.body;
+  const { schoolId } = req.user;
+  const message = await deletePolicyUser({ user, id, schoolId });
+  res.json(message);
 });
 
 const handleFetchPolicyEligibleUsers = asyncHandler(async (req, res) => {
-    const users = await fetchPolicyEligibleUsers();
-    res.json({ users });
+  const { schoolId } = req.user;
+  const users = await fetchPolicyEligibleUsers(schoolId);
+  res.json({ users });
 });
 
 const handleCreateNewLeaveRequest = asyncHandler(async (req, res) => {
-    const { id: userId } = req.user;
-    const { policy, from, to, note } = req.body;
-    const message = await addNewLeaveRequest({ policy, from, to, note, userId });
-    res.json(message);
+  const { id: userId, schoolId } = req.user;
+  const { policy, from, to, note } = req.body;
+  const message = await addNewLeaveRequest({
+    policy,
+    from,
+    to,
+    note,
+    userId,
+    schoolId,
+  });
+  res.json(message);
 });
 
 const handleReviewLeaveRequest = asyncHandler(async (req, res) => {
-    const { status } = req.body;
-    const { id: userId } = req.user;
-    const { id: leaveRequestId } = req.params;
+  const { status } = req.body;
+  const { id: reviewerUserId, schoolId, roleId: reviewerRoleId } = req.user;
+  const { id: requestId } = req.params;
 
-    const message = await reviewPendingLeaveRequest(userId, leaveRequestId, status);
-    res.json(message);
+  const message = await reviewPendingLeaveRequest({
+    reviewerUserId,
+    requestId,
+    status,
+    schoolId,
+    reviewerRoleId,
+  });
+  res.json(message);
 });
 
 const handleReviewLeavePolicy = asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    const { status } = req.body;
+  const { id: policyId } = req.params;
+  const { status } = req.body;
+  const { schoolId } = req.user;
 
-    const message = await reviewLeavePolicy(status, id);
-    res.json(message);
+  const message = await reviewLeavePolicy({ status, policyId, schoolId });
+  res.json(message);
 });
 
 const handleUpdateLeaveRequest = asyncHandler(async (req, res) => {
-    const body = req.body;
-    const { id } = req.params;
-    const payload = { ...body, id };
+  const { schoolId } = req.user;
+  const body = req.body;
+  const { id } = req.params;
+  const payload = { ...body, id, schoolId };
 
-    const message = await updateLeaveRequest(payload);
-    res.json(message);
+  const message = await updateLeaveRequest(payload);
+  res.json(message);
 });
 
 const handleGetUserLeaveHistory = asyncHandler(async (req, res) => {
-    const { id } = req.user;
-    const leaveHistory = await getUserLeaveHistory(id);
-    res.json({ leaveHistory });
+  const { id, schoolId } = req.user;
+  const leaveHistory = await getUserLeaveHistory({ id, schoolId });
+  res.json({ leaveHistory });
 });
 
 const handleDeleteLeaveRequest = asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    const message = await deleteLeaveRequest(id);
-    res.json(message);
+  const { id } = req.params;
+  const { schoolId } = req.user;
+  const message = await deleteLeaveRequest({ id, schoolId });
+  res.json(message);
 });
 
 const handleFetchPendingLeaveRequests = asyncHandler(async (req, res) => {
-    const pendingLeaves = await fetchPendingLeaveRequests();
-    res.json({ pendingLeaves });
+  const { schoolId } = req.user;
+  const pendingLeaves = await fetchPendingLeaveRequests(schoolId);
+  res.json({ pendingLeaves });
 });
 
 module.exports = {
-    handleCreateNewLeaveRequest,
-    handleReviewLeaveRequest,
-    handleMakeNewPolicy,
-    handleGetLeavePolicies,
-    handleUpdateLeavePlicy,
-    handleUpdatePolicyUsers,
-    handleGetPolicyUsers,
-    handleRemovePolicyUser,
-    handleFetchPolicyEligibleUsers,
-    handleReviewLeavePolicy,
-    handleUpdateLeaveRequest,
-    handleGetUserLeaveHistory,
-    handleDeleteLeaveRequest,
-    handleFetchPendingLeaveRequests,
-    handleGetMyLeavePolicy,
+  handleCreateNewLeaveRequest,
+  handleReviewLeaveRequest,
+  handleMakeNewPolicy,
+  handleGetLeavePolicies,
+  handleUpdateLeavePolicy,
+  handleUpdatePolicyUsers,
+  handleGetPolicyUsers,
+  handleRemovePolicyUser,
+  handleFetchPolicyEligibleUsers,
+  handleReviewLeavePolicy,
+  handleUpdateLeaveRequest,
+  handleGetUserLeaveHistory,
+  handleDeleteLeaveRequest,
+  handleFetchPendingLeaveRequests,
+  handleGetMyLeavePolicy,
 };
