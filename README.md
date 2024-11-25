@@ -4,6 +4,12 @@ This is for api for school-admin bootstrapped by `express-js`.
 
 Currently, [resend](https://resend.com/) is used for email sending during registration, password setup and password change. So, you first need an api key from resend and use in the env **RESEND_API_KEY**. After that, you need to create a **.env** file with few more envs like in the [.env.example](https://github.com/buddhagrg/school-admin-api/blob/master/.env.example)
 
+**SSL Error**\
+If any ssl issue occur. We need to add `ssl=true` query param at the end in **DATABASE_URL** of [.env.example](https://github.com/buddhagrg/school-admin-api/blob/master/.env.example).\
+Example:\
+Before: `postgres://user:pass@host:port/database;`\
+After: `postgres://user:pass@host:port/database?ssl=true;`
+
 ## Scripts available
 
 In the project directory, you can run; \
