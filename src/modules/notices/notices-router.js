@@ -8,31 +8,6 @@ router.get(
   checkApiAccess,
   noticeController.handleFetchNoticeRecipients
 );
-router.get(
-  "/recipients",
-  checkApiAccess,
-  noticeController.handleGetNoticeRecipients
-);
-router.get(
-  "/recipients/:id",
-  checkApiAccess,
-  noticeController.handleGetNoticeRecipient
-);
-router.post(
-  "/recipients",
-  checkApiAccess,
-  noticeController.handleAddNoticeRecipient
-);
-router.put(
-  "/recipients/:id",
-  checkApiAccess,
-  noticeController.handleUpdateNoticeRecipient
-);
-router.delete(
-  "/recipients/:id",
-  checkApiAccess,
-  noticeController.handleDeleteNoticeRecipient
-);
 router.post("/:id/status", checkApiAccess, noticeController.handleNoticeStatus);
 router.get(
   "/pending",

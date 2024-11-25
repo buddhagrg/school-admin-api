@@ -51,10 +51,11 @@ const updateUserRefreshToken = async (
 };
 
 const getMenusByRoleId = async ({ staticRoleId, roleId, schoolId, client }) => {
-  const isUserAdmin = Number(staticRoleId) === 2 ? true : false;
-  const isAllowedForSuperAdmin = !isUserAdmin;
-  const query = [1, 2].includes(staticRoleId)
-    ? `SELECT * FROM access_controls WHERE is_allowed_for_super_admin = $1`
+  const directAllowedRoleId = Number(staticRoleId) === 2 ? [2, 12] : [1, 12];
+  const isUserAdminOrSuperAdmin = [1, 2].includes(staticRoleId);
+
+  const query = isUserAdminOrSuperAdmin
+    ? `SELECT * FROM access_controls WHERE direct_allowed_role_id = ANY($1)`
     : `
       SELECT
         ac.id,
@@ -66,9 +67,10 @@ const getMenusByRoleId = async ({ staticRoleId, roleId, schoolId, client }) => {
         ac.type
       FROM permissions p
       JOIN access_controls ac ON p.access_control_id = ac.id
-      WHERE p.role_id = $1 AND p.school_id = $2`;
-  const queryParams = isUserAdmin
-    ? [isAllowedForSuperAdmin]
+      WHERE p.role_id = $1 AND p.school_id = $2
+      AND ac.direct_allowed_role_id IN (2, 12)`;
+  const queryParams = isUserAdminOrSuperAdmin
+    ? [directAllowedRoleId]
     : [roleId, schoolId];
   const { rows } = await client.query(query, queryParams);
   return rows;
@@ -147,6 +149,13 @@ const addAdminStaff = async ({ payload, client }) => {
   return rows[0];
 };
 
+const updateSchoolUserId = async (payload) => {
+  const { lastModifieddBy, schoolId, client } = payload;
+  const query = `UPDATE schools SET last_modified_by = $1 WHERE school_id = $2`;
+  const queryParams = [lastModifieddBy, schoolId];
+  await client.query(query, queryParams);
+};
+
 const addStaticSchoolRoles = async ({ schoolId, client }) => {
   const query = `
     INSERT INTO roles(static_role_id, name, is_editable, school_id)
@@ -178,4 +187,5 @@ module.exports = {
   checkIfSchoolExists,
   addAdminStaff,
   addStaticSchoolRoles,
+  updateSchoolUserId,
 };

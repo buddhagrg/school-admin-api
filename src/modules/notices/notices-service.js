@@ -1,16 +1,11 @@
 const { ApiError } = require("../../utils");
 const {
-  getNoticeRecipients,
   getNoticeById,
   addNewNotice,
   updateNoticeById,
   manageNoticeStatus,
   getNotices,
-  addNoticeRecipient,
-  updateNoticeRecipient,
   getNoticeRecipientList,
-  deleteNoticeRecipient,
-  getNoticeRecipientById,
   getAllPendingNotices,
 } = require("./notices-repository");
 
@@ -20,23 +15,6 @@ const fetchNoticeRecipients = async (schoolId) => {
     throw new ApiError(404, "Recipients not found");
   }
   return recipients;
-};
-
-const processGetNoticeRecipients = async (schoolId) => {
-  const recipients = await getNoticeRecipients(schoolId);
-  if (!Array.isArray(recipients) || recipients.length <= 0) {
-    throw new ApiError(404, "Recipients not found");
-  }
-  return recipients;
-};
-
-const processGetNoticeRecipient = async (payload) => {
-  const recipient = await getNoticeRecipientById(payload);
-  if (!recipient) {
-    throw new ApiError(404, "Recipient detail not found");
-  }
-
-  return recipient;
 };
 
 const fetchAllNotices = async (userId) => {
@@ -129,33 +107,6 @@ const handleStatusCheck = (
   return false;
 };
 
-const processAddNoticeRecipient = async (payload) => {
-  const affectedRow = await addNoticeRecipient(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to add notice recipient");
-  }
-
-  return { message: "Notice Recipient added successfully" };
-};
-
-const processUpdateNoticeRecipient = async (payload) => {
-  const affectedRow = await updateNoticeRecipient(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to update notice recipient");
-  }
-
-  return { message: "Notice Recipient updated successfully" };
-};
-
-const processDeleteNoticeRecipient = async (payload) => {
-  const affectedRow = await deleteNoticeRecipient(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to delete notice recipient");
-  }
-
-  return { message: "Notice Recipient deleted successfully" };
-};
-
 const processGetAllPendingNotices = async (schoolId) => {
   const notices = await getAllPendingNotices(schoolId);
   if (notices.length <= 0) {
@@ -172,10 +123,5 @@ module.exports = {
   addNotice,
   updateNotice,
   processNoticeStatus,
-  processAddNoticeRecipient,
-  processUpdateNoticeRecipient,
-  processGetNoticeRecipients,
-  processDeleteNoticeRecipient,
-  processGetNoticeRecipient,
   processGetAllPendingNotices,
 };

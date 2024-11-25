@@ -105,10 +105,13 @@ const findStudentToUpdate = async (paylaod) => {
   } = paylaod;
   const currentDate = new Date();
   const query = `
-        UPDATE users
-        SET name = $1, email = $2, updated_dt = $3
-        WHERE id = $4;
-    `;
+    UPDATE users
+    SET
+      name = $1,
+      email = $2,
+      updated_dt = $3
+    WHERE id = $4;
+  `;
   const queryParams = [name, email, currentDate, id];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;

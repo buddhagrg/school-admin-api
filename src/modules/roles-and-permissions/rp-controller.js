@@ -49,7 +49,8 @@ const handleAddRolePermission = asyncHandler(async (req, res) => {
 
 const handleGetRolePermission = asyncHandler(async (req, res) => {
   const { id: roleId } = req.params;
-  const permissions = await getRolePermissions(roleId);
+  const { schoolId } = req.user;
+  const permissions = await getRolePermissions({ roleId, schoolId });
   res.json({ permissions });
 });
 

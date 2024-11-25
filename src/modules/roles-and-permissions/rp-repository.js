@@ -52,9 +52,10 @@ const enableOrDisableRoleStatusByRoleId = async ({ id, status, schoolId }) => {
 
 const getAccessControlByIds = async ({ ids, client }) => {
   const query = `
-        SELECT id, type
-        FROM access_controls
-        WHERE id = ANY($1::int[])
+    SELECT id, type
+    FROM access_controls
+    WHERE id = ANY($1::int[])
+    AND direct_allowed_role_id IN (2, 12)
     `;
   const { rows } = await client.query(query, [ids]);
   return rows;
@@ -78,21 +79,22 @@ const getStaticRoleIdById = async (roleId) => {
   const { rows } = await processDBRequest({ query, queryParams });
   return rows[0].static_role_id;
 };
-const getPermissionsById = async ({ roleId, staticRoleId }) => {
-  const isUserAdmin = Number(staticRoleId) === 2 ? true : false;
-  const isAllowedForSuperAdmin = !isUserAdmin;
-  const query = [1, 2].includes(staticRoleId)
-    ? `SELECT id, name FROM access_controls WHERE is_allowed_for_super_admin = $1`
+const getPermissionsById = async ({ roleId, staticRoleId, schoolId }) => {
+  const isUserAdmin = staticRoleId === 2;
+
+  const query = isUserAdmin
+    ? `SELECT id, name FROM access_controls WHERE direct_allowed_role_id = ANY($1)`
     : `
       SELECT
         ac.id,
         ac.name
       FROM permissions p
       JOIN access_controls ac ON p.access_control_id = ac.id
-      WHERE p.role_id = $1 AND p.school_id = $2`;
-  const queryParams = isUserAdmin
-    ? [isAllowedForSuperAdmin]
-    : [roleId, schoolId];
+      WHERE p.role_id = $1 AND p.school_id = $2
+      AND ac.direct_allowed_role_id IN ('2', '12')
+    `;
+  const queryParams = isUserAdmin ? [[2, 12]] : [roleId, schoolId];
+  console.log(queryParams);
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
 };

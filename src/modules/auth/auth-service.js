@@ -10,6 +10,7 @@ const {
   formatMyPermission,
   generateSixDigitRandomNumber,
   sendMail,
+  getSchoolId,
 } = require("../../utils");
 const {
   findUserByUsername,
@@ -26,6 +27,7 @@ const {
   checkIfSchoolExists,
   addAdminStaff,
   addStaticSchoolRoles,
+  updateSchoolUserId,
 } = require("./auth-repository");
 const { v4: uuidV4 } = require("uuid");
 const { env, db } = require("../../config");
@@ -110,6 +112,7 @@ const login = async (username, passwordFromUser) => {
       menus: hierarchialMenus,
       uis,
       apis,
+      appBase: staticRoleId === 1 ? "/admin" : "/app",
     };
 
     return { accessToken, refreshToken, csrfToken, accountBasic };
@@ -327,25 +330,6 @@ const processPwdReset = async (userId) => {
   }
 };
 
-const getSchoolId = async (client, attempts = 0) => {
-  const MAX_RETRIES = 5;
-
-  if (attempts >= MAX_RETRIES) {
-    throw new ApiError(
-      403,
-      "Exceeded maximum retries for generating a unique school ID."
-    );
-  }
-
-  const schoolId = generateSixDigitRandomNumber();
-  const exists = await checkIfSchoolExists({ schoolId, client });
-  if (!exists) {
-    return schoolId;
-  }
-
-  return getSchoolId(client, attempts++);
-};
-
 const sendSchoolRegistrationEmail = async ({ schoolId, schoolName, email }) => {
   const mailOptions = {
     from: env.MAIL_FROM_USER,
@@ -357,7 +341,7 @@ const sendSchoolRegistrationEmail = async ({ schoolId, schoolName, email }) => {
 };
 
 const processSetupSchoolProfile = async (payload) => {
-  const SCHOOL_PROFILE_CREATE_FAIL = "Fail to create school profile";
+  const SCHOOL_PROFILE_CREATE_FAIL = "Unable to create school profile";
   const client = await db.connect();
   try {
     await client.query("BEGIN");
@@ -399,7 +383,7 @@ const processSetupSchoolProfile = async (payload) => {
 };
 
 const processSetupAdminProfile = async (payload) => {
-  const ADMIN_PROFILE_ADD_FAIL = "Fail to add admin profile";
+  const ADMIN_PROFILE_ADD_FAIL = "Unable to add admin profile";
   const SCHOOL_NOT_FOUND = "School does not exist";
   const ADMIN_PROFILE_ADD_AND_VERIFICATION_EMAIL_SENT_SUCCESS =
     "Admin profile created. Please check your email to verify your account.";
@@ -423,7 +407,7 @@ const processSetupAdminProfile = async (payload) => {
       client,
     });
     if (roles.length <= 0) {
-      throw new ApiError(500, "Fail to add roles for the school");
+      throw new ApiError(500, "Unable to add roles for the school");
     }
 
     const adminRoleId =
@@ -443,6 +427,13 @@ const processSetupAdminProfile = async (payload) => {
         userId: result.userId,
         userEmail: school.email,
       });
+
+      await updateSchoolUserId({
+        lastModifieddBy: result.userId,
+        schoolId: payload.schoolId,
+        client,
+      });
+
       await client.query("COMMIT");
 
       return { message: ADMIN_PROFILE_ADD_AND_VERIFICATION_EMAIL_SENT_SUCCESS };
@@ -453,7 +444,6 @@ const processSetupAdminProfile = async (payload) => {
       );
     }
   } catch (error) {
-    console.log(error);
     await client.query("ROLLBACK");
     if (error instanceof ApiError) {
       throw error;

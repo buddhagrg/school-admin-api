@@ -5,6 +5,7 @@ const {
   authenticateToken,
   csrfProtection,
   checkApiAccess,
+  isUserAdminOrSuperAdmin,
 } = require("../middlewares");
 const { studentsRoutes } = require("../modules/students/sudents-router.js");
 const { authRoutes } = require("../modules/auth/auth-router.js");
@@ -30,6 +31,7 @@ const {
 const {
   accessControlRoutes,
 } = require("../modules/access-control/access-control-router.js");
+const { adminRoutes } = require("../modules/admin/admin-router.js");
 
 router.get(
   "/teachers",
@@ -67,5 +69,12 @@ router.use("/notices", authenticateToken, csrfProtection, noticesRoutes);
 router.use("/staffs", authenticateToken, csrfProtection, staffsRoutes);
 router.use("/departments", authenticateToken, csrfProtection, departmentRoutes);
 router.use("/roles", authenticateToken, csrfProtection, rpRoutes);
+router.use(
+  "/admin",
+  authenticateToken,
+  csrfProtection,
+  isUserAdminOrSuperAdmin([1]),
+  adminRoutes
+);
 
 module.exports = { v1Routes: router };

@@ -130,125 +130,74 @@ const updateNoticeById = async (payload) => {
 
 const getNoticeRecipientList = async (schoolId) => {
   try {
-    const noticeRecipientTypesQuery =
-      "SELECT * FROM notice_recipient_types WHERE school_id = $1";
-    const noticeRecipientTypesQueryParams = [schoolId];
-    const { rows: noticeRecipientTypes } = await db.query(
-      noticeRecipientTypesQuery,
-      noticeRecipientTypesQueryParams
-    );
+    const queries = [
+      {
+        query: `
+          SELECT
+          t1.id, t1.name, t2.id AS "roleId"
+          FROM departments t1
+          JOIN roles t2 ON t2.static_role_id = $1
+          WHERE t1.school_id = $2
+        `,
+        staticRoleId: 3,
+        roleName: "Teacher",
+        dependentName: "Departments",
+      },
+      {
+        query: `
+        SELECT
+        t1.id, t1.name, t2.id AS "roleId"
+        FROM classes t1
+        JOIN roles t2 ON t2.static_role_id = $1
+        WHERE t1.school_id = $2
+      `,
+        staticRoleId: 4,
+        roleName: "Student",
+        dependentName: "Classes",
+      },
+    ];
 
-    if (noticeRecipientTypes.length <= 0) {
-      return [];
-    }
+    const staticRecipients = queries.map(async (item) => {
+      const { query, staticRoleId, roleName, dependentName } = item;
+      const queryParams = [staticRoleId, schoolId];
+      const { rows } = await processDBRequest({ query, queryParams });
+      const resultantRows =
+        rows.length > 0
+          ? rows.map((row) => {
+              const { roleId, ...rest } = row;
+              return rest;
+            })
+          : [];
 
-    const recipientPromises = noticeRecipientTypes.map(
-      async (recipientType) => {
-        const {
-          id,
-          role_id,
-          primary_dependent_name,
-          primary_dependent_select,
-        } = recipientType;
+      const recipient =
+        resultantRows.length > 0
+          ? {
+              id: rows[0].roleId,
+              roleId: rows[0].roleId,
+              name: roleName,
+              primaryDependents: {
+                name: dependentName,
+                list: resultantRows,
+              },
+            }
+          : {};
+      return recipient;
+    });
 
-        const selectRoleQuery = `SELECT name FROM roles WHERE id = $1`;
-        const { rows } = await db.query(selectRoleQuery, [role_id]);
-        const recipient = { id, roleId: role_id, name: rows[0].name };
+    const staticResult = await Promise.all(staticRecipients);
 
-        const { rows: dependentRows } = primary_dependent_select
-          ? await db.query(primary_dependent_select, [schoolId])
-          : await Promise.resolve({ rows: [] });
+    const dynamicQuery = `
+    SELECT id, name, id AS "roleId" FROM roles WHERE school_id = $1 AND static_role_id NOT IN (1,2,3,4)`;
+    const dynamicQueryParams = [schoolId];
+    const { rows } = await processDBRequest({
+      query: dynamicQuery,
+      queryParams: dynamicQueryParams,
+    });
 
-        recipient.primaryDependents = {
-          name: primary_dependent_name,
-          list: dependentRows,
-        };
-
-        return recipient;
-      }
-    );
-
-    const result = await Promise.all(recipientPromises);
-    return result;
+    return [...staticResult, ...rows];
   } catch (error) {
     throw error;
   }
-};
-
-const getNoticeRecipients = async (schoolId) => {
-  const query = `
-    SELECT
-      t1.id,
-      t1.role_id AS "roleId",
-      t1.primary_dependent_name AS "primaryDependentName",
-      t1.primary_dependent_select AS "primaryDependentSelect",
-      t2.name as "roleName"
-    FROM notice_recipient_types t1
-    JOIN roles t2 ON t2.id = t1.role_id
-    WHERE t1.school_id = $1`;
-  const queryParams = [schoolId];
-  const { rows } = await processDBRequest({ query, queryParams });
-  return rows;
-};
-
-const addNoticeRecipient = async (payload) => {
-  const { roleId, primaryDependentName, primaryDependentSelect, schoolId } =
-    payload;
-  const query = `
-    INSERT INTO notice_recipient_types
-      (role_id, primary_dependent_name, primary_dependent_select, school_id)
-    VALUES ($1, $2, $3, $4)
-  `;
-  const queryParams = [
-    roleId,
-    primaryDependentName,
-    primaryDependentSelect,
-    schoolId,
-  ];
-  const { rowCount } = await processDBRequest({ query, queryParams });
-  return rowCount;
-};
-
-const updateNoticeRecipient = async (payload) => {
-  const { id, roleId, primaryDependentName, primaryDependentSelect, schoolId } =
-    payload;
-  const query = `
-    UPDATE notice_recipient_types
-    SET
-      primary_dependent_name = $1,
-      primary_dependent_select = $2
-    WHERE id = $3 AND role_id = $4 AND school_id = $5`;
-  const queryParams = [
-    primaryDependentName,
-    primaryDependentSelect,
-    id,
-    roleId,
-    schoolId,
-  ];
-  const { rowCount } = await processDBRequest({ query, queryParams });
-  return rowCount;
-};
-
-const deleteNoticeRecipient = async ({ id, schoolId }) => {
-  const query = `DELETE FROM notice_recipient_types WHERE id = $1 AND school_id = $2`;
-  const queryParams = [id, schoolId];
-  const { rowCount } = await processDBRequest({ query, queryParams });
-  return rowCount;
-};
-
-const getNoticeRecipientById = async ({ id, schoolId }) => {
-  const query = `
-    SELECT
-      id,
-      role_id AS "roleId",
-      primary_dependent_name AS "primaryDependentName",
-      primary_dependent_select AS "primaryDependentSelect"
-    FROM notice_recipient_types
-    WHERE id = $1 AND school_id = $2
-  `;
-  const queryParams = [id, schoolId];
-  const { rows } = await processDBRequest({ query, queryParams });
-  return rows[0];
 };
 
 const manageNoticeStatus = async (payload) => {
@@ -272,12 +221,7 @@ module.exports = {
   addNewNotice,
   updateNoticeById,
   getNoticeRecipientList,
-  getNoticeRecipients,
   manageNoticeStatus,
   getNotices,
-  addNoticeRecipient,
-  updateNoticeRecipient,
-  deleteNoticeRecipient,
-  getNoticeRecipientById,
   getAllPendingNotices,
 };
