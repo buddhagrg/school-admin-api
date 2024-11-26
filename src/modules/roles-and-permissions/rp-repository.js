@@ -94,7 +94,6 @@ const getPermissionsById = async ({ roleId, staticRoleId, schoolId }) => {
       AND ac.direct_allowed_role_id IN ('2', '12')
     `;
   const queryParams = isUserAdmin ? [[2, 12]] : [roleId, schoolId];
-  console.log(queryParams);
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
 };
