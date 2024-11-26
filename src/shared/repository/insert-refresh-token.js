@@ -21,4 +21,4 @@ const insertRefreshToken = async ({
   });
 };
 
-module.exports = insertRefreshToken;
+module.exports = { insertRefreshToken };

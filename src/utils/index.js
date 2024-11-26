@@ -20,7 +20,7 @@ const { formatMyPermission } = require("./format-my-permission");
 const {
   generateSixDigitRandomNumber,
 } = require("./generate-six-digit-random-number");
-const getSchoolId = require("./get-school-id");
+const { getSchoolId } = require("./get-school-id");
 
 module.exports = {
   ApiError,
