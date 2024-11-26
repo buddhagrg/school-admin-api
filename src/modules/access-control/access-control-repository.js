@@ -1,4 +1,4 @@
-const { processDBRequest } = require("../../utils");
+const processDBRequest = require("../../utils/process-db-request");
 
 const getAllAccessControls = async (staticRoleId) => {
   const getQuery = `

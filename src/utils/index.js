@@ -1,6 +1,5 @@
 const { ApiError } = require("./api-error");
 const { generateToken, verifyToken } = require("./jwt-handle");
-const { processDBRequest } = require("./process-db-request");
 const { generateCsrfHmacHash, verifyCsrfToken } = require("./csrf-handle");
 const { isObjectEmpty } = require("./is-object-empty");
 const { getAccessItemHierarchy } = require("./get-access-item-hierarchy");
@@ -21,13 +20,12 @@ const { formatMyPermission } = require("./format-my-permission");
 const {
   generateSixDigitRandomNumber,
 } = require("./generate-six-digit-random-number");
-const { getSchoolId } = require("./get-school-id");
+const getSchoolId = require("./get-school-id");
 
 module.exports = {
   ApiError,
   verifyToken,
   generateToken,
-  processDBRequest,
   generateCsrfHmacHash,
   verifyCsrfToken,
   isObjectEmpty,

@@ -1,4 +1,5 @@
 const { env } = require("../../config");
+const processDBRequest = require("../../utils/process-db-request");
 
 const insertRefreshToken = async ({
   userId,
@@ -13,7 +14,11 @@ const insertRefreshToken = async ({
     INSERT INTO user_refresh_tokens (token, user_id, expires_at, school_id)
     VALUES($1, $2, $3, $4)`;
   const queryParams = [refreshToken, userId, expiresAt, schoolId];
-  await client.query(query, queryParams);
+  await processDBRequest({
+    query,
+    queryParams,
+    client,
+  });
 };
 
-module.exports = { insertRefreshToken };
+module.exports = insertRefreshToken;

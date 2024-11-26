@@ -1,4 +1,4 @@
-const { processDBRequest } = require("../../utils");
+const processDBRequest = require("../../utils/process-db-request");
 
 const getRoleDetail = async (id) => {
   const query = "SELECT * FROM roles WHERE id = $1";
@@ -57,7 +57,11 @@ const getAccessControlByIds = async ({ ids, client }) => {
     WHERE id = ANY($1::int[])
     AND direct_allowed_role_id IN (2, 12)
     `;
-  const { rows } = await client.query(query, [ids]);
+  const { rows } = await processDBRequest({
+    query,
+    queryParams: [ids],
+    client,
+  });
   return rows;
 };
 
@@ -66,12 +70,12 @@ const insertPermissionForRoleId = async ({ queryParams, client }) => {
     INSERT INTO permissions(role_id, access_control_id, type, school_id)
     VALUES ${queryParams}
     ON CONFLICT (role_id, access_control_id, school_id) DO NOTHING`;
-  await client.query(query);
+  await processDBRequest({ query, client });
 };
 const deletePermissionForRoleId = async ({ roleId, schoolId, client }) => {
   const query = "DELETE FROM permissions WHERE role_id = $1 AND school_id = $2";
   const queryParams = [roleId, schoolId];
-  await client.query(query, queryParams);
+  await processDBRequest({ query, queryParams, client });
 };
 const getStaticRoleIdById = async (roleId) => {
   const query = `SELECT static_role_id FROM roles WHERE id = $1`;

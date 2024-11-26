@@ -1,4 +1,4 @@
-const { processDBRequest } = require("../../utils");
+const processDBRequest = require("../../utils/process-db-request");
 
 const getAllDepartments = async (schoolId) => {
   const query = "SELECT * FROM departments WHERE school_id = $1";

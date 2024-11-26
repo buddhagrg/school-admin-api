@@ -1,3 +1,8 @@
+const { checkIfSchoolExists } = require("../shared/repository");
+const {
+  generateSixDigitRandomNumber,
+} = require("./generate-six-digit-random-number");
+
 const getSchoolId = async (client, attempts = 0) => {
   const MAX_RETRIES = 5;
 
@@ -17,4 +22,4 @@ const getSchoolId = async (client, attempts = 0) => {
   return getSchoolId(client, attempts++);
 };
 
-module.exports = { getSchoolId };
+module.exports = getSchoolId;

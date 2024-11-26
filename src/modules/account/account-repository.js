@@ -1,4 +1,4 @@
-const { processDBRequest } = require("../../utils");
+const processDBRequest = require("../../utils/process-db-request");
 
 const changePassword = async ({ userId, hashedPassword, schoolId, client }) => {
   const query = `
@@ -7,7 +7,7 @@ const changePassword = async ({ userId, hashedPassword, schoolId, client }) => {
     WHERE id = $2 AND school_id = $3
   `;
   const queryParams = [hashedPassword, userId, schoolId];
-  await client.query(query, queryParams);
+  await processDBRequest({ query, queryParams, client });
 };
 
 const getStudentAccountDetail = async ({ userId, schoolId, roleId }) => {

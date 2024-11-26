@@ -1,4 +1,4 @@
-const { processDBRequest } = require("../../utils");
+const processDBRequest = require("../../utils/process-db-request");
 
 const findUserById = async (id) => {
   const query = `
@@ -21,8 +21,9 @@ const findUserByEmail = async ({ email, client }) => {
       id
     FROM users where email = $1`;
   const queryParams = [email];
-  const { rows } = await client.query(query, queryParams);
+  const { rows } = await processDBRequest({ query, queryParams, client });
   return rows[0];
 };
 
-module.exports = { findUserById, findUserByEmail };
+exports.findUserById = findUserById;
+exports.findUserByEmail = findUserByEmail;

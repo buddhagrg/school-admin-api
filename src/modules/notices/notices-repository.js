@@ -1,5 +1,5 @@
 const { db } = require("../../config");
-const { processDBRequest } = require("../../utils");
+const processDBRequest = require("../../utils/process-db-request");
 
 const getNotices = async (userId) => {
   const query = `SELECT * FROM get_notices($1)`;

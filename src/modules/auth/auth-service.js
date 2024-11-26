@@ -23,14 +23,13 @@ const {
   doesEmailExist,
   setupUserPassword,
   setupSchoolProfile,
-  checkIfSchoolExists,
   addAdminStaff,
   addStaticSchoolRoles,
   updateSchoolUserId,
 } = require("./auth-repository");
 const { v4: uuidV4 } = require("uuid");
 const { env, db } = require("../../config");
-const { insertRefreshToken, findUserById } = require("../../shared/repository");
+const insertRefreshToken = require("../../shared/repository/insert-refresh-token");
 const { schoolProfileCreatedTemplate } = require("../../templates");
 
 const PWD_SETUP_EMAIL_SEND_SUCCESS =

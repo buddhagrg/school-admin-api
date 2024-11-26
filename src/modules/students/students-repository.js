@@ -1,4 +1,4 @@
-const { processDBRequest } = require("../../utils");
+const processDBRequest = require("../../utils/process-db-request");
 
 const findAllStudents = async (payload) => {
   const { name, className, section, roll, schoolId } = payload;
