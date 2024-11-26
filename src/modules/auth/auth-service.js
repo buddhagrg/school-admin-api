@@ -8,7 +8,6 @@ const {
   generateHashedPassword,
   sendAccountVerificationEmail,
   formatMyPermission,
-  generateSixDigitRandomNumber,
   sendMail,
   getSchoolId,
 } = require("../../utils");
@@ -53,17 +52,21 @@ const login = async (username, passwordFromUser) => {
     }
 
     const {
-      id: userId,
-      role_id: roleId,
+      userId,
+      roleId,
       name,
       email,
-      password: passwordFromDB,
-      is_active,
-      school_id: schoolId,
+      passwordFromDB,
+      isUserActive,
+      schoolId,
       roleName,
       staticRoleId,
+      isSchoolActive,
     } = user;
-    if (!is_active) {
+    if (!isSchoolActive) {
+      throw new ApiError(403, "Your school account is disabled.");
+    }
+    if (!isUserActive) {
       throw new ApiError(403, "Your account is disabled");
     }
 

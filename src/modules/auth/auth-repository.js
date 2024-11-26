@@ -4,11 +4,19 @@ const { processDBRequest } = require("../../utils");
 const findUserByUsername = async ({ username, client }) => {
   const query = `
     SELECT
-      t1.*,
+      t1.id AS "userId",
+      t1.role_id AS "roleId",
+      t1.name,
+      t1.email,
+      t1.password AS "passwordFromDB",
+      t1.is_active AS "isUserActive",
+      t1.school_id AS "schoolId",
       lower(t2.name) AS "roleName",
-      t2.static_role_id AS "staticRoleId"
+      t2.static_role_id AS "staticRoleId",
+      t3.is_active AS "isSchoolActive"
     FROM users t1
     JOIN roles t2 ON t2.id = t1.role_id
+    JOIN schools t3 ON t3.school_id = t1.school_id
     WHERE t1.email = $1`;
   const queryParams = [username];
   const { rows } = await client.query(query, queryParams);
