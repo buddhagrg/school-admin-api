@@ -15,15 +15,4 @@ const findUserById = async (id) => {
   return rows[0];
 };
 
-const findUserByEmail = async ({ email, client }) => {
-  const query = `
-    SELECT
-      id
-    FROM users where email = $1`;
-  const queryParams = [email];
-  const { rows } = await processDBRequest({ query, queryParams, client });
-  return rows[0];
-};
-
-exports.findUserById = findUserById;
-exports.findUserByEmail = findUserByEmail;
+module.exports = { findUserById };

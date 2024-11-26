@@ -29,8 +29,12 @@ const {
 } = require("./auth-repository");
 const { v4: uuidV4 } = require("uuid");
 const { env, db } = require("../../config");
-const insertRefreshToken = require("../../shared/repository/insert-refresh-token");
 const { schoolProfileCreatedTemplate } = require("../../templates");
+const {
+  checkIfSchoolExists,
+  findUserById,
+  insertRefreshToken,
+} = require("../../shared/repository");
 
 const PWD_SETUP_EMAIL_SEND_SUCCESS =
   "Password setup link emailed successfully.";
