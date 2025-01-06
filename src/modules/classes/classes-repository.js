@@ -1,8 +1,17 @@
 const processDBRequest = require("../../utils/process-db-request");
 
 const getAllClasses = async (schoolId) => {
-  const query = "SELECT * FROM classes WHERE school_id = $1 ORDER BY name";
-  const queryParams = [schoolId];
+  const query = `
+    SELECT
+      t1.name AS "className",
+	    JSON_AGG(t2.name) as sections
+    FROM classes t1
+    LEFT JOIN sections t2 ON t2.class_id = t1.id
+    WHERE t1.school_id = $1
+      AND t1.is_active = $2
+    GROUP BY t1.name
+  `;
+  const queryParams = [schoolId, true];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
 };
@@ -18,30 +27,33 @@ const getClassDetail = async ({ id, schoolId }) => {
 };
 
 const addNewClass = async (payload) => {
-  const { name, sections, schoolId } = payload;
+  const { name, schoolId, academicLevelId } = payload;
   const query = `
-    INSERT INTO classes (name, sections, school_id)
-    VALUES ($1, $2, $3)
+    INSERT INTO classes (name, school_id, academic_level_id)
+    VALUES ($1, $2, $3, $4)
   `;
-  const queryParams = [name, sections, schoolId];
+  const queryParams = [name, schoolId, academicLevelId];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };
 
 const updateClassDetailById = async (payload) => {
-  const { id, name, sections, schoolId } = payload;
+  const { id, name, schoolId } = payload;
   const query = `
     UPDATE classes
-    SET name = $1, sections = $2
+    SET name = $1
     WHERE id = $3 AND school_id = $4
   `;
-  const queryParams = [name, sections, id, schoolId];
+  const queryParams = [name, id, schoolId];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };
 
 const deleteClassById = async ({ id, schoolId }) => {
-  const query = "DELETE FROM classes WHERE id = $1 AND school_id = $2";
+  const query = `
+    UPDATE classes SET is_active = $1
+    WHERE id = $3 AND school_id = $4
+  `;
   const queryParams = [id, schoolId];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;

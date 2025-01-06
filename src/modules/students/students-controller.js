@@ -8,16 +8,16 @@ const {
 } = require("./students-service");
 
 const handleGetAllStudents = asyncHandler(async (req, res) => {
-  const { name, section, class: className, roll } = req.query;
+  const { name, section, class: classId, roll } = req.query;
   const { schoolId } = req.user;
-  const students = await getAllStudents({
+  const data = await getAllStudents({
     name,
     section,
-    className,
+    classId,
     roll,
     schoolId,
   });
-  res.json({ students });
+  res.json({ data });
 });
 
 const handleAddStudent = asyncHandler(async (req, res) => {

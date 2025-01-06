@@ -1,7 +1,7 @@
 const processDBRequest = require("../../utils/process-db-request");
 
 const findAllStudents = async (payload) => {
-  const { name, className, section, roll, schoolId } = payload;
+  const { name, classId, section, roll, schoolId } = payload;
   let query = `
     SELECT
       t1.id,
@@ -17,12 +17,12 @@ const findAllStudents = async (payload) => {
     query += ` AND t1.name = $${queryParams.length + 1}`;
     queryParams.push(name);
   }
-  if (className) {
-    query += ` AND t3.class_name = $${queryParams.length + 1}`;
-    queryParams.push(className);
+  if (classId) {
+    query += ` AND t3.class_id = $${queryParams.length + 1}`;
+    queryParams.push(classId);
   }
   if (section) {
-    query += ` AND t3.section_name = $${queryParams.length + 1}`;
+    query += ` AND t3.section_id = $${queryParams.length + 1}`;
     queryParams.push(section);
   }
   if (roll) {
@@ -53,8 +53,8 @@ const findStudentDetail = async ({ id, schoolId }) => {
       p.phone,
       p.gender,
       p.dob,
-      p.class_name AS "class",
-      p.section_name AS "section",
+      c.name AS class,
+      sec.name AS section,
       p.roll,
       p.father_name AS "fatherName",
       p.father_phone AS "fatherPhone",
@@ -65,13 +65,15 @@ const findStudentDetail = async ({ id, schoolId }) => {
       p.relation_of_guardian as "relationOfGuardian",
       p.current_address AS "currentAddress",
       p.permanent_address AS "permanentAddress",
-      p.admission_dt AS "admissionDate",
+      p.admission_date AS "admissionDate",
       r.name as "reporterName",
       s.name as "schoolName"
     FROM users u
     LEFT JOIN user_profiles p ON u.id = p.user_id
     LEFT JOIN users r ON u.reporter_id = r.id
     LEFT JOIN schools s ON u.school_id = s.school_id
+    LEFT JOIN classes c ON c.id = p.class_id
+    LEFT JOIN sections sec ON sec.id = p.section_id
     WHERE u.id = $1 AND u.school_id = $2`;
   const queryParams = [id, schoolId];
   const { rows } = await processDBRequest({ query, queryParams });
@@ -89,7 +91,7 @@ const findStudentToSetStatus = async ({
     UPDATE users
     SET
       is_active = $1,
-      status_last_reviewed_dt = $2,
+      status_last_reviewed_date = $2,
       status_last_reviewer_id = $3
     WHERE id = $4 AND school_id = $5
   `;
@@ -109,7 +111,7 @@ const findStudentToUpdate = async (paylaod) => {
     SET
       name = $1,
       email = $2,
-      updated_dt = $3
+      updated_date = $3
     WHERE id = $4;
   `;
   const queryParams = [name, email, currentDate, id];

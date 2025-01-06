@@ -26,14 +26,14 @@ const handleMakeNewPolicy = asyncHandler(async (req, res) => {
 
 const handleGetLeavePolicies = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const leavePolicies = await fetchLeavePolicies(schoolId);
-  res.json({ leavePolicies });
+  const data = await fetchLeavePolicies(schoolId);
+  res.json({ data });
 });
 
 const handleGetMyLeavePolicy = asyncHandler(async (req, res) => {
   const { id, schoolId } = req.user;
-  const leavePolicies = await processGetMyLeavePolicy({ id, schoolId });
-  res.json({ leavePolicies });
+  const data = await processGetMyLeavePolicy({ id, schoolId });
+  res.json({ data });
 });
 
 const handleUpdateLeavePolicy = asyncHandler(async (req, res) => {
@@ -55,8 +55,8 @@ const handleUpdatePolicyUsers = asyncHandler(async (req, res) => {
 const handleGetPolicyUsers = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { schoolId } = req.user;
-  const users = await fetchPolicyUsers({ id, schoolId });
-  res.json({ users });
+  const data = await fetchPolicyUsers({ id, schoolId });
+  res.json({ data });
 });
 
 const handleRemovePolicyUser = asyncHandler(async (req, res) => {
@@ -69,8 +69,8 @@ const handleRemovePolicyUser = asyncHandler(async (req, res) => {
 
 const handleFetchPolicyEligibleUsers = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const users = await fetchPolicyEligibleUsers(schoolId);
-  res.json({ users });
+  const data = await fetchPolicyEligibleUsers(schoolId);
+  res.json({ data });
 });
 
 const handleCreateNewLeaveRequest = asyncHandler(async (req, res) => {
@@ -123,8 +123,8 @@ const handleUpdateLeaveRequest = asyncHandler(async (req, res) => {
 
 const handleGetUserLeaveHistory = asyncHandler(async (req, res) => {
   const { id, schoolId } = req.user;
-  const leaveHistory = await getUserLeaveHistory({ id, schoolId });
-  res.json({ leaveHistory });
+  const data = await getUserLeaveHistory({ id, schoolId });
+  res.json({ data });
 });
 
 const handleDeleteLeaveRequest = asyncHandler(async (req, res) => {
@@ -136,8 +136,8 @@ const handleDeleteLeaveRequest = asyncHandler(async (req, res) => {
 
 const handleFetchPendingLeaveRequests = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const pendingLeaves = await fetchPendingLeaveRequests(schoolId);
-  res.json({ pendingLeaves });
+  const data = await fetchPendingLeaveRequests(schoolId);
+  res.json({ data });
 });
 
 module.exports = {

@@ -1,3 +1,4 @@
+const { ERROR_MESSAGES } = require("../../constants");
 const { ApiError } = require("../../utils");
 const {
   createNewLeavePolicy,
@@ -51,7 +52,7 @@ const updateLeavePolicy = async ({ name, id, schoolId }) => {
 const fetchLeavePolicies = async (schoolId) => {
   const policies = await getLeavePolicies(schoolId);
   if (!Array.isArray(policies) || policies.length <= 0) {
-    throw new ApiError(404, "Leave policies not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
   return policies;
@@ -60,7 +61,7 @@ const fetchLeavePolicies = async (schoolId) => {
 const processGetMyLeavePolicy = async ({ id, schoolId }) => {
   const policies = await getMyLeavePolicy({ id, schoolId });
   if (!Array.isArray(policies) || policies.length <= 0) {
-    throw new ApiError(404, "Leave policies not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
   return policies;
@@ -71,7 +72,7 @@ const fetchPolicyUsers = async ({ id, schoolId }) => {
 
   const users = await getUsersByPolicyId({ id, schoolId });
   if (!Array.isArray(users) || users.length <= 0) {
-    throw new ApiError(404, "Policy users not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
   return users;
@@ -86,7 +87,7 @@ const updatePolicyUsers = async ({ policyId, users, schoolId }) => {
     schoolId,
   });
   if (affectedRow <= 0) {
-    throw new ApiError(404, "No users were updated or policy not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
   return { message: "Users of policy updated" };
@@ -121,7 +122,7 @@ const reviewLeavePolicy = async ({ status, policyId, schoolId }) => {
 const fetchPolicyEligibleUsers = async (schoolId) => {
   const users = await getPolicyEligibleUsers(schoolId);
   if (!Array.isArray(users) || users.length <= 0) {
-    throw new ApiError(404, "Users not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
   return users;
@@ -152,7 +153,7 @@ const updateLeaveRequest = async (payload) => {
 const getUserLeaveHistory = async ({ id, schoolId }) => {
   const leaves = await getLeaveRequestHistoryByUser({ id, schoolId });
   if (!Array.isArray(leaves) || leaves.length <= 0) {
-    throw new ApiError(404, "Leaves not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
   return leaves;
@@ -170,7 +171,7 @@ const deleteLeaveRequest = async ({ id, schoolId }) => {
 const fetchPendingLeaveRequests = async (schoolId) => {
   const leaves = await getPendingLeaveRequests(schoolId);
   if (!Array.isArray(leaves) || leaves.length <= 0) {
-    throw new ApiError(404, "Pending leave requests not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
   return leaves;

@@ -3,14 +3,32 @@ const processDBRequest = require("../../utils/process-db-request");
 const getClassTeachers = async (schoolId) => {
   const query = `
     SELECT
-      t1.id,
-      t1.class_name AS class,
-      t1.section_name AS section,
-      t2.name as "teacher"
+      t2.name as class,
+      CASE WHEN t1.section_id IS NULL THEN
+        JSON_BUILD_OBJECT(
+          'id', t1.teacher_id,
+          'name', t4.name
+        )
+      ELSE
+        NULL
+      END AS teacher,
+      CASE WHEN t1.section_id IS NOT NULL THEN
+        JSON_AGG(
+          JSON_BUILD_OBJECT(
+            id, t1.section_id,
+            name, t3.name,
+            teacherId, t1.teacher_id
+          )
+        )
+      ELSE
+        '[]' 
+      END AS sections
     FROM class_teachers t1
-    LEFT JOIN users t2 ON t1.teacher_id =  t2.id
+    JOIN classes t2 ON t2.id = t1.class_id
+    LEFT JOIN sections t3 ON t3.id = t1.section_id
+    JOIN USERS t4 ON t4.id = t1.teacher_id
     WHERE t1.school_id = $1
-    ORDER BY t1.class_name
+    GROUP BY t2.name, t1.section_id, t1.teacher_id, t4.name
   `;
   const queryParams = [schoolId];
   const { rows } = await processDBRequest({ query, queryParams });
@@ -18,12 +36,12 @@ const getClassTeachers = async (schoolId) => {
 };
 
 const addClassTeacher = async (payload) => {
-  const { className, section, teacher, schoolId } = payload;
+  const { classId, section, teacher, schoolId } = payload;
   const query = `
-    INSERT INTO class_teachers (class_name, section_name, teacher_id, school_id)
+    INSERT INTO class_teachers (school_id, class_id, section_id, teacher_id)
     VALUES($1, $2, $3, $4)
   `;
-  const queryParams = [className, section, teacher, schoolId];
+  const queryParams = [schoolId, classId, section, teacher];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };
@@ -31,11 +49,15 @@ const addClassTeacher = async (payload) => {
 const getClassTeacherById = async ({ id, schoolId }) => {
   const query = `
     SELECT
-      id,
-      class_name AS class,
-      section_name AS section,
-      teacher_id AS teacher
-    FROM class_teachers
+      t1.id,
+      t4.name AS class,
+      t5.name AS section,
+      t2.name AS teacher
+    FROM class_teachers t1
+    JOIN users t2 ON t2.id = t1.teacher_id
+    JOIN user_profiles t3 ON t3.user_id = t2.id
+    JOIN classes t4 ON t4.id = t3.class_id
+    JOIN sections t5 ON t5.id = t3.section_id
     WHERE id = $1 AND school_id = $2
   `;
   const queryParams = [id, schoolId];
@@ -47,16 +69,16 @@ const getClassTeacherById = async ({ id, schoolId }) => {
 };
 
 const updateClassTeacherById = async (payload) => {
-  const { id, className, section, teacher, schoolId } = payload;
+  const { id, classId, section, teacher, schoolId } = payload;
   const query = `
     UPDATE class_teachers
     SET
-      class_name = $1,
-      section_name = $2,
+      class_id = $1,
+      section_id = $2,
       teacher_id = $3
     WHERE id = $4 AND school_id = $5
   `;
-  const queryParams = [className, section, teacher, id, schoolId];
+  const queryParams = [classId, section, teacher, id, schoolId];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };

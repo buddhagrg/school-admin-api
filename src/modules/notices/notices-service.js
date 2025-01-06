@@ -1,3 +1,4 @@
+const { ERROR_MESSAGES } = require("../../constants");
 const { ApiError } = require("../../utils");
 const {
   getNoticeById,
@@ -12,7 +13,7 @@ const {
 const fetchNoticeRecipients = async (schoolId) => {
   const recipients = await getNoticeRecipientList(schoolId);
   if (!Array.isArray(recipients) || recipients.length <= 0) {
-    throw new ApiError(404, "Recipients not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
   return recipients;
 };
@@ -20,7 +21,7 @@ const fetchNoticeRecipients = async (schoolId) => {
 const fetchAllNotices = async (userId) => {
   const notices = await getNotices(userId);
   if (notices.length <= 0) {
-    throw new ApiError(404, "Notices not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
   return notices;
 };
@@ -28,7 +29,7 @@ const fetchAllNotices = async (userId) => {
 const fetchNoticeDetailById = async (payload) => {
   const noticeDetail = await getNoticeById(payload);
   if (!noticeDetail) {
-    throw new ApiError(404, "Notice detail not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
   return noticeDetail;
 };
@@ -56,7 +57,7 @@ const processNoticeStatus = async (payload) => {
     payload;
   const notice = await getNoticeById({ noticeId, schoolId });
   if (!notice) {
-    throw new ApiError(404, "Notice not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
   const { authorId } = notice;
@@ -110,7 +111,7 @@ const handleStatusCheck = (
 const processGetAllPendingNotices = async (schoolId) => {
   const notices = await getAllPendingNotices(schoolId);
   if (notices.length <= 0) {
-    throw new ApiError(404, "Pending Notices not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
   return notices;

@@ -11,20 +11,20 @@ const {
 
 const handleFetchNoticeRecipients = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const noticeRecipients = await fetchNoticeRecipients(schoolId);
-  res.json({ noticeRecipients });
+  const data = await fetchNoticeRecipients(schoolId);
+  res.json({ data });
 });
 
 const handleFetchAllNotices = asyncHandler(async (req, res) => {
   const { id: userId } = req.user;
-  const notices = await fetchAllNotices(userId);
-  res.json({ notices });
+  const data = await fetchAllNotices(userId);
+  res.json({ data });
 });
 
 const handleFetchAllPendingNotices = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const notices = await processGetAllPendingNotices(schoolId);
-  res.json({ notices });
+  const data = await processGetAllPendingNotices(schoolId);
+  res.json({ data });
 });
 
 const handleFetchNoticeDetailById = asyncHandler(async (req, res) => {

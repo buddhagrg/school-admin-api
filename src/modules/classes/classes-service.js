@@ -1,3 +1,4 @@
+const { ERROR_MESSAGES } = require("../../constants");
 const { ApiError } = require("../../utils");
 const {
   getAllClasses,
@@ -10,7 +11,7 @@ const {
 const fetchAllClasses = async (schoolId) => {
   const classes = await getAllClasses(schoolId);
   if (!Array.isArray(classes) || classes.length <= 0) {
-    throw new ApiError(404, "Classes not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
   return classes;
@@ -19,7 +20,7 @@ const fetchAllClasses = async (schoolId) => {
 const fetchClassDetail = async ({ id, schoolId }) => {
   const classDetail = await getClassDetail({ id, schoolId });
   if (!classDetail) {
-    throw new ApiError(404, "Class detail not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
   return classDetail;

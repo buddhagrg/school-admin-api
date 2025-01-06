@@ -9,8 +9,8 @@ const {
 
 const handleGetClassTeachers = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const classTeachers = await fetchAllClassTeachers(schoolId);
-  res.json({ classTeachers });
+  const data = await fetchAllClassTeachers(schoolId);
+  res.json({ data });
 });
 
 const handleGetClassTeacherDetail = asyncHandler(async (req, res) => {
@@ -21,10 +21,10 @@ const handleGetClassTeacherDetail = asyncHandler(async (req, res) => {
 });
 
 const handleAddClassTeacher = asyncHandler(async (req, res) => {
-  const { class: className, section, teacher } = req.body;
+  const { class: classId, section, teacher } = req.body;
   const { schoolId } = req.user;
   const message = await addNewClassTeacher({
-    className,
+    classId,
     section,
     teacher,
     schoolId,
@@ -34,10 +34,10 @@ const handleAddClassTeacher = asyncHandler(async (req, res) => {
 
 const handleUpdateClassTeacherDetail = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { class: className, section, teacher } = req.body;
+  const { class: classId, section, teacher } = req.body;
   const { schoolId } = req.user;
   const message = await updateClassTeacher({
-    className,
+    classId,
     section,
     teacher,
     id,
@@ -48,8 +48,8 @@ const handleUpdateClassTeacherDetail = asyncHandler(async (req, res) => {
 
 const handleGetAllTeachers = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const teachers = await getAllTeachers(schoolId);
-  res.json({ teachers });
+  const data = await getAllTeachers(schoolId);
+  res.json({ data });
 });
 
 module.exports = {

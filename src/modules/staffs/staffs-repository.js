@@ -47,7 +47,7 @@ const getStaffDetailById = async ({ id, schoolId }) => {
       t2.name AS "reporterName",
       t3.gender,
       t3.marital_status AS "maritalStatus",
-      t3.join_dt AS "joinDate",
+      t3.join_date AS "joinDate",
       t3.qualification,
       t3.experience,
       t3.dob,
@@ -83,7 +83,7 @@ const reviewStaffStatus = async (payload) => {
     UPDATE users
     SET
       is_active = $1,
-      status_last_reviewed_dt = $2,
+      status_last_reviewed_date = $2,
       status_last_reviewer_id = $3
     WHERE id = $4
     AND is_email_verified = true AND school_id = $5

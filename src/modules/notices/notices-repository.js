@@ -15,11 +15,11 @@ const getAllPendingNotices = async (schoolId) => {
       t1.title,
       t1.description,
       t1.author_id AS "authorId",
-      t1.created_dt AS "createdDate",
-      t1.updated_dt AS "updatedDate",
+      t1.created_date AS "createdDate",
+      t1.updated_date AS "updatedDate",
       t2.name AS author,
       t4.name AS "reviewerName",
-      t1.reviewed_dt AS "reviewedDate",
+      t1.reviewed_date AS "reviewedDate",
       t3.alias AS "status",
       t1.status AS "statusId",
       NULL AS "whoHasAccess"
@@ -42,8 +42,8 @@ const getNoticeById = async ({ noticeId, schoolId }) => {
       t1.description,
       t1.status,
       t1.author_id AS "authorId",
-      t1.created_dt AS "createdDate",
-      t1.updated_dt AS "updatedDate",
+      t1.created_date AS "createdDate",
+      t1.updated_date AS "updatedDate",
       t1.recipient_type AS "recipientType",
       t1.recipient_role_id AS "recipientRole",
       t1.recipient_first_field AS "firstField",
@@ -71,7 +71,7 @@ const addNewNotice = async (payload) => {
   } = payload;
   const query = `
     INSERT INTO notices
-    (title, description, status, recipient_type, recipient_role_id, recipient_first_field, created_dt, author_id, school_id)
+    (title, description, status, recipient_type, recipient_role_id, recipient_first_field, created_date, author_id, school_id)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
   `;
   const queryParams = [
@@ -110,7 +110,7 @@ const updateNoticeById = async (payload) => {
       recipient_type = $4,
       recipient_role_id = $5,
       recipient_first_field = $6,
-      updated_dt = $7
+      updated_date = $7
     WHERE id = $8 AND school_id = $9
   `;
   const queryParams = [
@@ -207,7 +207,7 @@ const manageNoticeStatus = async (payload) => {
     UPDATE notices
     SET
       status = $1,
-      reviewed_dt = $2,
+      reviewed_date = $2,
       reviewer_id = $3
     WHERE id = $4
   `;

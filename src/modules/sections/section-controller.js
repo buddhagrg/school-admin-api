@@ -9,14 +9,18 @@ const {
 
 const handleGetAllSections = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const sections = await processGetAllSections(schoolId);
-  res.json({ sections });
+  const data = await processGetAllSections(schoolId);
+  res.json({ data });
 });
 
 const handleAddNewSection = asyncHandler(async (req, res) => {
-  const { name } = req.body;
+  const { sectionNames, classId } = req.body;
   const { schoolId } = req.user;
-  const message = await processAddNewSection({ name, schoolId });
+  const message = await processAddNewSection({
+    sectionNames,
+    schoolId,
+    classId,
+  });
   res.json(message);
 });
 

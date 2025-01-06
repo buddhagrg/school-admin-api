@@ -10,8 +10,8 @@ const {
 const handleGetAllStaffs = asyncHandler(async (req, res) => {
   const { userId, roleId, name } = req.query;
   const { schoolId } = req.user;
-  const staffs = await processGetAllStaffs({ userId, roleId, name, schoolId });
-  res.json({ staffs });
+  const data = await processGetAllStaffs({ userId, roleId, name, schoolId });
+  res.json({ data });
 });
 
 const handleGetStaff = asyncHandler(async (req, res) => {

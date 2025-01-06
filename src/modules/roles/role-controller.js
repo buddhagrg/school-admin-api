@@ -8,12 +8,12 @@ const {
   getRolePermissions,
   fetchUsersByRoleId,
   processSwitchRole,
-} = require("./rp-service");
+} = require("./role-service");
 
 const handleGetRoles = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const roles = await fetchRoles(schoolId);
-  res.json({ roles });
+  const data = await fetchRoles(schoolId);
+  res.json({ data });
 });
 
 const handleAddRole = asyncHandler(async (req, res) => {
@@ -50,15 +50,15 @@ const handleAddRolePermission = asyncHandler(async (req, res) => {
 const handleGetRolePermission = asyncHandler(async (req, res) => {
   const { id: roleId } = req.params;
   const { schoolId } = req.user;
-  const permissions = await getRolePermissions({ roleId, schoolId });
-  res.json({ permissions });
+  const data = await getRolePermissions({ roleId, schoolId });
+  res.json({ data });
 });
 
 const handleGetUsersByRoleId = asyncHandler(async (req, res) => {
   const { id: roleId } = req.params;
   const { schoolId } = req.user;
-  const users = await fetchUsersByRoleId({ roleId, schoolId });
-  res.json({ users });
+  const data = await fetchUsersByRoleId({ roleId, schoolId });
+  res.json({ data });
 });
 const handleSwitchRole = asyncHandler(async (req, res) => {
   const { userId, roleId } = req.body;

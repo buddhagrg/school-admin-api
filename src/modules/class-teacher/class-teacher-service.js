@@ -1,3 +1,4 @@
+const { ERROR_MESSAGES } = require("../../constants");
 const { ApiError } = require("../../utils");
 const {
   getClassTeachers,
@@ -10,7 +11,7 @@ const {
 const fetchAllClassTeachers = async (schoolId) => {
   const data = await getClassTeachers(schoolId);
   if (!Array.isArray(data) || data.length <= 0) {
-    throw new ApiError(404, "Class teachers not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
   return data;
@@ -28,7 +29,7 @@ const addNewClassTeacher = async (payload) => {
 const fetchClassTeacherDetailById = async (payload) => {
   const classTeacherDetail = await getClassTeacherById(payload);
   if (!classTeacherDetail) {
-    throw new ApiError(404, "Class teacher detail not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
   return classTeacherDetail;
@@ -46,7 +47,7 @@ const updateClassTeacher = async (payload) => {
 const getAllTeachers = async (schoolId) => {
   const teachers = await findAllTeachers(schoolId);
   if (teachers.length <= 0) {
-    throw new ApiError(404, "Teachers not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
   return teachers;
 };

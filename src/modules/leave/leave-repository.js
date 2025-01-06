@@ -40,7 +40,7 @@ const getMyLeavePolicy = async ({ id, schoolId }) => {
       t2.name,
       COALESCE(SUM(
         CASE WHEN t3.status = 2 THEN
-            (t3.to_dt - t3.from_dt) + 1
+            (t3.to_date - t3.from_date) + 1
         ELSE 0
         END
       ), 0) AS "totalDaysUsed"
@@ -64,7 +64,7 @@ const getUsersByPolicyId = async ({ id, schoolId }) => {
       COALESCE(SUM(
         CASE
           WHEN t3.status = 2 THEN
-              EXTRACT(DAY FROM age(t3.to_dt + INTERVAL '1 day', t3.from_dt))
+              EXTRACT(DAY FROM age(t3.to_date + INTERVAL '1 day', t3.from_date))
           ELSE 0
         END
       ), 0) AS "totalDaysUsed"
@@ -119,7 +119,7 @@ const createNewLeaveRequest = async (payload) => {
   const { policy, from, to, note, userId, schoolId } = payload;
   const query = `
     INSERT INTO user_leaves
-    (user_id, leave_policy_id, from_dt, to_dt, note, submitted_dt, status, school_id)
+    (user_id, leave_policy_id, from_date, to_date, note, submitted_date, status, school_id)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
   `;
   const queryParams = [
@@ -144,12 +144,12 @@ const updateLeaveRequestById = async (payload) => {
     UPDATE user_leaves
     SET
       leave_policy_id = $1,
-      from_dt = $2,
-      to_dt = $3,
+      from_date = $2,
+      to_date = $3,
       note = $4,
-      updated_dt = $5,
+      updated_date = $5,
       status = $6,
-      approved_dt = NULL,
+      approved_date = NULL,
       approver_id = NULL
     WHERE id = $7 AND school_id = $8
   `;
@@ -173,24 +173,24 @@ const getLeaveRequestHistoryByUser = async ({ id, schoolId }) => {
       t1.id,
       t2.name as policy,
       t1.leave_policy_id AS "policyId",
-      t1.from_dt AS "from",
-      t1.to_dt AS "to",
+      t1.from_date AS "from",
+      t1.to_date AS "to",
       t1.note,
       t1.status AS "statusId",
       t3.name AS status,
-      t1.submitted_dt AS "submitted",
-      t1.updated_dt AS "updated",
-      t1.approved_dt AS "approved",
+      t1.submitted_date AS "submitted",
+      t1.updated_date AS "updated",
+      t1.approved_date AS "approved",
       t4.name AS approver,
       t5.name AS user,
-      EXTRACT(DAY FROM age(t1.to_dt +  INTERVAL '1 day', t1.from_dt)) AS days
+      EXTRACT(DAY FROM age(t1.to_date +  INTERVAL '1 day', t1.from_date)) AS days
     FROM user_leaves t1
     JOIN leave_policies t2 ON t1.leave_policy_id = t2.id
     JOIN leave_status t3 ON t1.status = t3.id
     LEFT JOIN users t4 ON t1.approver_id = t4.id
     JOIN users t5 ON t1.user_id = t5.id
     WHERE t1.user_id = $1 and t1.school_id = $2
-    ORDER BY submitted_dt DESC
+    ORDER BY submitted_date DESC
   `;
   const queryParams = [id, schoolId];
   const { rows } = await processDBRequest({ query, queryParams });
@@ -211,18 +211,18 @@ const getPendingLeaveRequests = async (schoolId) => {
       t1.id,
       t2.name as policy,
       t1.leave_policy_id AS "policyId",
-      t1.from_dt AS "from",
-      t1.to_dt AS "to",
+      t1.from_date AS "from",
+      t1.to_date AS "to",
       t1.note,
-      t1.submitted_dt AS "submitted",
-      t1.updated_dt AS "updated",
+      t1.submitted_date AS "submitted",
+      t1.updated_date AS "updated",
       t3.name AS user,
-      EXTRACT(DAY FROM age(t1.to_dt + INTERVAL '1 day', t1.from_dt)) AS days
+      EXTRACT(DAY FROM age(t1.to_date + INTERVAL '1 day', t1.from_date)) AS days
     FROM user_leaves t1
     JOIN leave_policies t2 ON t1.leave_policy_id = t2.id
     JOIN users t3 ON t1.user_id = t3.id
     WHERE t1.status = $1 AND t1.school_id = $2
-    ORDER BY submitted_dt DESC
+    ORDER BY submitted_date DESC
   `;
   const queryParams = [LEAVE_STATUS_ON_REVIEW, schoolId];
   const { rows } = await processDBRequest({ query, queryParams });
@@ -238,7 +238,7 @@ const approveOrCancelPendingLeaveRequest = async ({
   const now = new Date();
   const query = `
     UPDATE user_leaves
-    SET status = $1, approved_dt = $2, approver_id = $3
+    SET status = $1, approved_date = $2, approver_id = $3
     WHERE id = $4 AND school_id = $5
   `;
   const queryParams = [status, now, reviewerUserId, requestId, schoolId];

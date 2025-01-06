@@ -1,4 +1,5 @@
 const { db } = require("../../config");
+const { ERROR_MESSAGES } = require("../../constants");
 const { ApiError } = require("../../utils");
 const {
   insertRole,
@@ -13,7 +14,7 @@ const {
   switchUserRole,
   deletePermissionForRoleId,
   getStaticRoleIdById,
-} = require("./rp-repository");
+} = require("./role-repository");
 
 const checkIfRoleIdExist = async (id) => {
   const role = await getRoleDetail(id);
@@ -34,7 +35,7 @@ const addRole = async ({ name, schoolId }) => {
 const fetchRoles = async (schoolId) => {
   const roles = await getRoles(schoolId);
   if (!Array.isArray(roles) || roles.length <= 0) {
-    throw new ApiError(404, "Roles not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
   return roles;
@@ -114,7 +115,7 @@ const getRolePermissions = async ({ roleId, schoolId }) => {
     schoolId,
   });
   if (permissions.length <= 0) {
-    throw new ApiError(404, "Permissions for given role not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
   return permissions;
@@ -125,7 +126,7 @@ const fetchUsersByRoleId = async ({ roleId, schoolId }) => {
 
   const users = await getUsersByRoleId({ roleId, schoolId });
   if (!Array.isArray(users) || users.length <= 0) {
-    throw new ApiError(404, "Users not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
   return users;

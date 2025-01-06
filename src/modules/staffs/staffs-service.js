@@ -1,3 +1,4 @@
+const { ERROR_MESSAGES } = require("../../constants");
 const { ApiError, sendAccountVerificationEmail } = require("../../utils");
 const {
   addOrUpdateStaff,
@@ -9,7 +10,7 @@ const {
 const processGetAllStaffs = async (payload) => {
   const staffs = await getAllStaffs(payload);
   if (staffs.length <= 0) {
-    throw new ApiError(404, "Staffs not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
   return staffs;
 };
@@ -17,7 +18,7 @@ const processGetAllStaffs = async (payload) => {
 const processGetStaff = async (payload) => {
   const staff = await getStaffDetailById(payload);
   if (!staff) {
-    throw new ApiError(404, "Staff detail not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
   return staff;
 };
@@ -31,7 +32,8 @@ const processReviewStaffStatus = async (payload) => {
 };
 
 const processAddStaff = async (payload) => {
-  const ADD_STADD_AND_EMAIL_SEND_SUCCESS =
+  const ADD_STAFF_SUCCESS = "Staff added successfully.";
+  const ADD_STAFF_AND_EMAIL_SEND_SUCCESS =
     "Staff added and verification email sent successfully.";
   const ADD_STAFF_AND_BUT_EMAIL_SEND_FAIL =
     "Staff added, but failed to send verification email.";
@@ -41,12 +43,16 @@ const processAddStaff = async (payload) => {
       throw new ApiError(500, result.message);
     }
 
+    if (!payload.sendVerificationEmail) {
+      return { message: ADD_STAFF_SUCCESS };
+    }
+
     try {
       await sendAccountVerificationEmail({
         userId: result.userId,
         userEmail: payload.email,
       });
-      return { message: ADD_STADD_AND_EMAIL_SEND_SUCCESS };
+      return { message: ADD_STAFF_AND_EMAIL_SEND_SUCCESS };
     } catch (error) {
       return { message: ADD_STAFF_AND_BUT_EMAIL_SEND_FAIL };
     }

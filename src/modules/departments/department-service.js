@@ -1,3 +1,4 @@
+const { ERROR_MESSAGES } = require("../../constants");
 const { ApiError } = require("../../utils");
 const {
   getAllDepartments,
@@ -10,7 +11,7 @@ const {
 const processGetAllDepartments = async (schoolId) => {
   const departments = await getAllDepartments(schoolId);
   if (departments.length <= 0) {
-    throw new ApiError(404, "Departments not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
   return departments;
@@ -28,7 +29,7 @@ const processAddNewDepartment = async (payload) => {
 const processGetDepartmentById = async (payload) => {
   const department = await getDepartmentById(payload);
   if (!department) {
-    throw new ApiError(404, "Department does not exist");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
   return department;

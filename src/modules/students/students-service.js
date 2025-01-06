@@ -1,3 +1,4 @@
+const { ERROR_MESSAGES } = require("../../constants");
 const { ApiError, sendAccountVerificationEmail } = require("../../utils");
 const {
   findAllStudents,
@@ -9,7 +10,7 @@ const {
 const getAllStudents = async (payload) => {
   const students = await findAllStudents(payload);
   if (students.length <= 0) {
-    throw new ApiError(404, "Students not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
   return students;
@@ -18,13 +19,14 @@ const getAllStudents = async (payload) => {
 const getStudentDetail = async (paylaod) => {
   const student = await findStudentDetail(paylaod);
   if (!student) {
-    throw new ApiError(404, "Student not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
   return student;
 };
 
 const addNewStudent = async (payload) => {
+  const ADD_STUDENT_SUCCESS = "Student added successfully.";
   const ADD_STUDENT_AND_EMAIL_SEND_SUCCESS =
     "Student added and verification email sent successfully.";
   const ADD_STUDENT_AND_BUT_EMAIL_SEND_FAIL =
@@ -34,6 +36,10 @@ const addNewStudent = async (payload) => {
 
     if (!result.status) {
       throw new ApiError(500, result.message);
+    }
+
+    if (!payload.sendVerificationEmail) {
+      return { message: ADD_STUDENT_SUCCESS };
     }
 
     try {

@@ -1,3 +1,4 @@
+const { ERROR_MESSAGES } = require("../../constants");
 const { ApiError } = require("../../utils");
 const {
   getAllSections,
@@ -10,7 +11,7 @@ const {
 const processGetAllSections = async (schoolId) => {
   const sections = await getAllSections(schoolId);
   if (sections.length <= 0) {
-    throw new ApiError(404, "Sections not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
   return sections;
@@ -28,7 +29,7 @@ const processAddNewSection = async (payload) => {
 const processGetSectionById = async (payload) => {
   const section = await getSectionById(payload);
   if (!section) {
-    throw new ApiError(404, "Section does not exist");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
   return section;

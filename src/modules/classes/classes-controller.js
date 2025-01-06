@@ -9,8 +9,8 @@ const {
 
 const handleFetchAllClasses = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const classes = await fetchAllClasses(schoolId);
-  res.json({ classes });
+  const data = await fetchAllClasses(schoolId);
+  res.json({ data });
 });
 
 const handleFetchClassDetail = asyncHandler(async (req, res) => {
@@ -21,19 +21,19 @@ const handleFetchClassDetail = asyncHandler(async (req, res) => {
 });
 
 const handleAddClass = asyncHandler(async (req, res) => {
-  const { name, sections } = req.body;
+  const { name, academicLevelId } = req.body;
   const { schoolId } = req.user;
-  const payload = { name, sections, schoolId };
+  const payload = { name, schoolId, academicLevelId };
   const message = await addClass(payload);
   res.json(message);
 });
 
 const handleUpdateClass = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { name, sections } = req.body;
+  const { name } = req.body;
   const { schoolId } = req.user;
 
-  const payload = { id, name, sections, schoolId };
+  const payload = { id, name, schoolId };
   const message = await updateClassDetail(payload);
   res.json(message);
 });

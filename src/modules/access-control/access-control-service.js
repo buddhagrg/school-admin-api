@@ -1,3 +1,4 @@
+const { ERROR_MESSAGES } = require("../../constants");
 const {
   ApiError,
   getAccessItemHierarchy,
@@ -6,12 +7,15 @@ const {
 const {
   getAllAccessControls,
   getMyAccessControl,
+  addAccessControl,
+  updateAccessControl,
+  deleteAccessControl,
 } = require("./access-control-repository");
 
 const processGetAllAccessControls = async (staticRoleId) => {
   const accessControls = await getAllAccessControls(staticRoleId);
   if (accessControls.length <= 0) {
-    throw new ApiError(404, "Access controls not found");
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
   const hierarchialAccessControls = getAccessItemHierarchy(accessControls);
@@ -31,7 +35,37 @@ const processGetMyAccessControl = async (payload) => {
   };
 };
 
+const processAddAccessControl = async (payload) => {
+  const affectedRow = await addAccessControl(payload);
+  if (affectedRow <= 0) {
+    throw new ApiError(500, "Unable to add access control");
+  }
+
+  return { message: "New access control added successfully" };
+};
+
+const processUpdateAccessControl = async (payload) => {
+  const affectedRow = await updateAccessControl(payload);
+  if (affectedRow <= 0) {
+    throw new ApiError(500, "Unable to update access control");
+  }
+
+  return { message: "Access control updated successfully" };
+};
+
+const processDeleteAccessControl = async (id) => {
+  const affectedRow = await deleteAccessControl(id);
+  if (affectedRow <= 0) {
+    throw new ApiError(500, "Unabe to delete access control");
+  }
+
+  return { message: "Access control deleted successfully" };
+};
+
 module.exports = {
   processGetAllAccessControls,
   processGetMyAccessControl,
+  processAddAccessControl,
+  processUpdateAccessControl,
+  processDeleteAccessControl,
 };

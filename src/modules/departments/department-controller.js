@@ -9,8 +9,8 @@ const {
 
 const handleGetAllDepartments = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const departments = await processGetAllDepartments(schoolId);
-  res.json({ departments });
+  const data = await processGetAllDepartments(schoolId);
+  res.json({ data });
 });
 
 const handleAddNewDepartment = asyncHandler(async (req, res) => {

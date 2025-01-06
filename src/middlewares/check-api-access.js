@@ -1,7 +1,5 @@
 const asyncHandler = require("express-async-handler");
-const {
-  checkPermission,
-} = require("../modules/roles-and-permissions/rp-repository");
+const { checkPermission } = require("../modules/roles/role-repository");
 const { ApiError } = require("../utils");
 
 const checkApiAccess = asyncHandler(async (req, res, next) => {
