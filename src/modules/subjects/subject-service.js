@@ -40,7 +40,7 @@ const processGetAllSubjects = async (payload) => {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
-  return subjects;
+  return { subjects };
 };
 
 module.exports = {

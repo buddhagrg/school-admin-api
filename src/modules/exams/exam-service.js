@@ -20,7 +20,7 @@ const processGetAllExamNames = async (schoolId) => {
   if (exams.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-  return exams;
+  return { exams };
 };
 
 const processAddExamName = async (payload) => {
@@ -68,7 +68,7 @@ const processGetExamRoutine = async (payload) => {
   if (routines.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-  return routines;
+  return { routines };
 };
 
 const processGetMarks = async (payload) => {
@@ -76,7 +76,7 @@ const processGetMarks = async (payload) => {
   if (marks.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-  return marks;
+  return { marks };
 };
 
 const processAddMarks = async (payload) => {
@@ -100,7 +100,7 @@ const processGetExamMarksheet = async (payload) => {
   if (marksheets.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-  return marksheets;
+  return { marksheets };
 };
 
 const processGetExamDetail = async (payload) => {
@@ -108,7 +108,7 @@ const processGetExamDetail = async (payload) => {
   if (examDetails.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-  return examDetails;
+  return { examDetails };
 };
 
 module.exports = {

@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const noticeController = require("./notices-controller");
+const noticeController = require("./notice-controller");
 const { checkApiAccess } = require("../../middlewares");
 
 router.get(
@@ -23,4 +23,4 @@ router.get("", checkApiAccess, noticeController.handleFetchAllNotices);
 router.post("", checkApiAccess, noticeController.handleAddNotice);
 router.put("/:id", checkApiAccess, noticeController.handleUpdateNotice);
 
-module.exports = { noticesRoutes: router };
+module.exports = { noticeRoutes: router };

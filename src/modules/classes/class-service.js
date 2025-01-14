@@ -6,15 +6,14 @@ const {
   addNewClass,
   updateClassDetailById,
   deleteClassById,
-} = require("./classes-repository");
+} = require("./class-repository");
 
 const fetchAllClasses = async (schoolId) => {
   const classes = await getAllClasses(schoolId);
   if (!Array.isArray(classes) || classes.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
-  return classes;
+  return { classes };
 };
 
 const fetchClassDetail = async ({ id, schoolId }) => {
@@ -22,7 +21,6 @@ const fetchClassDetail = async ({ id, schoolId }) => {
   if (!classDetail) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
   return classDetail;
 };
 
@@ -31,7 +29,6 @@ const addClass = async (payload) => {
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to add new class");
   }
-
   return { message: "Class added successfully" };
 };
 

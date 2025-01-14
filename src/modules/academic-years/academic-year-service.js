@@ -12,7 +12,7 @@ const processGetAllAcademicYears = async (schoolId) => {
   if (academicYears.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-  return academicYears;
+  return { academicYears };
 };
 
 const processAddAcademicYear = async (payload) => {

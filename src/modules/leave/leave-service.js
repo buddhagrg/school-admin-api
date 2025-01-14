@@ -34,53 +34,45 @@ const makeNewLeavePolicy = async (payload) => {
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to add policy");
   }
-
   return { message: "Policy added successfully" };
 };
 
 const updateLeavePolicy = async ({ name, id, schoolId }) => {
   await checkIfPolicyIsActive(id);
-
   const affectedRow = await updateLeavePolicyById({ name, id, schoolId });
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to update policy");
   }
-
   return { message: "Policy updated successfully" };
 };
 
 const fetchLeavePolicies = async (schoolId) => {
-  const policies = await getLeavePolicies(schoolId);
-  if (!Array.isArray(policies) || policies.length <= 0) {
+  const leavePolicies = await getLeavePolicies(schoolId);
+  if (!Array.isArray(leavePolicies) || leavePolicies.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
-  return policies;
+  return { leavePolicies };
 };
 
 const processGetMyLeavePolicy = async ({ id, schoolId }) => {
-  const policies = await getMyLeavePolicy({ id, schoolId });
-  if (!Array.isArray(policies) || policies.length <= 0) {
+  const myLeavePolicies = await getMyLeavePolicy({ id, schoolId });
+  if (!Array.isArray(myLeavePolicies) || myLeavePolicies.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
-  return policies;
+  return { myLeavePolicies };
 };
 
 const fetchPolicyUsers = async ({ id, schoolId }) => {
   await checkIfPolicyIsActive(id);
-
-  const users = await getUsersByPolicyId({ id, schoolId });
-  if (!Array.isArray(users) || users.length <= 0) {
+  const leavePolicyUsers = await getUsersByPolicyId({ id, schoolId });
+  if (!Array.isArray(leavePolicyUsers) || leavePolicyUsers.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
-  return users;
+  return { leavePolicyUsers };
 };
 
 const updatePolicyUsers = async ({ policyId, users, schoolId }) => {
   await checkIfPolicyIsActive(policyId);
-
   const affectedRow = await updatePolicyUsersById({
     policyId,
     users,
@@ -89,18 +81,15 @@ const updatePolicyUsers = async ({ policyId, users, schoolId }) => {
   if (affectedRow <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
   return { message: "Users of policy updated" };
 };
 
 const deletePolicyUser = async ({ user, id, schoolId }) => {
   await checkIfPolicyIsActive(id);
-
   const affectedRow = await deleteUserFromPolicyById({ user, id, schoolId });
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to delete user from policy");
   }
-
   return { message: "User deleted from policy successfully" };
 };
 
@@ -114,18 +103,19 @@ const reviewLeavePolicy = async ({ status, policyId, schoolId }) => {
     const sts = status ? "enable" : "disable";
     throw new ApiError(500, `Unable to ${sts} policy`);
   }
-
   const responseStatus = status ? "enabled" : "disabled";
   return { message: `Policy ${responseStatus} successfully` };
 };
 
 const fetchPolicyEligibleUsers = async (schoolId) => {
-  const users = await getPolicyEligibleUsers(schoolId);
-  if (!Array.isArray(users) || users.length <= 0) {
+  const leavePolicyEligibleUsers = await getPolicyEligibleUsers(schoolId);
+  if (
+    !Array.isArray(leavePolicyEligibleUsers) ||
+    leavePolicyEligibleUsers.length <= 0
+  ) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
-  return users;
+  return { leavePolicyEligibleUsers };
 };
 
 const addNewLeaveRequest = async (payload) => {
@@ -135,28 +125,24 @@ const addNewLeaveRequest = async (payload) => {
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to add new leave request");
   }
-
   return { message: "Leave request added successfully" };
 };
 
 const updateLeaveRequest = async (payload) => {
   await checkIfPolicyIsActive(payload.policy);
-
   const affectedRow = await updateLeaveRequestById(payload);
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to update leave request");
   }
-
   return { message: "Leave request updated successfully" };
 };
 
 const getUserLeaveHistory = async ({ id, schoolId }) => {
-  const leaves = await getLeaveRequestHistoryByUser({ id, schoolId });
+  const leaveHistory = await getLeaveRequestHistoryByUser({ id, schoolId });
   if (!Array.isArray(leaves) || leaves.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
-  return leaves;
+  return { leaveHistory };
 };
 
 const deleteLeaveRequest = async ({ id, schoolId }) => {
@@ -164,17 +150,15 @@ const deleteLeaveRequest = async ({ id, schoolId }) => {
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to delete leave request");
   }
-
   return { message: "Leave reuquest deleted successfully" };
 };
 
 const fetchPendingLeaveRequests = async (schoolId) => {
-  const leaves = await getPendingLeaveRequests(schoolId);
-  if (!Array.isArray(leaves) || leaves.length <= 0) {
+  const pendingLeaves = await getPendingLeaveRequests(schoolId);
+  if (!Array.isArray(pendingLeaves) || pendingLeaves.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
-  return leaves;
+  return { pendingLeaves };
 };
 
 const reviewPendingLeaveRequest = async ({

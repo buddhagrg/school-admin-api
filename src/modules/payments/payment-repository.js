@@ -1,9 +1,9 @@
 const processDBRequest = require("../../utils/process-db-request");
 
 const doGeneralPayment = async (payload) => {
-  const { schoolId, initiator, amount, feeId, paymentMethod } = payload;
+  const { schoolId, initiator, amount, feeStructureId, paymentMethod } = payload;
   const query = `
-    INSERT INTO transactions(school_id, academic_year_id, fiscal_year_id, initiator, type, status, amount, payment_method, fee_id)
+    INSERT INTO transactions(school_id, academic_year_id, fiscal_year_id, initiator, type, status, amount, payment_method, fee_structure_id)
     SELECT
       $1,
       ay.id AS academic_year_id,
@@ -20,7 +20,7 @@ const doGeneralPayment = async (payload) => {
     "SUCCESS",
     amount,
     paymentMethod,
-    feeId,
+    feeStructureId,
   ];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;

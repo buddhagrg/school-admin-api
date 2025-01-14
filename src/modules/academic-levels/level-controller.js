@@ -8,22 +8,22 @@ const {
 const handleAddLevel = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const payload = req.body;
-  const message = await processAddLevel({ ...payload, schoolId });
-  res.json(message);
+  const response = await processAddLevel({ ...payload, schoolId });
+  res.json(response);
 });
 
 const handleUpdateLevel = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id: levelId } = req.params;
   const payload = req.body;
-  const message = await processUpdateLevel({ ...payload, schoolId, levelId });
-  res.json(message);
+  const response = await processUpdateLevel({ ...payload, schoolId, levelId });
+  res.json(response);
 });
 
 const handleGetLevels = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const data = await processGetLevels(schoolId);
-  res.json({ data });
+  const response = await processGetLevels(schoolId);
+  res.json(response);
 });
 
 module.exports = {

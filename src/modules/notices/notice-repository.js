@@ -1,4 +1,3 @@
-const { db } = require("../../config");
 const processDBRequest = require("../../utils/process-db-request");
 
 const getNotices = async (userId) => {

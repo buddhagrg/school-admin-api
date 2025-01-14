@@ -8,35 +8,35 @@ const {
 } = require("./school-service");
 
 const handleGetAllSchools = asyncHandler(async (req, res) => {
-  const data = await processGetAllSchools();
-  res.json({ data });
+  const response = await processGetAllSchools();
+  res.json(response);
 });
 
 const handleGetSchool = asyncHandler(async (req, res) => {
   const { id: schoolId } = req.params;
-  const school = await processGetSchool(schoolId);
-  res.json(school);
+  const response = await processGetSchool(schoolId);
+  res.json(response);
 });
 
 const handleAddSchool = asyncHandler(async (req, res) => {
   const payload = await req.body;
   const { id: userId } = req.user;
-  const message = await processAddSchool({ ...payload, userId });
-  res.json(message);
+  const response = await processAddSchool({ ...payload, userId });
+  res.json(response);
 });
 
 const handleUpdateSchool = asyncHandler(async (req, res) => {
   const { id: schoolId } = req.params;
   const payload = await req.body;
   const { id: userId } = req.user;
-  const message = await processUpdateSchool({ ...payload, userId, schoolId });
-  res.json(message);
+  const response = await processUpdateSchool({ ...payload, userId, schoolId });
+  res.json(response);
 });
 
 const handleDeleteSchool = asyncHandler(async (req, res) => {
   const { id: schoolId } = req.params;
-  const message = await processDeleteSchool(schoolId);
-  res.json(message);
+  const response = await processDeleteSchool(schoolId);
+  res.json(response);
 });
 
 module.exports = {

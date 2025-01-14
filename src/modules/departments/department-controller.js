@@ -9,37 +9,37 @@ const {
 
 const handleGetAllDepartments = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const data = await processGetAllDepartments(schoolId);
-  res.json({ data });
+  const response = await processGetAllDepartments(schoolId);
+  res.json(response);
 });
 
 const handleAddNewDepartment = asyncHandler(async (req, res) => {
   const { name } = req.body;
   const { schoolId } = req.user;
-  const message = await processAddNewDepartment({ name, schoolId });
-  res.json(message);
+  const response = await processAddNewDepartment({ name, schoolId });
+  res.json(response);
 });
 
 const handleGetDepartmentById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { schoolId } = req.user;
-  const department = await processGetDepartmentById({ id, schoolId });
-  res.json(department);
+  const response = await processGetDepartmentById({ id, schoolId });
+  res.json(response);
 });
 
 const handleUpdateDepartmentById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { name } = req.body;
   const { schoolId } = req.user;
-  const message = await processUpdateDepartmentById({ id, name, schoolId });
-  res.json(message);
+  const response = await processUpdateDepartmentById({ id, name, schoolId });
+  res.json(response);
 });
 
 const handleDeleteDepartmentById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { schoolId } = req.user;
-  const message = await processDeleteDepartmentById({ id, schoolId });
-  res.json(message);
+  const response = await processDeleteDepartmentById({ id, schoolId });
+  res.json(response);
 });
 
 module.exports = {

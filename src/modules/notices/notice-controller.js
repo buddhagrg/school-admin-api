@@ -7,46 +7,46 @@ const {
   updateNotice,
   processNoticeStatus,
   processGetAllPendingNotices,
-} = require("./notices-service");
+} = require("./notice-service");
 
 const handleFetchNoticeRecipients = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const data = await fetchNoticeRecipients(schoolId);
-  res.json({ data });
+  const response = await fetchNoticeRecipients(schoolId);
+  res.json(response);
 });
 
 const handleFetchAllNotices = asyncHandler(async (req, res) => {
   const { id: userId } = req.user;
-  const data = await fetchAllNotices(userId);
-  res.json({ data });
+  const response = await fetchAllNotices(userId);
+  res.json(response);
 });
 
 const handleFetchAllPendingNotices = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const data = await processGetAllPendingNotices(schoolId);
-  res.json({ data });
+  const response = await processGetAllPendingNotices(schoolId);
+  res.json(response);
 });
 
 const handleFetchNoticeDetailById = asyncHandler(async (req, res) => {
   const { id: noticeId } = req.params;
   const { schoolId } = req.user;
-  const notice = await fetchNoticeDetailById({ noticeId, schoolId });
-  res.json(notice);
+  const response = await fetchNoticeDetailById({ noticeId, schoolId });
+  res.json(response);
 });
 
 const handleAddNotice = asyncHandler(async (req, res) => {
   const { id: authorId, schoolId } = req.user;
   const payload = req.body;
-  const message = await addNotice({ ...payload, authorId, schoolId });
-  res.json(message);
+  const response = await addNotice({ ...payload, authorId, schoolId });
+  res.json(response);
 });
 
 const handleUpdateNotice = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const payload = req.body;
   const { schoolId } = req.user;
-  const message = await updateNotice({ ...payload, id, schoolId });
-  res.json(message);
+  const response = await updateNotice({ ...payload, id, schoolId });
+  res.json(response);
 });
 
 const handleNoticeStatus = asyncHandler(async (req, res) => {
@@ -64,8 +64,8 @@ const handleNoticeStatus = asyncHandler(async (req, res) => {
     currentUserRoleId,
     schoolId,
   };
-  const message = await processNoticeStatus(payload);
-  res.json(message);
+  const response = await processNoticeStatus(payload);
+  res.json(response);
 });
 
 module.exports = {

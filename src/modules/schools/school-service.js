@@ -14,8 +14,7 @@ const processGetAllSchools = async () => {
   if (schools.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
-  return schools;
+  return { schools };
 };
 
 const processGetSchool = async (schoolId) => {
@@ -23,7 +22,6 @@ const processGetSchool = async (schoolId) => {
   if (!school) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
   return school;
 };
 
@@ -35,7 +33,6 @@ const processAddSchool = async (payload) => {
     if (affectedRow <= 0) {
       throw new ApiError(500, "Unable to add school");
     }
-
     return { message: "School added successfully" };
   } catch (error) {
     throw error;
@@ -49,7 +46,6 @@ const processUpdateSchool = async (payload) => {
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to update school");
   }
-
   return { message: "School update successfully" };
 };
 
@@ -58,7 +54,6 @@ const processDeleteSchool = async (schoolId) => {
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to delete school");
   }
-
   return { message: "School delete successfully" };
 };
 

@@ -1,7 +1,6 @@
 const expressAsyncHandler = require("express-async-handler");
 const {
-  processAddInvoice,
-  processUpdateInvoice,
+  processGenerateInvoice,
   processGetInvoiceById,
   processGetAllInvoices,
   processPayInvoice,
@@ -12,117 +11,104 @@ const {
   processRemoveInvoiceItem,
 } = require("./invoice-service");
 
-const handleAddInvoice = expressAsyncHandler(async (req, res) => {
+const handleGenerateInvoice = expressAsyncHandler(async (req, res) => {
   const payload = req.body;
   const { schoolId } = req.user;
-  const message = await processAddInvoice({ ...payload, schoolId });
-  res.json(message);
-});
-
-const handleUpdateInvoice = expressAsyncHandler(async (req, res) => {
-  const payload = req.body;
-  const { id: invoiceId } = req.params;
-  const { schoolId } = req.user;
-  const message = await processUpdateInvoice({
-    ...payload,
-    schoolId,
-    invoiceId,
-  });
-  res.json(message);
+  const response = await processGenerateInvoice({ ...payload, schoolId });
+  res.json(response);
 });
 
 const handleGetInvoiceById = expressAsyncHandler(async (req, res) => {
   const { id: invoiceId } = req.params;
   const { schoolId } = req.user;
-  const invoice = await processGetInvoiceById({ invoiceId, schoolId });
-  res.json(invoice);
+  const response = await processGetInvoiceById({ invoiceId, schoolId });
+  res.json(response);
 });
 
 const handleGetAllInvoices = expressAsyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { invoiceNumber, status } = req.query;
-  const data = await processGetAllInvoices({
+  const response = await processGetAllInvoices({
     invoiceNumber,
     status,
     schoolId,
   });
-  res.json({ data });
+  res.json(response);
 });
 
 const handlePayInvoice = expressAsyncHandler(async (req, res) => {
   const { schoolId, id: initiator } = req.user;
   const { id: invoiceId } = req.params;
   const { amount: paymentAmount, method: paymentMethod } = req.body;
-  const message = await processPayInvoice({
+  const response = await processPayInvoice({
     invoiceId,
     paymentAmount,
     schoolId,
     initiator,
     paymentMethod,
   });
-  res.json(message);
+  res.json(response);
 });
 
 const handleRefundInvoice = expressAsyncHandler(async (req, res) => {
   const { schoolId, id: initiator } = req.user;
   const { id: invoiceId } = req.params;
   const { amount: refundAmount, method: refundMethod } = req.body;
-  const message = await processRefundInvoice({
+  const response = await processRefundInvoice({
     invoiceId,
     refundAmount,
     schoolId,
     initiator,
     refundMethod,
   });
-  res.json(message);
+  res.json(response);
 });
 
 const handleDisputeInvoice = expressAsyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id: invoiceId } = req.params;
-  const message = await processDisputeInvoice({
+  const response = await processDisputeInvoice({
     invoiceId,
     schoolId,
   });
-  res.json(message);
+  res.json(response);
 });
 
 const handleResolveDisputeInvoice = expressAsyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { status: newInvoiceStatus } = req.body;
   const { id: invoiceId } = req.params;
-  const message = await processResolveDisputeInvoice({
+  const response = await processResolveDisputeInvoice({
     invoiceId,
     schoolId,
     newInvoiceStatus,
   });
-  res.json(message);
+  res.json(response);
 });
 
 const handleCancelInvoice = expressAsyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id: invoiceId } = req.params;
-  const message = await processCancelInvoice({
+  const response = await processCancelInvoice({
     invoiceId,
     schoolId,
   });
-  res.json(message);
+  res.json(response);
 });
 
 const handleRemoveInvoiceItem = expressAsyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id: invoiceId, itemId: invoiceItemId } = req.params;
-  const message = await processRemoveInvoiceItem({
+  const response = await processRemoveInvoiceItem({
     invoiceId,
     schoolId,
     invoiceItemId,
   });
-  res.json(message);
+  res.json(response);
 });
 
 module.exports = {
-  handleAddInvoice,
-  handleUpdateInvoice,
+  handleGenerateInvoice,
   handleGetInvoiceById,
   handleGetAllInvoices,
   handlePayInvoice,

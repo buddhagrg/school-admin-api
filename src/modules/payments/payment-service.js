@@ -21,7 +21,7 @@ const processGetAllPaymentMethods = async (schoolId) => {
   if (paymentMethods.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-  return paymentMethods;
+  return { paymentMethods };
 };
 
 const processAddPaymentMethod = async (payload) => {

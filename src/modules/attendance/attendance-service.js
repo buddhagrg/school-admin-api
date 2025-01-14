@@ -10,21 +10,19 @@ const {
 } = require("./attendance-repository");
 
 const processGetStudentsForAttendance = async (payload) => {
-  const records = await getStudentsForAttendance(payload);
-  if (records.length <= 0) {
+  const students = await getStudentsForAttendance(payload);
+  if (!students || students.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
-  return records;
+  return { students };
 };
 
 const processGetStaffsForAttendance = async (payload) => {
-  const records = await getStaffsForAttendance(payload);
-  if (records.length <= 0) {
+  const staffs = await getStaffsForAttendance(payload);
+  if (!staffs || staffs.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
-  return records;
+  return { staffs };
 };
 
 const processAddOrUpdateAttendance = async (payload) => {
@@ -32,31 +30,28 @@ const processAddOrUpdateAttendance = async (payload) => {
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to manage student attendance");
   }
-
   return { message: "Student attendance managed successfully" };
 };
 
 const processGetStudentsAttendanceRecord = async (payload) => {
-  let records = [];
+  let students = [];
   if (payload.attendanceType === "S") {
-    records = await getStudentSubjectWiseAttendanceRecord(payload);
+    students = await getStudentSubjectWiseAttendanceRecord(payload);
   } else if (payload.attendanceType === "D") {
     students = await getStudentDailyAttendanceRecord(payload);
   }
-  if (records.length <= 0) {
+  if (!students || students.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
-  return records;
+  return { students };
 };
 
 const processGetStaffsAttendanceRecord = async (payload) => {
-  const records = await getStaffsDailyAttendanceRecord(payload);
-  if (records.length <= 0) {
+  const staffs = await getStaffsDailyAttendanceRecord(payload);
+  if (!staffs || staffs.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
-  return records;
+  return { staffs };
 };
 
 module.exports = {

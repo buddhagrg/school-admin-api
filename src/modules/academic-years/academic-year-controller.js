@@ -7,37 +7,37 @@ const {
 
 const handleGetAllAcademicYears = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const data = await processGetAllAcademicYears(schoolId);
-  res.json({ data });
+  const response = await processGetAllAcademicYears(schoolId);
+  res.json(response);
 });
 
 const handleAddAcademicYear = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const payload = req.body;
-  const data = await processAddAcademicYear({ ...payload, schoolId });
-  res.json({ data });
+  const response = await processAddAcademicYear({ ...payload, schoolId });
+  res.json(response);
 });
 
 const handleUpdatelAcademicYear = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id: academicYearId } = req.params;
   const payload = req.body;
-  const data = await processGetAllAcademicYears({
+  const response = await processGetAllAcademicYears({
     ...payload,
     schoolId,
     academicYearId,
   });
-  res.json({ data });
+  res.json(response);
 });
 
 const handleActivateAcademicYear = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id: academicYearId } = req.params;
-  const message = await processActivateAcademicYear({
+  const response = await processActivateAcademicYear({
     schoolId,
     academicYearId,
   });
-  res.json(message);
+  res.json(response);
 });
 
 module.exports = {

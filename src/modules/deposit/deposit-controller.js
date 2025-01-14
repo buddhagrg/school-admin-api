@@ -10,37 +10,37 @@ const {
 const handleAddDeposit = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const payload = req.body;
-  const message = await processAddDeposit({ ...payload, schoolId });
-  res.json(message);
+  const response = await processAddDeposit({ ...payload, schoolId });
+  res.json(response);
 });
 
 const handleGetDeposit = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id } = req.params;
-  const deposit = await processGetDeposit({ schoolId, id });
-  res.json(deposit);
+  const response = await processGetDeposit({ schoolId, id });
+  res.json(response);
 });
 
 const handleUpdateDeposit = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id } = req.params;
   const payload = req.body;
-  const message = await processUpdateDeposit({ ...payload, schoolId, id });
-  res.json(message);
+  const response = await processUpdateDeposit({ ...payload, schoolId, id });
+  res.json(response);
 });
 
 const handleGetDeposits = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const message = await processGetDeposits(schoolId);
-  res.json(message);
+  const response = await processGetDeposits(schoolId);
+  res.json(response);
 });
 
 const handleRefundDeposit = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const payload = req.body;
   const { id } = req.params;
-  const message = await processRefundDeposit({ ...payload, schoolId, id });
-  res.json(message);
+  const response = await processRefundDeposit({ ...payload, schoolId, id });
+  res.json(response);
 });
 
 module.exports = {

@@ -11,7 +11,7 @@ const getSchoolCommonQuery = `
     t1.updated_date AS "updatedDt",
     t1.is_active AS "isActive",
     t1.is_email_verified AS "isEmailVerified",
-    t1.date_format AS "dateFormat",
+    t1.calendar_type AS "calendarType",
     t1.pan
   FROM schools t1
   LEFT JOIN users t2 ON t2.id = t1.last_modified_by

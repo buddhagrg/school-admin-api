@@ -7,18 +7,18 @@ const {
   checkApiAccess,
   isUserAdminOrSuperAdmin,
 } = require("../middlewares");
-const { studentsRoutes } = require("../modules/students/sudents-router.js");
+const { studentRoutes } = require("../modules/students/sudent-router.js");
 const { authRoutes } = require("../modules/auth/auth-router.js");
 const { leaveRoutes } = require("../modules/leave/leave-router.js");
-const { classesRoutes } = require("../modules/classes/classes-router.js");
+const { classRoutes } = require("../modules/classes/class-router.js");
 const {
   classTeacherRoutes,
 } = require("../modules/class-teacher/class-teacher-router.js");
-const { noticesRoutes } = require("../modules/notices/notices-router.js");
+const { noticeRoutes } = require("../modules/notices/notice-router.js");
 const {
   handleGetAllTeachers,
 } = require("../modules/class-teacher/class-teacher-controller.js");
-const { staffsRoutes } = require("../modules/staffs/staffs-router.js");
+const { staffRoutes } = require("../modules/staffs/staff-router.js");
 const { accountRoutes } = require("../modules/account/account-router.js");
 const { sectionRoutes } = require("../modules/sections/section-router.js");
 const {
@@ -48,7 +48,7 @@ const {
 const { fiscalYearRoutes } = require("../modules/fiscal-years/fy-router.js");
 const { roleRoutes } = require("../modules/roles/role-router.js");
 const { paymentRoutes } = require("../modules/payments/payment-router.js");
-const { academicPeriods } = require("../modules/academic-periods/ap-router.js");
+const { academicPeriodRoutes } = require("../modules/academic-periods/ap-router.js");
 
 router.get(
   "/teachers",
@@ -73,7 +73,7 @@ router.use(
 router.use("/auth", authRoutes);
 router.use("/account", authenticateToken, csrfProtection, accountRoutes);
 router.use("/leave", authenticateToken, csrfProtection, leaveRoutes);
-router.use("/classes", authenticateToken, csrfProtection, classesRoutes);
+router.use("/class", authenticateToken, csrfProtection, classRoutes);
 router.use(
   "/class-teachers",
   authenticateToken,
@@ -81,9 +81,9 @@ router.use(
   classTeacherRoutes
 );
 router.use("/sections", authenticateToken, csrfProtection, sectionRoutes);
-router.use("/students", authenticateToken, csrfProtection, studentsRoutes);
-router.use("/notices", authenticateToken, csrfProtection, noticesRoutes);
-router.use("/staffs", authenticateToken, csrfProtection, staffsRoutes);
+router.use("/students", authenticateToken, csrfProtection, studentRoutes);
+router.use("/notices", authenticateToken, csrfProtection, noticeRoutes);
+router.use("/staffs", authenticateToken, csrfProtection, staffRoutes);
 router.use("/departments", authenticateToken, csrfProtection, departmentRoutes);
 router.use("/roles", authenticateToken, csrfProtection, roleRoutes);
 router.use(
@@ -125,7 +125,7 @@ router.use(
   "/academic-periods",
   authenticateToken,
   csrfProtection,
-  academicPeriods
+  academicPeriodRoutes
 );
 
 module.exports = { v1Routes: router };

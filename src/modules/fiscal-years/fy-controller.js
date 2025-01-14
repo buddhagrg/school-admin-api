@@ -3,38 +3,39 @@ const {
   processAddFiscalYear,
   processUpdateFiscalYear,
   processActivateFiscalYear,
+  processGetAllFiscalYears,
 } = require("./fy-service");
 
 const handleAddFiscalYear = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const payload = req.body;
-  const message = await processAddFiscalYear({ ...payload, schoolId });
-  res.json(message);
+  const response = await processAddFiscalYear({ ...payload, schoolId });
+  res.json(response);
 });
 
 const handleUpdateFiscalYear = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const payload = req.body;
   const { id: fiscalYearId } = req.params;
-  const message = await processUpdateFiscalYear({
+  const response = await processUpdateFiscalYear({
     ...payload,
     schoolId,
     fiscalYearId,
   });
-  res.json(message);
+  res.json(response);
 });
 
 const handleGetAllFiscalYears = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const data = await processAddFiscalYear({ ...payload, schoolId });
-  res.json({ data });
+  const response = await processGetAllFiscalYears({ ...payload, schoolId });
+  res.json(response);
 });
 
 const handleActivateFiscalYear = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id: fiscalYearId } = req.params;
-  const message = await processActivateFiscalYear({ fiscalYearId, schoolId });
-  res.json(message);
+  const response = await processActivateFiscalYear({ fiscalYearId, schoolId });
+  res.json(response);
 });
 
 module.exports = {

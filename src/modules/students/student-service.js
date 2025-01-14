@@ -5,15 +5,15 @@ const {
   findStudentDetail,
   findStudentToSetStatus,
   addOrUpdateStudent,
-} = require("./students-repository");
+  getStudentDueFees,
+} = require("./student-repository");
 
 const getAllStudents = async (payload) => {
   const students = await findAllStudents(payload);
   if (students.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
-  return students;
+  return { students };
 };
 
 const getStudentDetail = async (paylaod) => {
@@ -21,7 +21,6 @@ const getStudentDetail = async (paylaod) => {
   if (!student) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
   return student;
 };
 
@@ -61,7 +60,6 @@ const updateStudent = async (payload) => {
   if (!result.status) {
     throw new ApiError(500, result.message);
   }
-
   return { message: result.message };
 };
 
@@ -70,8 +68,15 @@ const setStudentStatus = async (paylaod) => {
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to disable student");
   }
-
   return { message: "Student status changed successfully" };
+};
+
+const processGetStudentDueFees = async (payload) => {
+  const dueFees = await getStudentDueFees(payload);
+  if (!dueFees || dueFees.length <= 0) {
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+  }
+  return { dueFees };
 };
 
 module.exports = {
@@ -80,4 +85,5 @@ module.exports = {
   addNewStudent,
   setStudentStatus,
   updateStudent,
+  processGetStudentDueFees,
 };

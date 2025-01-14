@@ -33,11 +33,11 @@ const processDeletePeriod = async (payload) => {
 };
 
 const processGetAllPeriods = async (schoolId) => {
-  const data = await getAllPeriods(schoolId);
-  if (!data || data.length <= 0) {
+  const academicPeriods = await getAllPeriods(schoolId);
+  if (!academicPeriods || academicPeriods.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-  return data;
+  return { academicPeriods };
 };
 
 const processAssignPeriodDates = async (payload) => {

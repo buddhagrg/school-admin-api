@@ -13,13 +13,13 @@ const {
 } = require("./access-control-repository");
 
 const processGetAllAccessControls = async (staticRoleId) => {
-  const accessControls = await getAllAccessControls(staticRoleId);
-  if (accessControls.length <= 0) {
+  const data = await getAllAccessControls(staticRoleId);
+  if (!data || data.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
-  const hierarchialAccessControls = getAccessItemHierarchy(accessControls);
-  return hierarchialAccessControls;
+  const accessControls = getAccessItemHierarchy(data);
+  return { accessControls };
 };
 
 const processGetMyAccessControl = async (payload) => {

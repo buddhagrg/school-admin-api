@@ -5,48 +5,53 @@ const {
   processReviewStaffStatus,
   processGetStaff,
   processAddStaff,
-} = require("./staffs-service");
+} = require("./staff-service");
 
 const handleGetAllStaffs = asyncHandler(async (req, res) => {
   const { userId, roleId, name } = req.query;
   const { schoolId } = req.user;
-  const data = await processGetAllStaffs({ userId, roleId, name, schoolId });
-  res.json({ data });
+  const response = await processGetAllStaffs({
+    userId,
+    roleId,
+    name,
+    schoolId,
+  });
+  res.json(response);
 });
 
 const handleGetStaff = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { schoolId } = req.user;
-  const staff = await processGetStaff({ id, schoolId });
-  res.json(staff);
+  const response = await processGetStaff({ id, schoolId });
+  res.json(response);
 });
 
 const handleReviewStaffStatus = asyncHandler(async (req, res) => {
   const payload = req.body;
   const { id: userId } = req.params;
   const { id: reviewerId, schoolId } = req.user;
-  const message = await processReviewStaffStatus({
+  const response = await processReviewStaffStatus({
     ...payload,
     userId,
     reviewerId,
     schoolId,
   });
-  res.json(message);
+  res.json(response);
 });
 
 const handleAddStaff = asyncHandler(async (req, res) => {
   const payload = req.body;
   const { schoolId } = req.user;
-  const message = await processAddStaff({ ...payload, schoolId });
-  res.json(message);
+  const response = await processAddStaff({ ...payload, schoolId });
+  res.json(response);
 });
 
 const handleUpdateStaff = asyncHandler(async (req, res) => {
   const { id: userId } = req.params;
   const payload = req.body;
   const { schoolId } = req.user;
-  const message = await processUpdateStaff({ ...payload, userId, schoolId });
-  res.json(message);
+  const response = await processUpdateStaff({ ...payload, userId, schoolId });
+  res.json(response);
 });
 
 module.exports = {

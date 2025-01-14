@@ -119,10 +119,45 @@ const findStudentToUpdate = async (paylaod) => {
   return rows;
 };
 
+const getStudentDueFees = async (payload) => {
+  const { schoolId, studentId, academicyearId } = payload;
+  const query = `
+  SELECT
+    t1.*,
+    t2.description AS "statusDescription",
+    JSON_AGG(
+      JSON_BUILD_OBJECT(
+        'name', t6.name,
+        'description', t3.description,
+        'amount', t3.amount,
+        'quantity', t3.quantity,
+        'totalAmount', t3.total_amount,
+        'totalDiscount', t3.total_discount,
+        'createdDate', t3.created_date,
+        'updatedDate', t3.updated_date
+      )
+    ) AS items
+  FROM invoices t1
+  JOIN invoice_status t2 ON t2.code = t1.status
+  JOIN invoice_items t3 ON t3.invoice_id = t1.id
+  JOIN student_fees t4 ON t4.id = t3.student_fee_id
+  JOIN fees_structures t5 ON t5.id = t4.fee_structure_id
+  JOIN fees t6 ON t6.id = t5.fee_id
+  WHERE school_id = $1
+    AND user_id = $3
+    AND academic_year_id = $2
+    AND status IN ('PARTIALLY_PAID', 'ISSUED')
+  `;
+  const queryParams = [schoolId, studentId, academicyearId];
+  const { rows } = await processDBRequest({ query, queryParams });
+  return rows;
+};
+
 module.exports = {
   findAllStudents,
   addOrUpdateStudent,
   findStudentDetail,
   findStudentToSetStatus,
   findStudentToUpdate,
+  getStudentDueFees,
 };

@@ -1,4 +1,3 @@
-const { db } = require("../../config");
 const processDBRequest = require("../../utils/process-db-request");
 
 const findUserByUsername = async ({ username, client }) => {
@@ -45,7 +44,7 @@ const findUserByRefreshToken = async (refreshToken) => {
     JOIN roles r ON r.id = u.role_id
     WHERE rt.token = $1`;
   const queryParams = [refreshToken];
-  const { rows } = await db.query(query, queryParams);
+  const { rows } = await processDBRequest({ query, queryParams });
   return rows[0];
 };
 
@@ -59,7 +58,8 @@ const updateUserRefreshToken = async (
     UPDATE user_refresh_tokens
     SET token = $1, expires_at = $2
     WHERE user_id = $3 AND token = $4`;
-  await db.query(query, [newRefreshToken, expiresAt, userId, oldRefreshToken]);
+  const queryParams = [newRefreshToken, expiresAt, userId, oldRefreshToken];
+  await processDBRequest({ query, queryParams });
 };
 
 const getMenusByRoleId = async ({ staticRoleId, roleId, schoolId, client }) => {

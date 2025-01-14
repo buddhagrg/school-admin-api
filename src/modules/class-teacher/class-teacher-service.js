@@ -9,12 +9,12 @@ const {
 } = require("./class-teacher-repository");
 
 const fetchAllClassTeachers = async (schoolId) => {
-  const data = await getClassTeachers(schoolId);
-  if (!Array.isArray(data) || data.length <= 0) {
+  const classTeachers = await getClassTeachers(schoolId);
+  if (!Array.isArray(classTeachers) || classTeachers.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
-  return data;
+  return { classTeachers };
 };
 
 const addNewClassTeacher = async (payload) => {
@@ -49,7 +49,7 @@ const getAllTeachers = async (schoolId) => {
   if (teachers.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-  return teachers;
+  return { teachers };
 };
 
 module.exports = {

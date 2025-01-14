@@ -134,9 +134,9 @@ const deleteFeeAssignedToStudent = async (payload) => {
     DELETE
     FROM student_fees
     WHERE school_id = $1
-      AND (student_id, fee_id) IN (
-        SELECT student_id, fee_id
-        FROM UNNEST($2::int[], $3::int[]) AS t(student_id, fee_id)
+      AND (student_id, fee_structure_id) IN (
+        SELECT student_id, fee_structure_id
+        FROM UNNEST($2::int[], $3::int[]) AS t(student_id, fee_structure_id)
       )
   `;
   const queryParams = [schoolId, studentIds, feeIds];

@@ -8,4 +8,4 @@ router.delete("", apController.handleDeletePeriod);
 router.get("", apController.handleGetAllPeriods);
 router.post("/dates", apController.handleAssignPeriodDates);
 
-module.exports = { academicPeriods: router };
+module.exports = { academicPeriodRoutes: router };

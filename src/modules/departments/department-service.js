@@ -13,8 +13,7 @@ const processGetAllDepartments = async (schoolId) => {
   if (departments.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
-  return departments;
+  return { departments };
 };
 
 const processAddNewDepartment = async (payload) => {
@@ -22,7 +21,6 @@ const processAddNewDepartment = async (payload) => {
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to add new department");
   }
-
   return { message: "Department added successfully" };
 };
 
@@ -31,7 +29,6 @@ const processGetDepartmentById = async (payload) => {
   if (!department) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
   return department;
 };
 
@@ -40,7 +37,6 @@ const processUpdateDepartmentById = async (payload) => {
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to update department detail");
   }
-
   return { message: "Department updated successfully" };
 };
 
@@ -49,7 +45,6 @@ const processDeleteDepartmentById = async (payload) => {
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to delete department detail");
   }
-
   return { message: "Department deleted successfully" };
 };
 module.exports = {

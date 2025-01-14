@@ -1,8 +1,7 @@
 const { ERROR_MESSAGES } = require("../../constants");
 const { ApiError } = require("../../utils/api-error");
 const {
-  addInvoice,
-  updateInvoice,
+  generateInvoice,
   getInvoiceById,
   getAllInvoices,
   payInvoice,
@@ -13,21 +12,11 @@ const {
   removeInvoiceItem,
 } = require("./invoice-repository");
 
-const processAddInvoice = async (payload) => {
-  const result = await addInvoice(payload);
+const processGenerateInvoice = async (payload) => {
+  const result = await generateInvoice(payload);
   if (!result || !result.status) {
     throw new ApiError(500, result.message);
   }
-
-  return { message: result.message };
-};
-
-const processUpdateInvoice = async (payload) => {
-  const result = await updateInvoice(payload);
-  if (!result || !result.status) {
-    throw new ApiError(500, result.message);
-  }
-
   return { message: result.message };
 };
 
@@ -36,7 +25,6 @@ const processGetInvoiceById = async (payload) => {
   if (!invoice) {
     throw new ApiError(404, "Invoice does not exist");
   }
-
   return invoice;
 };
 
@@ -45,8 +33,7 @@ const processGetAllInvoices = async (payload) => {
   if (invoices.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
-  return invoices;
+  return { invoices };
 };
 
 const processPayInvoice = async (payload) => {
@@ -54,7 +41,6 @@ const processPayInvoice = async (payload) => {
   if (!result || !result.status) {
     throw new ApiError(500, result.message);
   }
-
   return { message: result.message };
 };
 
@@ -63,7 +49,6 @@ const processRefundInvoice = async (payload) => {
   if (!result || !result.status) {
     throw new ApiError(500, result.message);
   }
-
   return { message: result.message };
 };
 
@@ -72,7 +57,6 @@ const processDisputeInvoice = async (payload) => {
   if (affectedRow.length <= 0) {
     throw new ApiError(500, "Unable to dispute invoice");
   }
-
   return { message: "Invoice disputed successfully" };
 };
 
@@ -81,7 +65,6 @@ const processResolveDisputeInvoice = async (payload) => {
   if (affectedRow.length <= 0) {
     throw new ApiError(500, "Unable to resolve invoice dispute");
   }
-
   return { message: "Invoice disput resolved successfully" };
 };
 
@@ -90,7 +73,6 @@ const processCancelInvoice = async (payload) => {
   if (affectedRow.length <= 0) {
     throw new ApiError(500, "Unable to cancel invoice");
   }
-
   return { message: "Invoice cancelled successfully" };
 };
 
@@ -99,13 +81,11 @@ const processRemoveInvoiceItem = async (payload) => {
   if (affectedRow.length <= 0) {
     throw new ApiError(500, "Unable to remove invoice item");
   }
-
   return { message: "Invoice item deleted successfully" };
 };
 
 module.exports = {
-  processAddInvoice,
-  processUpdateInvoice,
+  processGenerateInvoice,
   processGetInvoiceById,
   processGetAllInvoices,
   processPayInvoice,

@@ -25,13 +25,13 @@ const handlePasswordChange = asyncHandler(async (req, res) => {
 
 const handleGetAccountDetail = asyncHandler(async (req, res) => {
   const { id: userId, roleId, schoolId, staticRoleId } = req.user;
-  const accountDetail = await processGetAccountDetail({
+  const response = await processGetAccountDetail({
     userId,
     roleId,
     schoolId,
     staticRoleId,
   });
-  res.json(accountDetail);
+  res.json(response);
 });
 
 module.exports = {

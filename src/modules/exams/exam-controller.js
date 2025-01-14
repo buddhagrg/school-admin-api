@@ -16,104 +16,104 @@ const {
 
 const handleGetAllExamNames = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const data = await processGetAllExamNames(schoolId);
-  res.json({ data });
+  const response = await processGetAllExamNames(schoolId);
+  res.json(response);
 });
 
 const handleAddExamName = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { name } = req.body;
-  const message = await processAddExamName({ schoolId, name });
-  res.json(message);
+  const response = await processAddExamName({ schoolId, name });
+  res.json(response);
 });
 
 const handleUpdateExamName = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { name } = req.body;
   const { id: examId } = req.params;
-  const message = await processUpdateExamName({ schoolId, name, examId });
-  res.json(message);
+  const response = await processUpdateExamName({ schoolId, name, examId });
+  res.json(response);
 });
 
 const handleDeleteExamName = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id: examId } = req.params;
-  const message = await processDeleteExamName({ schoolId, examId });
-  res.json(message);
+  const response = await processDeleteExamName({ schoolId, examId });
+  res.json(response);
 });
 
 const handleAddExamDetail = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const payload = req.body;
   const action = "a";
-  const message = await processAddExamDetail({ ...payload, schoolId, action });
-  res.json(message);
+  const response = await processAddExamDetail({ ...payload, schoolId, action });
+  res.json(response);
 });
 
 const handleUpdateExamDetail = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const payload = req.body;
   const action = "u";
-  const message = await processUpdateExamDetail({
+  const response = await processUpdateExamDetail({
     ...payload,
     schoolId,
     action,
   });
-  res.json(message);
+  res.json(response);
 });
 
 const handleGetExamRoutine = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const payload = req.body;
-  const data = await processGetExamRoutine({ ...payload, schoolId });
-  res.json({ data });
+  const response = await processGetExamRoutine({ ...payload, schoolId });
+  res.json(response);
 });
 
 const handleGetMarks = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const payload = req.body;
-  const data = await processGetMarks({ ...payload, schoolId });
-  res.json({ data });
+  const response = await processGetMarks({ ...payload, schoolId });
+  res.json(response);
 });
 
 const handleAddMarks = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const payload = req.body;
   const action = "a";
-  const message = await processAddMarks({ ...payload, schoolId, action });
-  res.json(message);
+  const response = await processAddMarks({ ...payload, schoolId, action });
+  res.json(response);
 });
 
 const handleUpdateMarks = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const payload = req.body;
   const action = "u";
-  const message = await processUpdateMarks({ ...payload, schoolId, action });
-  res.json(message);
+  const response = await processUpdateMarks({ ...payload, schoolId, action });
+  res.json(response);
 });
 
 const handleGetExamMarksheet = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const payload = req.body;
   const { id: userId } = req.params;
-  const data = await processGetExamMarksheet({
+  const response = await processGetExamMarksheet({
     ...payload,
     schoolId,
     userId,
   });
-  res.json({ data });
+  res.json(response);
 });
 
 const handleGetExamDetail = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const payload = req.body;
   const { id: examId } = req.params;
-  const data = await processGetExamDetail({
+  const response = await processGetExamDetail({
     ...payload,
     examId,
     schoolId,
   });
-  res.json({ data });
+  res.json(response);
 });
 
 module.exports = {

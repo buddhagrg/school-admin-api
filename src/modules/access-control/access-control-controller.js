@@ -9,37 +9,37 @@ const {
 
 const handleGetAllAccessControls = asyncHandler(async (req, res) => {
   const { staticRoleId } = req.user;
-  const data = await processGetAllAccessControls(staticRoleId);
-  res.json({ data });
+  const response = await processGetAllAccessControls(staticRoleId);
+  res.json(response);
 });
 
 const handleGetMyAccessControl = asyncHandler(async (req, res) => {
   const { roleId, staticRoleId, schoolId } = req.user;
-  const data = await processGetMyAccessControl({
+  const response = await processGetMyAccessControl({
     roleId,
     schoolId,
     staticRoleId,
   });
-  res.json({ data });
+  res.json(response);
 });
 
 const handleAddAccessControl = asyncHandler(async (req, res) => {
   const payload = req.body;
-  const message = await processAddAccessControl(payload);
-  res.json(message);
+  const response = await processAddAccessControl(payload);
+  res.json(response);
 });
 
 const handleUpdateAccessControl = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const payload = req.body;
-  const message = await processUpdateAccessControl({ ...payload, id });
-  res.json(message);
+  const response = await processUpdateAccessControl({ ...payload, id });
+  res.json(response);
 });
 
 const handleDeleteAccessControl = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const message = await processDeleteAccessControl(id);
-  res.json(message);
+  const response = await processDeleteAccessControl(id);
+  res.json(response);
 });
 
 module.exports = {

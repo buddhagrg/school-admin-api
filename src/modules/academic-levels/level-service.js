@@ -19,11 +19,11 @@ const processUpdateLevel = async (payload) => {
 };
 
 const processGetLevels = async (schoolId) => {
-  const levels = await getAllLevels(schoolId);
-  if (levels.length <= 0) {
+  const academicLevels = await getAllLevels(schoolId);
+  if (academicLevels.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-  return levels;
+  return { academicLevels };
 };
 
 module.exports = {

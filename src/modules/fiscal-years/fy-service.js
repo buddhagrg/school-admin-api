@@ -28,7 +28,7 @@ const processGetAllFiscalYears = async (payload) => {
   if (fiscalYears.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-  return fiscalYears;
+  return { fiscalYears };
 };
 
 const processActivateFiscalYear = async (payload) => {

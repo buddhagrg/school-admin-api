@@ -16,7 +16,6 @@ const processAddFee = async (payload) => {
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to add fee");
   }
-
   return { message: "Fee added successfully" };
 };
 
@@ -25,17 +24,15 @@ const processUpdateFee = async (payload) => {
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to update fee");
   }
-
   return { message: "Fee updated successfully" };
 };
 
 const processGetAllFees = async (schoolId) => {
-  const fee = await getAllFees(schoolId);
-  if (!fee) {
+  const fees = await getAllFees(schoolId);
+  if (!fees || fees.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
-  return fee;
+  return { fees };
 };
 
 const processAddOrUpdateFeeStructures = async (payload) => {
@@ -43,7 +40,6 @@ const processAddOrUpdateFeeStructures = async (payload) => {
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to modify fee structures");
   }
-
   return { message: "Fee structures modified successfully" };
 };
 
@@ -52,8 +48,7 @@ const processGetAllFeeStructures = async (payload) => {
   if (feeStructures.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
-  return feeStructures;
+  return { feeStructures };
 };
 
 const processAssignFeeToStudent = async (payload) => {
@@ -65,11 +60,11 @@ const processAssignFeeToStudent = async (payload) => {
 };
 
 const processGetFeesAssignedToStudent = async (payload) => {
-  const fees = await getFeesAssignedToStudent(payload);
-  if (fees.length <= 0) {
+  const feesAssigned = await getFeesAssignedToStudent(payload);
+  if (feesAssigned.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-  return fees;
+  return { feesAssigned };
 };
 
 const processDeleteFeeAssignedToStudent = async (payload) => {

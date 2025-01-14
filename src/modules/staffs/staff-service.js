@@ -5,14 +5,14 @@ const {
   reviewStaffStatus,
   getAllStaffs,
   getStaffDetailById,
-} = require("./staffs-repository");
+} = require("./staff-repository");
 
 const processGetAllStaffs = async (payload) => {
   const staffs = await getAllStaffs(payload);
   if (staffs.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-  return staffs;
+  return { staffs };
 };
 
 const processGetStaff = async (payload) => {
@@ -66,7 +66,6 @@ const processUpdateStaff = async (payload) => {
   if (!result.status) {
     throw new ApiError(500, result.message);
   }
-
   return { message: result.message };
 };
 

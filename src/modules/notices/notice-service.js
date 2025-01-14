@@ -8,14 +8,14 @@ const {
   getNotices,
   getNoticeRecipientList,
   getAllPendingNotices,
-} = require("./notices-repository");
+} = require("./notice-repository");
 
 const fetchNoticeRecipients = async (schoolId) => {
-  const recipients = await getNoticeRecipientList(schoolId);
-  if (!Array.isArray(recipients) || recipients.length <= 0) {
+  const noticeRecipients = await getNoticeRecipientList(schoolId);
+  if (!Array.isArray(noticeRecipients) || noticeRecipients.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-  return recipients;
+  return { noticeRecipients };
 };
 
 const fetchAllNotices = async (userId) => {
@@ -23,7 +23,7 @@ const fetchAllNotices = async (userId) => {
   if (notices.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-  return notices;
+  return { notices };
 };
 
 const fetchNoticeDetailById = async (payload) => {
@@ -39,7 +39,6 @@ const addNotice = async (payload) => {
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to add new notice");
   }
-
   return { message: "Notice added successfully" };
 };
 
@@ -48,7 +47,6 @@ const updateNotice = async (payload) => {
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to update notice");
   }
-
   return { message: "Notice updated successfully" };
 };
 
@@ -82,7 +80,6 @@ const processNoticeStatus = async (payload) => {
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to review notice");
   }
-
   return { message: "Success" };
 };
 
@@ -104,17 +101,15 @@ const handleStatusCheck = (
         return false;
     }
   }
-
   return false;
 };
 
 const processGetAllPendingNotices = async (schoolId) => {
-  const notices = await getAllPendingNotices(schoolId);
-  if (notices.length <= 0) {
+  const pendingNotices = await getAllPendingNotices(schoolId);
+  if (pendingNotices.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
-  return notices;
+  return { pendingNotices };
 };
 
 module.exports = {

@@ -20,15 +20,17 @@ const {
 
 const handleLogin = asyncHandler(async (req, res) => {
   const { username, password } = req.body;
-  const { accessToken, refreshToken, csrfToken, accountBasic } = await login(
-    username,
-    password
-  );
+  const {
+    accessToken,
+    refreshToken,
+    csrfToken,
+    accountBasic: response,
+  } = await login(username, password);
 
   clearAllCookies(res);
   setAllCookies(res, accessToken, refreshToken, csrfToken);
 
-  res.json(accountBasic);
+  res.json(response);
 });
 
 const handleLogout = asyncHandler(async (req, res) => {
@@ -41,47 +43,49 @@ const handleLogout = asyncHandler(async (req, res) => {
 
 const handleTokenRefresh = asyncHandler(async (req, res) => {
   const { refreshToken } = req.cookies;
-  const { accessToken, csrfToken, message } = await getNewAccessAndCsrfToken(
-    refreshToken
-  );
+  const {
+    accessToken,
+    csrfToken,
+    message: response,
+  } = await getNewAccessAndCsrfToken(refreshToken);
   res.clearCookie("accessToken");
   res.clearCookie("csrfToken");
 
   setAccessTokenCookie(res, accessToken);
   setCsrfTokenCookie(res, csrfToken);
 
-  res.json(message);
+  res.json(response);
 });
 
 const handleAccountEmailVerify = asyncHandler(async (req, res) => {
   const { id: userId } = req.user;
-  const message = await processAccountEmailVerify(userId);
-  res.json(message);
+  const response = await processAccountEmailVerify(userId);
+  res.json(response);
 });
 
 const handleAccountPasswordSetup = asyncHandler(async (req, res) => {
   const { id: userId } = req.user;
   const { username: userEmail, password } = req.body;
-  const message = await processPasswordSetup({ userId, userEmail, password });
-  res.json(message);
+  const response = await processPasswordSetup({ userId, userEmail, password });
+  res.json(response);
 });
 
 const handleResendEmailVerification = asyncHandler(async (req, res) => {
   const { userId } = req.body;
-  const message = await processResendEmailVerification(userId);
-  res.json(message);
+  const response = await processResendEmailVerification(userId);
+  res.json(response);
 });
 
 const handleResendPwdSetupLink = asyncHandler(async (req, res) => {
   const { userId } = req.body;
-  const message = await processResendPwdSetupLink(userId);
-  res.json(message);
+  const response = await processResendPwdSetupLink(userId);
+  res.json(response);
 });
 
 const handlePwdReset = asyncHandler(async (req, res) => {
   const { userId } = req.body;
-  const message = await processPwdReset(userId);
-  res.json(message);
+  const response = await processPwdReset(userId);
+  res.json(response);
 });
 
 const handleSetupSchoolProfile = asyncHandler(async (req, res) => {
@@ -92,8 +96,8 @@ const handleSetupSchoolProfile = asyncHandler(async (req, res) => {
 
 const handleSetupAdminProfile = asyncHandler(async (req, res) => {
   const payload = req.body;
-  const message = await processSetupAdminProfile(payload);
-  res.json(message);
+  const response = await processSetupAdminProfile(payload);
+  res.json(response);
 });
 
 module.exports = {

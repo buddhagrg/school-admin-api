@@ -1,14 +1,7 @@
 const processDBRequest = require("../../utils/process-db-request");
 
-const addInvoice = async (payload) => {
-  const query = `SELECT * FROM add_or_update_invoices($1)`;
-  const queryParams = [payload];
-  const { rows } = await processDBRequest({ query, queryParams });
-  return rows[0];
-};
-
-const updateInvoice = async (payload) => {
-  const query = `SELECT * FROM add_or_update_invoices($1)`;
+const generateInvoice = async (payload) => {
+  const query = `SELECT * FROM generate_invoices($1)`;
   const queryParams = [payload];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows[0];
@@ -171,8 +164,7 @@ const removeInvoiceItem = async (payload) => {
 };
 
 module.exports = {
-  addInvoice,
-  updateInvoice,
+  generateInvoice,
   getInvoiceById,
   getAllInvoices,
   payInvoice,

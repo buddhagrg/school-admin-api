@@ -5,54 +5,66 @@ const {
   getStudentDetail,
   setStudentStatus,
   updateStudent,
-} = require("./students-service");
+  processGetStudentDueFees,
+} = require("./student-service");
 
 const handleGetAllStudents = asyncHandler(async (req, res) => {
   const { name, section, class: classId, roll } = req.query;
   const { schoolId } = req.user;
-  const data = await getAllStudents({
+  const response = await getAllStudents({
     name,
     section,
     classId,
     roll,
     schoolId,
   });
-  res.json({ data });
+  res.json(response);
 });
 
 const handleAddStudent = asyncHandler(async (req, res) => {
   const payload = req.body;
   const { schoolId } = req.user;
-  const message = await addNewStudent({ ...payload, schoolId });
-  res.json(message);
+  const response = await addNewStudent({ ...payload, schoolId });
+  res.json(response);
 });
 
 const handleUpdateStudent = asyncHandler(async (req, res) => {
   const { id: userId } = req.params;
   const payload = req.body;
   const { schoolId } = req.user;
-  const message = await updateStudent({ ...payload, userId, schoolId });
-  res.json(message);
+  const response = await updateStudent({ ...payload, userId, schoolId });
+  res.json(response);
 });
 
 const handleGetStudentDetail = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { schoolId } = req.user;
-  const student = await getStudentDetail({ id, schoolId });
-  res.json(student);
+  const response = await getStudentDetail({ id, schoolId });
+  res.json(response);
 });
 
 const handleStudentStatus = asyncHandler(async (req, res) => {
   const { id: userId } = req.params;
   const { id: reviewerId, schoolId } = req.user;
   const { status } = req.body;
-  const message = await setStudentStatus({
+  const response = await setStudentStatus({
     userId,
     status,
     reviewerId,
     schoolId,
   });
-  res.json(message);
+  res.json(response);
+});
+
+const handleGetStudentDueFees = asyncHandler(async (req, res) => {
+  const { schoolId } = req.user;
+  const { academicYearId, studentId } = req.query;
+  const response = await processGetStudentDueFees({
+    schoolId,
+    academicYearId,
+    studentId,
+  });
+  res.json(response);
 });
 
 module.exports = {
@@ -61,4 +73,5 @@ module.exports = {
   handleAddStudent,
   handleStudentStatus,
   handleUpdateStudent,
+  handleGetStudentDueFees,
 };

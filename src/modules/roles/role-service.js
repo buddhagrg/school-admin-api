@@ -28,7 +28,6 @@ const addRole = async ({ name, schoolId }) => {
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to add role");
   }
-
   return { message: "Role added successfully" };
 };
 
@@ -37,8 +36,7 @@ const fetchRoles = async (schoolId) => {
   if (!Array.isArray(roles) || roles.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
-  return roles;
+  return { roles };
 };
 
 const updateRole = async (payload) => {
@@ -46,13 +44,11 @@ const updateRole = async (payload) => {
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to update role");
   }
-
   return { message: "Role updated successfully" };
 };
 
 const processRoleStatus = async ({ id, status, schoolId }) => {
   await checkIfRoleIdExist(id);
-
   const affectedRow = await enableOrDisableRoleStatusByRoleId({
     id,
     status,
@@ -61,18 +57,15 @@ const processRoleStatus = async ({ id, status, schoolId }) => {
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to disable role");
   }
-
   const stsText = status ? "enabled" : "disabled";
   return { message: `Role ${stsText} successfully` };
 };
 
 const addRolePermission = async ({ roleId, permissions, schoolId }) => {
   await checkIfRoleIdExist(roleId);
-
   const client = await db.connect();
   try {
     await client.query("BEGIN");
-
     const idArray = permissions
       .split(",")
       .map((id) => id.trim())
@@ -93,7 +86,6 @@ const addRolePermission = async ({ roleId, permissions, schoolId }) => {
     }
 
     await client.query("COMMIT");
-
     return { message: "Permission of given role saved successfully" };
   } catch (error) {
     await client.query("ROLLBACK");
@@ -109,27 +101,25 @@ const getRolePermissions = async ({ roleId, schoolId }) => {
     throw new ApiError(404, "Role does not exist");
   }
 
-  const permissions = await getPermissionsById({
+  const rolePermissions = await getPermissionsById({
     roleId,
     staticRoleId,
     schoolId,
   });
-  if (permissions.length <= 0) {
+  if (rolePermissions.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
-  return permissions;
+  return { rolePermissions };
 };
 
 const fetchUsersByRoleId = async ({ roleId, schoolId }) => {
   await checkIfRoleIdExist(roleId);
-
-  const users = await getUsersByRoleId({ roleId, schoolId });
-  if (!Array.isArray(users) || users.length <= 0) {
+  const roleUsers = await getUsersByRoleId({ roleId, schoolId });
+  if (!Array.isArray(roleUsers) || roleUsersusers.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-
-  return users;
+  return { roleUsers };
 };
 
 const processSwitchRole = async (payload) => {
