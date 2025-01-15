@@ -29,12 +29,13 @@ const handleGetStaff = asyncHandler(async (req, res) => {
 const handleReviewStaffStatus = asyncHandler(async (req, res) => {
   const payload = req.body;
   const { id: userId } = req.params;
-  const { id: reviewerId, schoolId } = req.user;
+  const { id: reviewerId, schoolId, staticRoleId } = req.user;
   const response = await processReviewStaffStatus({
     ...payload,
     userId,
     reviewerId,
     schoolId,
+    staticRoleId,
   });
   res.json(response);
 });

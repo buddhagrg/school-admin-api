@@ -24,6 +24,9 @@ const processGetStaff = async (payload) => {
 };
 
 const processReviewStaffStatus = async (payload) => {
+  if ([1, 2].includes(payload.staticRoleId)) {
+    throw new ApiError(401, "Status change disabled for demo purpose");
+  }
   const affectedRow = await reviewStaffStatus(payload);
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to update staff status");
