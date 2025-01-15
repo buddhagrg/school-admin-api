@@ -35,6 +35,7 @@ const {
   findUserById,
   insertRefreshToken,
 } = require("../../shared/repository");
+const { ERROR_MESSAGES } = require("../../constants");
 
 const PWD_SETUP_EMAIL_SEND_SUCCESS =
   "Password setup link emailed successfully.";
@@ -253,8 +254,12 @@ const processPasswordSetup = async (payload) => {
   };
 };
 
-const processResendEmailVerification = async (userId) => {
+const processResendEmailVerification = async ({ userId }) => {
   try {
+    if ([1, 2].includes(staticRoleId)) {
+      throw new ApiError(401, ERROR_MESSAGES.NOT_ALLOWED_IN_DEMO);
+    }
+
     const user = await findUserById(userId);
     if (!user) {
       throw new ApiError(404, USER_DOES_NOT_EXIST);
@@ -286,8 +291,12 @@ const processResendEmailVerification = async (userId) => {
   }
 };
 
-const processResendPwdSetupLink = async (userId) => {
+const processResendPwdSetupLink = async ({ userId, staticRoleId }) => {
   try {
+    if ([1, 2].includes(staticRoleId)) {
+      throw new ApiError(401, ERROR_MESSAGES.NOT_ALLOWED_IN_DEMO);
+    }
+
     const user = await findUserById(userId);
     if (!user) {
       throw new ApiError(404, USER_DOES_NOT_EXIST);
@@ -313,8 +322,12 @@ const processResendPwdSetupLink = async (userId) => {
   }
 };
 
-const processPwdReset = async (userId) => {
+const processPwdReset = async ({ userId, staticRoleId }) => {
   try {
+    if ([1, 2].includes(staticRoleId)) {
+      throw new ApiError(401, ERROR_MESSAGES.NOT_ALLOWED_IN_DEMO);
+    }
+
     const user = await findUserById(userId);
     if (!user) {
       throw new ApiError(404, USER_DOES_NOT_EXIST);

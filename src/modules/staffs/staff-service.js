@@ -25,8 +25,9 @@ const processGetStaff = async (payload) => {
 
 const processReviewStaffStatus = async (payload) => {
   if ([1, 2].includes(payload.staticRoleId)) {
-    throw new ApiError(401, "Status change disabled for demo purpose");
+    throw new ApiError(401, ERROR_MESSAGES.NOT_ALLOWED_IN_DEMO);
   }
+
   const affectedRow = await reviewStaffStatus(payload);
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to update staff status");
@@ -65,6 +66,10 @@ const processAddStaff = async (payload) => {
 };
 
 const processUpdateStaff = async (payload) => {
+  if ([1, 2].includes(payload.staticRoleId)) {
+    throw new ApiError(401, ERROR_MESSAGES.NOT_ALLOWED_IN_DEMO);
+  }
+
   const result = await addOrUpdateStaff(payload);
   if (!result.status) {
     throw new ApiError(500, result.message);

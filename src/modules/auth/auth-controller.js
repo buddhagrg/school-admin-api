@@ -71,20 +71,26 @@ const handleAccountPasswordSetup = asyncHandler(async (req, res) => {
 });
 
 const handleResendEmailVerification = asyncHandler(async (req, res) => {
+  const { staticRoleId } = req.user;
   const { userId } = req.body;
-  const response = await processResendEmailVerification(userId);
+  const response = await processResendEmailVerification({
+    userId,
+    staticRoleId,
+  });
   res.json(response);
 });
 
 const handleResendPwdSetupLink = asyncHandler(async (req, res) => {
+  const { staticRoleId } = req.user;
   const { userId } = req.body;
-  const response = await processResendPwdSetupLink(userId);
+  const response = await processResendPwdSetupLink({ userId, staticRoleId });
   res.json(response);
 });
 
 const handlePwdReset = asyncHandler(async (req, res) => {
+  const { staticRoleId } = req.user;
   const { userId } = req.body;
-  const response = await processPwdReset(userId);
+  const response = await processPwdReset({ userId, staticRoleId });
   res.json(response);
 });
 

@@ -50,8 +50,13 @@ const handleAddStaff = asyncHandler(async (req, res) => {
 const handleUpdateStaff = asyncHandler(async (req, res) => {
   const { id: userId } = req.params;
   const payload = req.body;
-  const { schoolId } = req.user;
-  const response = await processUpdateStaff({ ...payload, userId, schoolId });
+  const { schoolId, staticRoleId } = req.user;
+  const response = await processUpdateStaff({
+    ...payload,
+    userId,
+    schoolId,
+    staticRoleId,
+  });
   res.json(response);
 });
 
