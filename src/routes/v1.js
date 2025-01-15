@@ -72,8 +72,8 @@ router.use(
 );
 router.use("/auth", authRoutes);
 router.use("/account", authenticateToken, csrfProtection, accountRoutes);
-router.use("/leave", authenticateToken, csrfProtection, leaveRoutes);
-router.use("/class", authenticateToken, csrfProtection, classRoutes);
+router.use("/leaves", authenticateToken, csrfProtection, leaveRoutes);
+router.use("/classes", authenticateToken, csrfProtection, classRoutes);
 router.use(
   "/class-teachers",
   authenticateToken,
@@ -94,21 +94,21 @@ router.use(
   schoolRoutes
 );
 router.use(
-  "/academic_levels",
+  "/academic-levels",
   authenticateToken,
   csrfProtection,
   isUserAdminOrSuperAdmin([1]),
   academicLevelRoutes
 );
 router.use(
-  "/academic_years",
+  "/academic-years",
   authenticateToken,
   csrfProtection,
   isUserAdminOrSuperAdmin([1]),
   academicYearRoutes
 );
 router.use(
-  "/fiscal_years",
+  "/fiscal-years",
   authenticateToken,
   csrfProtection,
   isUserAdminOrSuperAdmin([1]),

@@ -13,7 +13,7 @@ const getAllStaffs = async (payload) => {
     FROM users t1
     LEFT JOIN user_profiles t2 ON t2.user_id = t1.id
     LEFT JOIN roles t3 ON t3.id = t1.role_id
-    WHERE t3.static_role_id != 4 AND t1.school_id = $1`;
+    WHERE t3.static_role_id NOT IN (1, 4) AND t1.school_id = $1`;
   let queryParams = [schoolId];
   if (userId) {
     query += ` AND t1.id = $${queryParams.length + 1}`;

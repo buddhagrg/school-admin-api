@@ -15,9 +15,9 @@ const getClassTeachers = async (schoolId) => {
       CASE WHEN t1.section_id IS NOT NULL THEN
         JSON_AGG(
           JSON_BUILD_OBJECT(
-            id, t1.section_id,
-            name, t3.name,
-            teacherId, t1.teacher_id
+            'id', t1.section_id,
+            'name', t3.name,
+            'teacherId', t1.teacher_id
           )
         )
       ELSE

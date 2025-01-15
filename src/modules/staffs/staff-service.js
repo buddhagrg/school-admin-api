@@ -43,7 +43,7 @@ const processAddStaff = async (payload) => {
       throw new ApiError(500, result.message);
     }
 
-    if (!payload.sendVerificationEmail) {
+    if (!payload.enrollToSystem) {
       return { message: ADD_STAFF_SUCCESS };
     }
 

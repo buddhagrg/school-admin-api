@@ -139,7 +139,7 @@ const updateLeaveRequest = async (payload) => {
 
 const getUserLeaveHistory = async ({ id, schoolId }) => {
   const leaveHistory = await getLeaveRequestHistoryByUser({ id, schoolId });
-  if (!Array.isArray(leaves) || leaves.length <= 0) {
+  if (!Array.isArray(leaveHistory) || leaveHistory.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
   return { leaveHistory };
