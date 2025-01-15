@@ -254,7 +254,7 @@ const processPasswordSetup = async (payload) => {
   };
 };
 
-const processResendEmailVerification = async ({ userId }) => {
+const processResendEmailVerification = async ({ userId, staticRoleId }) => {
   try {
     if ([1, 2].includes(staticRoleId)) {
       throw new ApiError(401, ERROR_MESSAGES.NOT_ALLOWED_IN_DEMO);
