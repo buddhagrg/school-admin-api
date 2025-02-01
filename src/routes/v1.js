@@ -48,7 +48,9 @@ const {
 const { fiscalYearRoutes } = require("../modules/fiscal-years/fy-router.js");
 const { roleRoutes } = require("../modules/roles/role-router.js");
 const { paymentRoutes } = require("../modules/payments/payment-router.js");
-const { academicPeriodRoutes } = require("../modules/academic-periods/ap-router.js");
+const {
+  academicPeriodRoutes,
+} = require("../modules/academic-periods/ap-router.js");
 
 router.get(
   "/teachers",
@@ -97,21 +99,21 @@ router.use(
   "/academic-levels",
   authenticateToken,
   csrfProtection,
-  isUserAdminOrSuperAdmin([1]),
+  isUserAdminOrSuperAdmin([1, 2]),
   academicLevelRoutes
 );
 router.use(
   "/academic-years",
   authenticateToken,
   csrfProtection,
-  isUserAdminOrSuperAdmin([1]),
+  isUserAdminOrSuperAdmin([1, 2]),
   academicYearRoutes
 );
 router.use(
   "/fiscal-years",
   authenticateToken,
   csrfProtection,
-  isUserAdminOrSuperAdmin([1]),
+  isUserAdminOrSuperAdmin([1, 2]),
   fiscalYearRoutes
 );
 router.use("/attendances", authenticateToken, csrfProtection, attendanceRoutes);
@@ -125,6 +127,7 @@ router.use(
   "/academic-periods",
   authenticateToken,
   csrfProtection,
+  isUserAdminOrSuperAdmin([1, 2]),
   academicPeriodRoutes
 );
 

@@ -3,9 +3,10 @@ const router = express.Router();
 const apController = require("./ap-controller");
 
 router.post("", apController.handleAddPeriod);
-router.put("", apController.handleUpdatePeriod);
-router.delete("", apController.handleDeletePeriod);
+router.put("/:id", apController.handleUpdatePeriod);
+router.delete("/:id", apController.handleDeletePeriod);
 router.get("", apController.handleGetAllPeriods);
 router.post("/dates", apController.handleAssignPeriodDates);
+router.post("/:id/manage-order", apController.handleUpdatePeriodOrder);
 
 module.exports = { academicPeriodRoutes: router };

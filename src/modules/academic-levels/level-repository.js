@@ -1,26 +1,12 @@
 const processDBRequest = require("../../utils/process-db-request");
 
 const addLevel = async (payload) => {
-  const {
-    schoolId,
-    name,
-    startGrade,
-    endGrade,
-    academicYearStart,
-    academicYearEnd,
-  } = payload;
+  const { schoolId, name } = payload;
   const query = `
-    INSERT INTO academic_levels(school_id, name, start_grade, end_grade, academic_year_start, academic_year_end)
-    VALUES($1, $2, $3, $4, $5)
+    INSERT INTO academic_levels(school_id, name)
+    VALUES($1, $2)
     `;
-  const queryParams = [
-    schoolId,
-    name,
-    startGrade,
-    endGrade,
-    academicYearStart,
-    academicYearEnd,
-  ];
+  const queryParams = [schoolId, name];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };
@@ -33,35 +19,50 @@ const getAllLevels = async (schoolId) => {
 };
 
 const updateLevel = async (payload) => {
-  const {
-    levelId,
-    schoolId,
-    name,
-    startGrade,
-    endGrade,
-    academicYearStart,
-    academicYearEnd,
-  } = payload;
+  const { academicLevelId, schoolId, name } = payload;
   const query = `
     UPDATE academic_levels
-    SET name = $1,
-      start_grade = $2,
-      end_grade = $3,
-      academic_year_start = $4,
-      academic_year_end = $5
-    WHERE school_id = $6 AND id = $7
-    `;
-  const queryParams = [
-    name,
-    startGrade,
-    endGrade,
-    academicYearStart,
-    academicYearEnd,
-    schoolId,
-    levelId,
-  ];
+    SET name = $1
+    WHERE school_id = $2 AND id = $3
+  `;
+  const queryParams = [name, schoolId, academicLevelId];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };
 
-module.exports = { addLevel, getAllLevels, updateLevel };
+const addClassToLevel = async (payload) => {
+  const { academicLevelId, schoolId, classId } = payload;
+  const query = `
+    UPDATE classes
+    SET academic_level_id = $1
+    WHERE school_id = $2 AND id = $3
+  `;
+  const queryParams = [academicLevelId, schoolId, classId];
+  const { rowCount } = await processDBRequest({ query, queryParams });
+  return rowCount;
+};
+
+const getAcademicLevelsWithPeriods = async (schoolId) => {
+  const query = `
+    SELECT
+      t2.id,
+      t2.name,
+      t1.id AS "academicLevelId",
+      t1.name AS "academicLevelName",
+      t2.order_id AS "orderId"
+    FROM academic_levels t1
+    LEFT JOIN academic_periods t2 ON t2.academic_level_id = t1.id
+    WHERE t1.school_id = $1
+  `;
+  const queryParams = [schoolId];
+  const { rows } = await processDBRequest({ query, queryParams });
+  return rows;
+};
+
+module.exports = {
+  addLevel,
+  getAllLevels,
+  updateLevel,
+  addClassToLevel,
+  getAcademicLevelsWithPeriods,
+};

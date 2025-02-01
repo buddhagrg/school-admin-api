@@ -1,12 +1,20 @@
+const { db } = require("../../config");
 const processDBRequest = require("../../utils/process-db-request");
 
 const addPeriod = async (payload) => {
-  const { schoolId, academicLevelId, name, order } = payload;
+  const { schoolId, academicLevelId, name } = payload;
   const query = `
-    INSERT INTO academic_periods(school_id, academic_level_id, name, order)
-    VALUES($1, $2, $3, $4)
+    INSERT INTO academic_periods(school_id, academic_level_id, name, order_id)
+    VALUES(
+    $1,
+    $2,
+    $3,
+    COALESCE((
+      SELECT MAX(order_id) FROM academic_periods
+      WHERE school_id = $1 AND academic_level_id = $2)
+    ,0) + 1)
   `;
-  const queryParams = [schoolId, academicLevelId, name, order];
+  const queryParams = [schoolId, academicLevelId, name];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };
@@ -24,14 +32,10 @@ const updatePeriod = async (payload) => {
 };
 
 const deletePeriod = async (payload) => {
-  const { schoolId, academicPeriodId } = payload;
-  const query = `
-    DELETE FROM academic_periods
-    WHERE school_id = $1 AND id = $2
-  `;
-  const queryParams = [schoolId, academicPeriodId];
-  const { rowCount } = await processDBRequest({ query, queryParams });
-  return rowCount;
+  const query = `SELECT * FROM delete_period_order($1)`;
+  const queryParams = [payload];
+  const { rows } = await processDBRequest({ query, queryParams });
+  return rows[0];
 };
 
 const getAllPeriods = async (schoolId) => {
@@ -39,7 +43,7 @@ const getAllPeriods = async (schoolId) => {
     SELECT
       t1.id,
       t1.name,
-      t1.order,
+      t1.order_id,
       t1.academic_level_id
     FROM academic_periods
     WHERE school_id = $1
@@ -55,7 +59,12 @@ const assignPeriodDates = async (payload) => {
   const insertValues = periods
     .map((item, index) => {
       const offset = 5 * index;
-      queryParams.push(schoolId, item.periodId, item.startDate, item.endDate);
+      queryParams.push(
+        schoolId,
+        item.academicPeriodId,
+        item.startDate,
+        item.endDate
+      );
       return `(
         $${offset + 1},
         $${offset + 1},
@@ -78,10 +87,58 @@ const assignPeriodDates = async (payload) => {
   return rowCount;
 };
 
+const updatePeriodOrder = async (payload) => {
+  const { schoolId, periods, academicLevelId } = payload;
+  const client = await db.connect();
+  try {
+    await client.query("BEGIN");
+
+    const negativeOrderQueryParams = [schoolId, academicLevelId];
+    const negativeOrderQuery = `
+      UPDATE academic_Periods
+      SET order_id = -order_id
+      WHERE school_id = $1
+        AND academic_level_id = $2
+        AND id IN(${periods.map(({ id }) => id).join(", ")});
+    `;
+    await processDBRequest({
+      query: negativeOrderQuery,
+      queryParams: negativeOrderQueryParams,
+      client,
+    });
+
+    const query = `
+    UPDATE academic_periods
+    SET order_id = CASE
+      ${periods
+        .map(
+          ({ id, orderId }) => `
+          WHEN id = ${id} THEN ${orderId}
+        `
+        )
+        .join("")}
+      ELSE order_id
+    END
+    WHERE school_id = $1 AND id IN (${periods.map(({ id }) => id).join(", ")})
+  `;
+    const queryParams = [schoolId];
+    const { rowCount } = await processDBRequest({ query, queryParams, client });
+
+    await client.query("COMMIT");
+    return rowCount;
+  } catch (error) {
+    await client.query("ROLLBACK");
+    return 0;
+  } finally {
+    client.release();
+  }
+};
+
 module.exports = {
   addPeriod,
   updatePeriod,
   deletePeriod,
   getAllPeriods,
   assignPeriodDates,
+  updatePeriodOrder,
 };

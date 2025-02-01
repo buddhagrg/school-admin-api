@@ -27,12 +27,12 @@ const getClassDetail = async ({ id, schoolId }) => {
 };
 
 const addNewClass = async (payload) => {
-  const { name, schoolId, academicLevelId } = payload;
+  const { name, schoolId } = payload;
   const query = `
-    INSERT INTO classes (name, school_id, academic_level_id)
-    VALUES ($1, $2, $3, $4)
+    INSERT INTO classes (name, school_id)
+    VALUES ($1, $2)
   `;
-  const queryParams = [name, schoolId, academicLevelId];
+  const queryParams = [name, schoolId];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };

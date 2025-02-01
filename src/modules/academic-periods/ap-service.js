@@ -6,6 +6,7 @@ const {
   deletePeriod,
   getAllPeriods,
   assignPeriodDates,
+  updatePeriodOrder,
 } = require("./ap-repository");
 
 const processAddPeriod = async (payload) => {
@@ -25,11 +26,13 @@ const processUpdatePeriod = async (payload) => {
 };
 
 const processDeletePeriod = async (payload) => {
-  const affectedRow = await deletePeriod(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to delete academic period");
+  const result = await deletePeriod(payload);
+  console.log(result)
+  if (!result || !result.status) {
+    throw new ApiError(500, result.message);
   }
-  return { message: "Academic Period deleted successfully" };
+
+  return { message: result.message };
 };
 
 const processGetAllPeriods = async (schoolId) => {
@@ -48,10 +51,25 @@ const processAssignPeriodDates = async (payload) => {
   return { message: "Academic Period dates assigned successfully" };
 };
 
+const processUpdatePeriodOrder = async (payload) => {
+  const { periods } = payload;
+  if (!Array.isArray(periods) || periods.length <= 0) {
+    throw new ApiError(400, "Bad request");
+  }
+
+  const affectedRow = await updatePeriodOrder(payload);
+  if (affectedRow <= 0) {
+    throw new ApiError(500, "Unable to manage period order");
+  }
+
+  return { message: "Period order updated successfully" };
+};
+
 module.exports = {
   processAddPeriod,
   processUpdatePeriod,
   processDeletePeriod,
   processGetAllPeriods,
   processAssignPeriodDates,
+  processUpdatePeriodOrder,
 };

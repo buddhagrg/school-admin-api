@@ -5,6 +5,7 @@ const {
   processDeletePeriod,
   processGetAllPeriods,
   processAssignPeriodDates,
+  processUpdatePeriodOrder,
 } = require("./ap-service");
 
 const handleAddPeriod = expressAsyncHandler(async (req, res) => {
@@ -49,10 +50,23 @@ const handleAssignPeriodDates = expressAsyncHandler(async (req, res) => {
   res.json(response);
 });
 
+const handleUpdatePeriodOrder = expressAsyncHandler(async (req, res) => {
+  const { schoolId } = req.user;
+  const { id: academicLevelId } = req.params;
+  const payload = req.body;
+  const response = await processUpdatePeriodOrder({
+    schoolId,
+    periods: payload,
+    academicLevelId,
+  });
+  res.json(response);
+});
+
 module.exports = {
   handleAddPeriod,
   handleUpdatePeriod,
   handleDeletePeriod,
   handleGetAllPeriods,
   handleAssignPeriodDates,
+  handleUpdatePeriodOrder,
 };

@@ -21,9 +21,9 @@ const handleFetchClassDetail = asyncHandler(async (req, res) => {
 });
 
 const handleAddClass = asyncHandler(async (req, res) => {
-  const { name, academicLevelId } = req.body;
+  const { name } = req.body;
   const { schoolId } = req.user;
-  const payload = { name, schoolId, academicLevelId };
+  const payload = { name, schoolId };
   const response = await addClass(payload);
   res.json(response);
 });

@@ -70,7 +70,7 @@ const getAllInvoices = async (payload) => {
   JOIN invoice_status t2 ON t2.id = t1.status
   JOIN users t3 ON t3.id = t1.user_id
   JOIN user_profiles t4 ON t4.user_id = t1.user_id
-  JOIN classes t5 On t5.id = t4.class_id
+  JOIN classes t5 ON t5.id = t4.class_id
   LEFT JOIN sections t6 ON t6.id = t4.section_id
   WHERE t1.school_id = $1
   `;
