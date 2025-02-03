@@ -115,11 +115,11 @@ const getRolePermissions = async ({ roleId, schoolId }) => {
 
 const fetchUsersByRoleId = async ({ roleId, schoolId }) => {
   await checkIfRoleIdExist(roleId);
-  const roleUsers = await getUsersByRoleId({ roleId, schoolId });
-  if (!Array.isArray(roleUsers) || roleUsersusers.length <= 0) {
+  const users = await getUsersByRoleId({ roleId, schoolId });
+  if (!Array.isArray(users) || users.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-  return { roleUsers };
+  return { users };
 };
 
 const processSwitchRole = async (payload) => {
