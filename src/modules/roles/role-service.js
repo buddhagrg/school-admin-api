@@ -101,16 +101,16 @@ const getRolePermissions = async ({ roleId, schoolId }) => {
     throw new ApiError(404, "Role does not exist");
   }
 
-  const rolePermissions = await getPermissionsById({
+  const permissions = await getPermissionsById({
     roleId,
     staticRoleId,
     schoolId,
   });
-  if (rolePermissions.length <= 0) {
+  if (permissions.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
-  return { rolePermissions };
+  return { permissions };
 };
 
 const fetchUsersByRoleId = async ({ roleId, schoolId }) => {
