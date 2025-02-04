@@ -51,6 +51,9 @@ const { paymentRoutes } = require("../modules/payments/payment-router.js");
 const {
   academicPeriodRoutes,
 } = require("../modules/academic-periods/ap-router.js");
+const {
+  handleGetAcademicStructure,
+} = require("../modules/academic-levels/level-controller.js");
 
 router.get(
   "/teachers",
@@ -94,6 +97,13 @@ router.use(
   csrfProtection,
   isUserAdminOrSuperAdmin([1]),
   schoolRoutes
+);
+router.get(
+  "/academic-structure",
+  authenticateToken,
+  csrfProtection,
+  isUserAdminOrSuperAdmin([1, 2]),
+  handleGetAcademicStructure
 );
 router.use(
   "/academic-levels",
