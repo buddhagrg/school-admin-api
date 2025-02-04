@@ -5,7 +5,8 @@ const {
   updateLevel,
   addLevel,
   addClassToLevel,
-  getAcademicLevelsWithPeriods,
+  getAcademicStructure,
+  deleteLevel,
 } = require("./level-repository");
 
 const processAddLevel = async (payload) => {
@@ -40,14 +41,14 @@ const processAddClassToLevel = async (payload) => {
   return { message: "Class added to academic level successfully" };
 };
 
-const processGetAcademicLevelsWithPeriods = async (schoolId) => {
-  const data = await getAcademicLevelsWithPeriods(schoolId);
+const processGetAcademicStructure = async (schoolId) => {
+  const data = await getAcademicStructure(schoolId);
   if (!data || data.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
-  const academicLevelsWithPeriods = formatResponse(data);
-  return { academicLevelsWithPeriods };
+  const academicStructure = formatResponse(data);
+  return { academicStructure };
 };
 
 const formatResponse = (data) =>
@@ -78,10 +79,19 @@ const formatResponse = (data) =>
     return level;
   });
 
+const processDeleteLevel = async (payload) => {
+  const affectedRow = await deleteLevel(payload);
+  if (affectedRow <= 0) {
+    throw new ApiError(500, "Unable to delete academic level");
+  }
+  return { message: "Academic Level deleted successfully" };
+};
+
 module.exports = {
   processAddLevel,
   processUpdateLevel,
   processGetLevels,
   processAddClassToLevel,
-  processGetAcademicLevelsWithPeriods,
+  processGetAcademicStructure,
+  processDeleteLevel,
 };
