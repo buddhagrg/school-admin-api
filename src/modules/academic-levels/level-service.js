@@ -47,35 +47,35 @@ const processGetAcademicStructure = async (schoolId) => {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
-  const academicStructure = formatResponse(data);
+  const academicStructure = formatResponse(data, "periods");
   return { academicStructure };
 };
 
-const formatResponse = (data) =>
+const formatResponse = (data, type) =>
   Object.values(
     data.reduce((acc, item) => {
-      const { id, name, academicLevelId, academicLevelName, orderId } = item;
+      const { id, name, academicLevelId, academicLevelName, sortOrder } = item;
 
       if (!acc[academicLevelId]) {
         acc[academicLevelId] = {
           id: academicLevelId,
           name: academicLevelName,
-          periods: [],
+          [type]: [],
         };
       }
 
       if (id && name) {
-        acc[academicLevelId].periods.push({
+        acc[academicLevelId][type].push({
           id,
           name,
-          orderId,
+          sortOrder,
         });
       }
 
       return acc;
     }, {})
   ).map((level) => {
-    level.periods.sort((a, b) => a.orderId - b.orderId);
+    level[type].sort((a, b) => a.sortOrder - b.sortOrder);
     return level;
   });
 
