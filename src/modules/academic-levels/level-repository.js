@@ -70,6 +70,35 @@ const deleteLevel = async (payload) => {
   return rowCount;
 };
 
+const getLevelsWithClasses = async (schoolId) => {
+  const query = `
+    SELECT
+      t2.id,
+      t2.name,
+      t2.sort_order AS "sortOrder",
+      t1.id AS "academicLevelId",
+      t1.name AS "academicLevelName"
+    FROM academic_levels t1
+    LEFT JOIN classes t2 ON t2.academic_level_id = t1.id
+    WHERE t1.school_id = $1
+  `;
+  const queryParams = [schoolId];
+  const { rows } = await processDBRequest({ query, queryParams });
+  return rows;
+};
+
+const deleteLevelFromClass = async (payload) => {
+  const { schoolId, classId } = payload;
+  const query = `
+    UPDATE classes
+    SET academic_level_id = NULL
+    WHERE school_id = $1 AND id = $2
+  `;
+  const queryParams = [schoolId, classId];
+  const { rowCount } = await processDBRequest({ query, queryParams });
+  return rowCount;
+};
+
 module.exports = {
   addLevel,
   getAllLevels,
@@ -77,4 +106,6 @@ module.exports = {
   addClassToLevel,
   getAcademicStructure,
   deleteLevel,
+  getLevelsWithClasses,
+  deleteLevelFromClass,
 };

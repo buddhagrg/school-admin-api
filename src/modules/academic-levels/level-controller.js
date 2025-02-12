@@ -6,6 +6,8 @@ const {
   processAddClassToLevel,
   processGetAcademicStructure,
   processDeleteLevel,
+  processGetLevelsWithClasses,
+  processDeleteLevelFromClass,
 } = require("./level-service");
 
 const handleAddLevel = asyncHandler(async (req, res) => {
@@ -35,11 +37,10 @@ const handleGetLevels = asyncHandler(async (req, res) => {
 
 const handleAddClassToLevel = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const payload = req.body;
-  const { id: academicLevelId } = req.params;
+  const { id: academicLevelId, classId } = req.params;
   const response = await processAddClassToLevel({
-    ...payload,
     schoolId,
+    classId,
     academicLevelId,
   });
   res.json(response);
@@ -58,6 +59,22 @@ const handleDeleteLevel = asyncHandler(async (req, res) => {
   res.json(response);
 });
 
+const handleGetLevelsWithClasses = asyncHandler(async (req, res) => {
+  const { schoolId } = req.user;
+  const response = await processGetLevelsWithClasses(schoolId);
+  res.json(response);
+});
+
+const handleDeleteLevelFromClass = asyncHandler(async (req, res) => {
+  const { schoolId } = req.user;
+  const { id: classId } = req.params;
+  const response = await processDeleteLevelFromClass({
+    schoolId,
+    classId,
+  });
+  res.json(response);
+});
+
 module.exports = {
   handleAddLevel,
   handleUpdateLevel,
@@ -65,4 +82,6 @@ module.exports = {
   handleAddClassToLevel,
   handleGetAcademicStructure,
   handleDeleteLevel,
+  handleGetLevelsWithClasses,
+  handleDeleteLevelFromClass,
 };

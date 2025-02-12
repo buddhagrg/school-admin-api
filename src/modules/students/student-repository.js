@@ -11,6 +11,7 @@ const findAllStudents = async (payload) => {
       t1.is_active AS "systemAccess"
     FROM users t1
     JOIN roles t2 ON t2.id = t1.role_id
+    LEFT JOIN user_profiles t3 ON t3.user_id = t1.id
     WHERE t2.static_role_id = 4 AND t1.school_id = $1`;
   let queryParams = [schoolId];
   if (name) {

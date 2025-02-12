@@ -7,6 +7,8 @@ const {
   addClassToLevel,
   getAcademicStructure,
   deleteLevel,
+  getLevelsWithClasses,
+  deleteLevelFromClass,
 } = require("./level-repository");
 
 const processAddLevel = async (payload) => {
@@ -41,16 +43,6 @@ const processAddClassToLevel = async (payload) => {
   return { message: "Class added to academic level successfully" };
 };
 
-const processGetAcademicStructure = async (schoolId) => {
-  const data = await getAcademicStructure(schoolId);
-  if (!data || data.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
-  }
-
-  const academicStructure = formatResponse(data, "periods");
-  return { academicStructure };
-};
-
 const formatResponse = (data, type) =>
   Object.values(
     data.reduce((acc, item) => {
@@ -79,12 +71,40 @@ const formatResponse = (data, type) =>
     return level;
   });
 
+const processGetAcademicStructure = async (schoolId) => {
+  const data = await getAcademicStructure(schoolId);
+  if (!data || data.length <= 0) {
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+  }
+
+  const academicStructure = formatResponse(data, "periods");
+  return { academicStructure };
+};
+
 const processDeleteLevel = async (payload) => {
   const affectedRow = await deleteLevel(payload);
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to delete academic level");
   }
   return { message: "Academic Level deleted successfully" };
+};
+
+const processGetLevelsWithClasses = async (schoolId) => {
+  const data = await getLevelsWithClasses(schoolId);
+  if (!data || data.length <= 0) {
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+  }
+
+  const levelClass = formatResponse(data, "classes");
+  return { levelClass };
+};
+
+const processDeleteLevelFromClass = async (payload) => {
+  const affectedRow = await deleteLevelFromClass(payload);
+  if (affectedRow <= 0) {
+    throw new ApiError(500, "Unable to delete class from academic-level");
+  }
+  return { message: "Class deleted successfuly from academic-level" };
 };
 
 module.exports = {
@@ -94,4 +114,6 @@ module.exports = {
   processAddClassToLevel,
   processGetAcademicStructure,
   processDeleteLevel,
+  processGetLevelsWithClasses,
+  processDeleteLevelFromClass,
 };
