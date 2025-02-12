@@ -7,6 +7,8 @@ const {
   addClassToLevel,
   getAcademicStructure,
   deleteLevel,
+  getLevelsWithClasses,
+  deleteLevelFromClass,
 } = require("./level-repository");
 
 const processAddLevel = async (payload) => {
@@ -41,43 +43,43 @@ const processAddClassToLevel = async (payload) => {
   return { message: "Class added to academic level successfully" };
 };
 
-const processGetAcademicStructure = async (schoolId) => {
-  const data = await getAcademicStructure(schoolId);
-  if (!data || data.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
-  }
-
-  const academicStructure = formatResponse(data);
-  return { academicStructure };
-};
-
-const formatResponse = (data) =>
+const formatResponse = (data, type) =>
   Object.values(
     data.reduce((acc, item) => {
-      const { id, name, academicLevelId, academicLevelName, orderId } = item;
+      const { id, name, academicLevelId, academicLevelName, sortOrder } = item;
 
       if (!acc[academicLevelId]) {
         acc[academicLevelId] = {
           id: academicLevelId,
           name: academicLevelName,
-          periods: [],
+          [type]: [],
         };
       }
 
       if (id && name) {
-        acc[academicLevelId].periods.push({
+        acc[academicLevelId][type].push({
           id,
           name,
-          orderId,
+          sortOrder,
         });
       }
 
       return acc;
     }, {})
   ).map((level) => {
-    level.periods.sort((a, b) => a.orderId - b.orderId);
+    level[type].sort((a, b) => a.sortOrder - b.sortOrder);
     return level;
   });
+
+const processGetAcademicStructure = async (schoolId) => {
+  const data = await getAcademicStructure(schoolId);
+  if (!data || data.length <= 0) {
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+  }
+
+  const academicStructure = formatResponse(data, "periods");
+  return { academicStructure };
+};
 
 const processDeleteLevel = async (payload) => {
   const affectedRow = await deleteLevel(payload);
@@ -87,6 +89,24 @@ const processDeleteLevel = async (payload) => {
   return { message: "Academic Level deleted successfully" };
 };
 
+const processGetLevelsWithClasses = async (schoolId) => {
+  const data = await getLevelsWithClasses(schoolId);
+  if (!data || data.length <= 0) {
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+  }
+
+  const levelClass = formatResponse(data, "classes");
+  return { levelClass };
+};
+
+const processDeleteLevelFromClass = async (payload) => {
+  const affectedRow = await deleteLevelFromClass(payload);
+  if (affectedRow <= 0) {
+    throw new ApiError(500, "Unable to delete class from academic-level");
+  }
+  return { message: "Class deleted successfuly from academic-level" };
+};
+
 module.exports = {
   processAddLevel,
   processUpdateLevel,
@@ -94,4 +114,6 @@ module.exports = {
   processAddClassToLevel,
   processGetAcademicStructure,
   processDeleteLevel,
+  processGetLevelsWithClasses,
+  processDeleteLevelFromClass,
 };

@@ -4,13 +4,13 @@ const processDBRequest = require("../../utils/process-db-request");
 const addPeriod = async (payload) => {
   const { schoolId, academicLevelId, name } = payload;
   const query = `
-    INSERT INTO academic_periods(school_id, academic_level_id, name, order_id)
+    INSERT INTO academic_periods(school_id, academic_level_id, name, sort_order)
     VALUES(
     $1,
     $2,
     $3,
     COALESCE((
-      SELECT MAX(order_id) FROM academic_periods
+      SELECT MAX(sort_order) FROM academic_periods
       WHERE school_id = $1 AND academic_level_id = $2)
     ,0) + 1)
   `;
@@ -43,7 +43,7 @@ const getAllPeriods = async (schoolId) => {
     SELECT
       t1.id,
       t1.name,
-      t1.order_id,
+      t1.sort_order,
       t1.academic_level_id
     FROM academic_periods
     WHERE school_id = $1
@@ -96,7 +96,7 @@ const updatePeriodOrder = async (payload) => {
     const negativeOrderQueryParams = [schoolId, academicLevelId];
     const negativeOrderQuery = `
       UPDATE academic_Periods
-      SET order_id = -order_id
+      SET sort_order = -sort_order
       WHERE school_id = $1
         AND academic_level_id = $2
         AND id IN(${periods.map(({ id }) => id).join(", ")});
@@ -109,7 +109,7 @@ const updatePeriodOrder = async (payload) => {
 
     const query = `
     UPDATE academic_periods
-    SET order_id = CASE
+    SET sort_order = CASE
       ${periods
         .map(
           ({ id, orderId }) => `
@@ -117,7 +117,7 @@ const updatePeriodOrder = async (payload) => {
         `
         )
         .join("")}
-      ELSE order_id
+      ELSE sort_order
     END
     WHERE school_id = $1 AND id IN (${periods.map(({ id }) => id).join(", ")})
   `;

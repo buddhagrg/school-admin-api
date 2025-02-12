@@ -11,16 +11,9 @@ const { studentRoutes } = require("../modules/students/sudent-router.js");
 const { authRoutes } = require("../modules/auth/auth-router.js");
 const { leaveRoutes } = require("../modules/leave/leave-router.js");
 const { classRoutes } = require("../modules/classes/class-router.js");
-const {
-  classTeacherRoutes,
-} = require("../modules/class-teacher/class-teacher-router.js");
 const { noticeRoutes } = require("../modules/notices/notice-router.js");
-const {
-  handleGetAllTeachers,
-} = require("../modules/class-teacher/class-teacher-controller.js");
 const { staffRoutes } = require("../modules/staffs/staff-router.js");
 const { accountRoutes } = require("../modules/account/account-router.js");
-const { sectionRoutes } = require("../modules/sections/section-router.js");
 const {
   departmentRoutes,
 } = require("../modules/departments/department-router.js");
@@ -54,13 +47,16 @@ const {
 const {
   handleGetAcademicStructure,
 } = require("../modules/academic-levels/level-controller.js");
+const {
+  handleGetAllTeachersOfSchool,
+} = require("../modules/classes/class-controller.js");
 
 router.get(
   "/teachers",
   authenticateToken,
   csrfProtection,
   checkApiAccess,
-  handleGetAllTeachers
+  handleGetAllTeachersOfSchool
 );
 router.get(
   "/dashboard",
@@ -79,13 +75,6 @@ router.use("/auth", authRoutes);
 router.use("/account", authenticateToken, csrfProtection, accountRoutes);
 router.use("/leaves", authenticateToken, csrfProtection, leaveRoutes);
 router.use("/classes", authenticateToken, csrfProtection, classRoutes);
-router.use(
-  "/class-teachers",
-  authenticateToken,
-  csrfProtection,
-  classTeacherRoutes
-);
-router.use("/sections", authenticateToken, csrfProtection, sectionRoutes);
 router.use("/students", authenticateToken, csrfProtection, studentRoutes);
 router.use("/notices", authenticateToken, csrfProtection, noticeRoutes);
 router.use("/staffs", authenticateToken, csrfProtection, staffRoutes);
@@ -99,14 +88,14 @@ router.use(
   schoolRoutes
 );
 router.get(
-  "/academic-structure",
+  "/academic/structure",
   authenticateToken,
   csrfProtection,
   isUserAdminOrSuperAdmin([1, 2]),
   handleGetAcademicStructure
 );
 router.use(
-  "/academic-levels",
+  "/academic/levels",
   authenticateToken,
   csrfProtection,
   isUserAdminOrSuperAdmin([1, 2]),
@@ -134,7 +123,7 @@ router.use("/deposits", authenticateToken, csrfProtection, depositRoutes);
 router.use("/fees", authenticateToken, csrfProtection, feeRoutes);
 router.use("/payments", authenticateToken, csrfProtection, paymentRoutes);
 router.use(
-  "/academic-periods",
+  "/academic/periods",
   authenticateToken,
   csrfProtection,
   isUserAdminOrSuperAdmin([1, 2]),

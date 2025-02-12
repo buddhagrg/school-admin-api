@@ -106,6 +106,7 @@ const login = async (username, passwordFromUser) => {
       schoolId,
       client,
     });
+    console.log(permissions)
     const { hierarchialMenus, apis, uis } = formatMyPermission(permissions);
 
     await client.query("COMMIT");
