@@ -9,7 +9,6 @@ router.get(
   checkApiAccess,
   classController.handleGetClassStructure
 );
-router.get("/:id", checkApiAccess, classController.handleFetchClassDetail);
 router.post("", checkApiAccess, classController.handleAddClass);
 router.put("/:id", checkApiAccess, classController.handleUpdateClass);
 router.post(
@@ -51,6 +50,11 @@ router.get(
   "/teachers",
   checkApiAccess,
   classController.handleGetAllClassTeachers
+);
+router.delete(
+  "/teachers",
+  checkApiAccess,
+  classController.handleDeleteClassTeacher
 );
 
 module.exports = { classRoutes: router };

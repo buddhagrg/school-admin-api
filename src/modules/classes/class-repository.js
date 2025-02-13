@@ -7,16 +7,6 @@ const getAllClasses = async (schoolId) => {
   return rows;
 };
 
-const getClassDetail = async ({ id, schoolId }) => {
-  const query = "SELECT * from classes WHERE id = $1 AND school_id = $2";
-  const queryParams = [id, schoolId];
-  const { rows } = await processDBRequest({
-    query,
-    queryParams,
-  });
-  return rows[0];
-};
-
 const addNewClass = async (payload) => {
   const { name, schoolId, academicLevelId } = payload;
   const query = `
@@ -124,10 +114,10 @@ const updateSectionStatus = async (payload) => {
 
 const getAllTeachersOfSchool = async (schoolId) => {
   const query = `
-    SELECT id, name
+    SELECT t1.id, t1.name
     FROM users t1
     JOIN roles t2 ON t2.id = t1.role_id AND t2.static_role_id = 3
-    WHERE t1.school_id = $1
+    WHERE t1.school_id = $1 AND t1.is_active = TRUE::boolean
   `;
   const queryParams = [schoolId];
   const { rows } = await processDBRequest({ query, queryParams });
@@ -136,19 +126,14 @@ const getAllTeachersOfSchool = async (schoolId) => {
 
 const getAllClassTeachers = async (schoolId) => {
   const query = `
-    SELECT 
+    SELECT
       t1.id,
-      t4.name AS "teacherName",
       t2.id AS "classId",
       t2.name AS "className",
-      t2.sort_order AS "sortOrder",
-      t3.id AS "sectionId",
-      t3.name AS "sectionName",
-      t3.sort_order AS "sectionSortOrder"
+      t3.name AS "teacherName"
     FROM class_teachers t1
     JOIN classes t2 ON t2.id = t1.class_id
-    JOIN sections t3 ON t3.id = t1.section_id
-    LEFT JOIN users t4 ON t4.id = t1.teacher_id
+    LEFT JOIN users t3 ON t3.id = t1.teacher_id
     WHERE t1.school_id = $1
   `;
   const queryParams = [schoolId];
@@ -170,9 +155,16 @@ const assignClassTeacher = async (payload) => {
   return rowCount;
 };
 
+const deleteClassTeacher = async (payload) => {
+  const { schoolId, id } = payload;
+  const query = `DELETE FROM class_teachers WHERE school_id = $1 AND id = $2`;
+  const queryParams = [schoolId, id];
+  const { rowCount } = await processDBRequest({ query, queryParams });
+  return rowCount;
+};
+
 module.exports = {
   getAllClasses,
-  getClassDetail,
   addNewClass,
   updateClassDetailById,
   updateClassStatus,
@@ -183,4 +175,5 @@ module.exports = {
   getAllClassTeachers,
   assignClassTeacher,
   getAllTeachersOfSchool,
+  deleteClassTeacher,
 };

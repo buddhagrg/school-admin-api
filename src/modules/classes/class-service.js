@@ -2,7 +2,6 @@ const { ERROR_MESSAGES } = require("../../constants");
 const { ApiError } = require("../../utils");
 const {
   getAllClasses,
-  getClassDetail,
   addNewClass,
   updateClassDetailById,
   updateClassStatus,
@@ -13,6 +12,7 @@ const {
   getAllClassTeachers,
   assignClassTeacher,
   getAllTeachersOfSchool,
+  deleteClassTeacher,
 } = require("./class-repository");
 
 const fetchAllClasses = async (schoolId) => {
@@ -21,14 +21,6 @@ const fetchAllClasses = async (schoolId) => {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
   return { classes };
-};
-
-const fetchClassDetail = async ({ id, schoolId }) => {
-  const classDetail = await getClassDetail({ id, schoolId });
-  if (!classDetail) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
-  }
-  return classDetail;
 };
 
 const addClass = async (payload) => {
@@ -153,9 +145,16 @@ const processGetAllTeachersOfSchool = async (schoolId) => {
   return { teachers };
 };
 
+const processDeleteClassTeacher = async (payload) => {
+  const affectedRow = await deleteClassTeacher(payload);
+  if (affectedRow <= 0) {
+    throw new ApiError(404, "Unable to delete class teacher");
+  }
+  return { message: "Class Teacher deleted successfully" };
+};
+
 module.exports = {
   fetchAllClasses,
-  fetchClassDetail,
   addClass,
   updateClassDetail,
   processUpdateClassStatus,
@@ -166,4 +165,5 @@ module.exports = {
   processGetAllClassTeachers,
   processAssignClassTeacher,
   processGetAllTeachersOfSchool,
+  processDeleteClassTeacher,
 };
