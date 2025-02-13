@@ -2,7 +2,6 @@ const { ERROR_MESSAGES } = require("../../constants");
 const { ApiError } = require("../../utils");
 const {
   getAllClasses,
-  getClassDetail,
   addNewClass,
   updateClassDetailById,
   updateClassStatus,
@@ -21,14 +20,6 @@ const fetchAllClasses = async (schoolId) => {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
   return { classes };
-};
-
-const fetchClassDetail = async ({ id, schoolId }) => {
-  const classDetail = await getClassDetail({ id, schoolId });
-  if (!classDetail) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
-  }
-  return classDetail;
 };
 
 const addClass = async (payload) => {
@@ -155,7 +146,6 @@ const processGetAllTeachersOfSchool = async (schoolId) => {
 
 module.exports = {
   fetchAllClasses,
-  fetchClassDetail,
   addClass,
   updateClassDetail,
   processUpdateClassStatus,

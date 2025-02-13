@@ -7,16 +7,6 @@ const getAllClasses = async (schoolId) => {
   return rows;
 };
 
-const getClassDetail = async ({ id, schoolId }) => {
-  const query = "SELECT * from classes WHERE id = $1 AND school_id = $2";
-  const queryParams = [id, schoolId];
-  const { rows } = await processDBRequest({
-    query,
-    queryParams,
-  });
-  return rows[0];
-};
-
 const addNewClass = async (payload) => {
   const { name, schoolId, academicLevelId } = payload;
   const query = `
@@ -172,7 +162,6 @@ const assignClassTeacher = async (payload) => {
 
 module.exports = {
   getAllClasses,
-  getClassDetail,
   addNewClass,
   updateClassDetailById,
   updateClassStatus,

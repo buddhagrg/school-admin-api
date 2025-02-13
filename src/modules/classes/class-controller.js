@@ -1,7 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const {
   fetchAllClasses,
-  fetchClassDetail,
   addClass,
   updateClassDetail,
   processUpdateClassStatus,
@@ -17,13 +16,6 @@ const {
 const handleFetchAllClasses = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const response = await fetchAllClasses(schoolId);
-  res.json(response);
-});
-
-const handleFetchClassDetail = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  const { schoolId } = req.user;
-  const response = await fetchClassDetail({ id, schoolId });
   res.json(response);
 });
 
@@ -122,7 +114,6 @@ const handleGetAllTeachersOfSchool = asyncHandler(async (req, res) => {
 
 module.exports = {
   handleFetchAllClasses,
-  handleFetchClassDetail,
   handleAddClass,
   handleUpdateClass,
   handleUpdateClassStatus,

@@ -9,7 +9,6 @@ router.get(
   checkApiAccess,
   classController.handleGetClassStructure
 );
-router.get("/:id", checkApiAccess, classController.handleFetchClassDetail);
 router.post("", checkApiAccess, classController.handleAddClass);
 router.put("/:id", checkApiAccess, classController.handleUpdateClass);
 router.post(
