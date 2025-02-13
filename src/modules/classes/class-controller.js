@@ -11,6 +11,7 @@ const {
   processGetAllClassTeachers,
   processAssignClassTeacher,
   processGetAllTeachersOfSchool,
+  processDeleteClassTeacher,
 } = require("./class-service");
 
 const handleFetchAllClasses = asyncHandler(async (req, res) => {
@@ -112,6 +113,13 @@ const handleGetAllTeachersOfSchool = asyncHandler(async (req, res) => {
   res.json(response);
 });
 
+const handleDeleteClassTeacher = asyncHandler(async (req, res) => {
+  const { schoolId } = req.user;
+  const { id } = req.body;
+  const response = await processDeleteClassTeacher({ schoolId, id });
+  res.json(response);
+});
+
 module.exports = {
   handleFetchAllClasses,
   handleAddClass,
@@ -124,4 +132,5 @@ module.exports = {
   handleGetAllClassTeachers,
   handleAssignClassTeacher,
   handleGetAllTeachersOfSchool,
+  handleDeleteClassTeacher,
 };

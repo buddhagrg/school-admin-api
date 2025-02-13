@@ -51,5 +51,10 @@ router.get(
   checkApiAccess,
   classController.handleGetAllClassTeachers
 );
+router.delete(
+  "/teachers",
+  checkApiAccess,
+  classController.handleDeleteClassTeacher
+);
 
 module.exports = { classRoutes: router };

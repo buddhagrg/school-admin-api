@@ -12,6 +12,7 @@ const {
   getAllClassTeachers,
   assignClassTeacher,
   getAllTeachersOfSchool,
+  deleteClassTeacher,
 } = require("./class-repository");
 
 const fetchAllClasses = async (schoolId) => {
@@ -144,6 +145,14 @@ const processGetAllTeachersOfSchool = async (schoolId) => {
   return { teachers };
 };
 
+const processDeleteClassTeacher = async (payload) => {
+  const affectedRow = await deleteClassTeacher(payload);
+  if (affectedRow <= 0) {
+    throw new ApiError(404, "Unable to delete class teacher");
+  }
+  return { message: "Class Teacher deleted successfully" };
+};
+
 module.exports = {
   fetchAllClasses,
   addClass,
@@ -156,4 +165,5 @@ module.exports = {
   processGetAllClassTeachers,
   processAssignClassTeacher,
   processGetAllTeachersOfSchool,
+  processDeleteClassTeacher,
 };

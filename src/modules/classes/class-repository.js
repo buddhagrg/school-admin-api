@@ -160,6 +160,14 @@ const assignClassTeacher = async (payload) => {
   return rowCount;
 };
 
+const deleteClassTeacher = async (payload) => {
+  const { schoolId, id } = payload;
+  const query = `DELETE FROM class_teachers WHERE school_id = $1 AND id = $2`;
+  const queryParams = [schoolId, id];
+  const { rowCount } = await processDBRequest({ query, queryParams });
+  return rowCount;
+};
+
 module.exports = {
   getAllClasses,
   addNewClass,
@@ -172,4 +180,5 @@ module.exports = {
   getAllClassTeachers,
   assignClassTeacher,
   getAllTeachersOfSchool,
+  deleteClassTeacher,
 };
