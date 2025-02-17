@@ -50,6 +50,7 @@ const {
 const {
   handleGetAllTeachersOfSchool,
 } = require("../modules/classes/class-controller.js");
+const { userRoutes } = require("../modules/users/users-router.js");
 
 router.get(
   "/teachers",
@@ -129,5 +130,6 @@ router.use(
   isUserAdminOrSuperAdmin([1, 2]),
   academicPeriodRoutes
 );
+router.use("/users", authenticateToken, csrfProtection, userRoutes);
 
 module.exports = { v1Routes: router };
