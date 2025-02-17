@@ -1,6 +1,6 @@
 const processDBRequest = require("../../utils/process-db-request");
 
-const getAllStaffs = async (payload) => {
+const getAllStaff = async (payload) => {
   const { userId, roleId, name, schoolId } = payload;
   let query = `
     SELECT
@@ -94,7 +94,7 @@ const reviewStaffStatus = async (payload) => {
 };
 
 module.exports = {
-  getAllStaffs,
+  getAllStaff,
   getStaffDetailById,
   addOrUpdateStaff,
   reviewStaffStatus,

@@ -7,12 +7,12 @@ const {
   getStaffDetailById,
 } = require("./staff-repository");
 
-const processGetAllStaffs = async (payload) => {
-  const staffs = await getAllStaffs(payload);
-  if (staffs.length <= 0) {
+const processGetAllStaff = async (payload) => {
+  const staff = await getAllStaffs(payload);
+  if (staff.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-  return { staffs };
+  return { staff };
 };
 
 const processGetStaff = async (payload) => {
@@ -70,7 +70,7 @@ const processUpdateStaff = async (payload) => {
 };
 
 module.exports = {
-  processGetAllStaffs,
+  processGetAllStaff,
   processGetStaff,
   processReviewStaffStatus,
   processAddStaff,

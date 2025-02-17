@@ -8,10 +8,10 @@ router.get(
   "/students/record",
   attendanceController.handleGetStudentsAttendanceRecord
 );
-router.get("/staffs", attendanceController.handleGetStaffsForAttendance);
+router.get("/staff", attendanceController.handleGetStaffForAttendance);
 router.get(
-  "/staffs/record",
-  attendanceController.handleGetStaffsAttendanceRecord
+  "/staff/record",
+  attendanceController.handleGetStaffAttendanceRecord
 );
 
 module.exports = { attendanceRoutes: router };

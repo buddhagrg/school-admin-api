@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const staffController = require("./staff-controller");
 
-router.get("", staffController.handleGetAllStaffs);
+router.get("", staffController.handleGetAllStaff);
 router.post("", staffController.handleAddStaff);
 router.get("/:id", staffController.handleGetStaff);
 router.put("/:id", staffController.handleUpdateStaff);
