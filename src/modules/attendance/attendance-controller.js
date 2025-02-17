@@ -3,8 +3,8 @@ const {
   processGetStudentsForAttendance,
   processAddOrUpdateAttendance,
   processGetStudentsAttendanceRecord,
-  processGetStaffsForAttendance,
-  processGetStaffsAttendanceRecord,
+  processGetStaffForAttendance,
+  processGetStaffAttendanceRecord,
 } = require("./attendance-service");
 
 const handleGetStudentsForAttendance = asyncHandler(async (req, res) => {
@@ -17,10 +17,10 @@ const handleGetStudentsForAttendance = asyncHandler(async (req, res) => {
   res.json(response);
 });
 
-const handleGetStaffsForAttendance = asyncHandler(async (req, res) => {
+const handleGetStaffForAttendance = asyncHandler(async (req, res) => {
   const payload = req.query;
   const { schoolId } = req.user;
-  const response = await processGetStaffsForAttendance({
+  const response = await processGetStaffForAttendance({
     ...payload,
     schoolId,
   });
@@ -48,10 +48,10 @@ const handleGetStudentsAttendanceRecord = asyncHandler(async (req, res) => {
   res.json(response);
 });
 
-const handleGetStaffsAttendanceRecord = asyncHandler(async (req, res) => {
+const handleGetStaffAttendanceRecord = asyncHandler(async (req, res) => {
   const payload = req.query;
   const { schoolId } = req.user;
-  const response = await processGetStaffsAttendanceRecord({
+  const response = await processGetStaffAttendanceRecord({
     ...payload,
     schoolId,
   });
@@ -62,6 +62,6 @@ module.exports = {
   handleGetStudentsForAttendance,
   handleAddOrUpdateAttendance,
   handleGetStudentsAttendanceRecord,
-  handleGetStaffsForAttendance,
-  handleGetStaffsAttendanceRecord,
+  handleGetStaffForAttendance,
+  handleGetStaffAttendanceRecord,
 };

@@ -5,8 +5,8 @@ const {
   getStudentSubjectWiseAttendanceRecord,
   getStudentDailyAttendanceRecord,
   addOrUpdateAttendance,
-  getStaffsForAttendance,
-  getStaffsDailyAttendanceRecord,
+  getStaffForAttendance,
+  getStaffDailyAttendanceRecord,
 } = require("./attendance-repository");
 
 const processGetStudentsForAttendance = async (payload) => {
@@ -17,12 +17,12 @@ const processGetStudentsForAttendance = async (payload) => {
   return { students };
 };
 
-const processGetStaffsForAttendance = async (payload) => {
-  const staffs = await getStaffsForAttendance(payload);
-  if (!staffs || staffs.length <= 0) {
+const processGetStaffForAttendance = async (payload) => {
+  const staff = await getStaffForAttendance(payload);
+  if (!staff || staff.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-  return { staffs };
+  return { staff };
 };
 
 const processAddOrUpdateAttendance = async (payload) => {
@@ -46,18 +46,18 @@ const processGetStudentsAttendanceRecord = async (payload) => {
   return { students };
 };
 
-const processGetStaffsAttendanceRecord = async (payload) => {
-  const staffs = await getStaffsDailyAttendanceRecord(payload);
-  if (!staffs || staffs.length <= 0) {
+const processGetStaffAttendanceRecord = async (payload) => {
+  const staff = await getStaffDailyAttendanceRecord(payload);
+  if (!staff || staff.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-  return { staffs };
+  return { staff };
 };
 
 module.exports = {
   processGetStudentsForAttendance,
   processAddOrUpdateAttendance,
   processGetStudentsAttendanceRecord,
-  processGetStaffsForAttendance,
-  processGetStaffsAttendanceRecord,
+  processGetStaffForAttendance,
+  processGetStaffAttendanceRecord,
 };

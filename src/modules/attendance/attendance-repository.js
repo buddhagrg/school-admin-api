@@ -30,7 +30,7 @@ const getStudentsForAttendance = async (payload) => {
   return rows;
 };
 
-const getStaffsForAttendance = async (payload) => {
+const getStaffForAttendance = async (payload) => {
   const { date, schoolId, roleId } = payload;
   const query = `${userAttendanceListQuery}
     WHERE t1.is_active = true
@@ -231,7 +231,7 @@ const getStudentDailyAttendanceRecord = async (payload) => {
   return rows;
 };
 
-const getStaffsDailyAttendanceRecord = async (payload) => {
+const getStaffDailyAttendanceRecord = async (payload) => {
   const { dateFrom, dateTo, schoolId, classId, sectionId, academicYearId } =
     payload;
   const query = `${attendanceRecordQuery}
@@ -258,6 +258,6 @@ module.exports = {
   addOrUpdateAttendance,
   getStudentSubjectWiseAttendanceRecord,
   getStudentDailyAttendanceRecord,
-  getStaffsForAttendance,
-  getStaffsDailyAttendanceRecord,
+  getStaffForAttendance,
+  getStaffDailyAttendanceRecord,
 };
