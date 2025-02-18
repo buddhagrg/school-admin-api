@@ -1,39 +1,5 @@
 const processDBRequest = require("../../utils/process-db-request");
 
-const getAllStaff = async (payload) => {
-  const { userId, roleId, name, schoolId } = payload;
-  let query = `
-    SELECT
-      t1.id,
-      t1.name,
-      t1.email,
-      t3.name AS role,
-      t1.is_active AS "systemAccess",
-      t1.last_login AS "lastLogin"
-    FROM users t1
-    LEFT JOIN user_profiles t2 ON t2.user_id = t1.id
-    LEFT JOIN roles t3 ON t3.id = t1.role_id
-    WHERE t3.static_role_id NOT IN (1, 4) AND t1.school_id = $1`;
-  let queryParams = [schoolId];
-  if (userId) {
-    query += ` AND t1.id = $${queryParams.length + 1}`;
-    queryParams.push(userId);
-  }
-  if (roleId) {
-    query += ` AND t1.role_id = $${queryParams.length + 1}`;
-    queryParams.push(roleId);
-  }
-  if (name) {
-    query += ` AND t1.name = $${queryParams.length + 1}`;
-    queryParams.push(name);
-  }
-
-  query += ` ORDER  by t1.id`;
-
-  const { rows } = await processDBRequest({ query, queryParams });
-  return rows;
-};
-
 const getStaffDetailById = async ({ id, schoolId }) => {
   const query = `
     SELECT
@@ -76,26 +42,7 @@ const addOrUpdateStaff = async (payload) => {
   return rows[0];
 };
 
-const reviewStaffStatus = async (payload) => {
-  const now = new Date();
-  const { status, userId, reviewerId, schoolId } = payload;
-  const query = `
-    UPDATE users
-    SET
-      is_active = $1,
-      status_last_reviewed_date = $2,
-      status_last_reviewer_id = $3
-    WHERE id = $4
-    AND is_email_verified = true AND school_id = $5
-  `;
-  const queryParams = [status, now, reviewerId, userId, schoolId];
-  const { rowCount } = await processDBRequest({ query, queryParams });
-  return rowCount;
-};
-
 module.exports = {
-  getAllStaff,
   getStaffDetailById,
   addOrUpdateStaff,
-  reviewStaffStatus,
 };

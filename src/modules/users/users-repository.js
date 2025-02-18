@@ -37,9 +37,26 @@ const getUsers = async (payload) => {
     query += ` AND t3.roll = $${queryParams.length + 1}`;
     queryParams.push(roll);
   }
+  query += ` ORDER BY t1.name`;
 
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
 };
 
-module.exports = { getUsers };
+const updateUserSystemAccess = async (payload) => {
+  const { schoolId, hasSystemAccess, userId, reviewerId } = payload;
+  const now = new Date();
+  const query = `
+    UPDATE users
+    SET
+      has_system_access = $1,
+      status_last_reviewer_id = $2,
+      status_last_reviewed_date = $3
+    WHERE school_id = $4 AND id = $5
+  `;
+  const queryParams = [hasSystemAccess, reviewerId, now, schoolId, userId];
+  const { rowCount } = await processDBRequest({ query, queryParams });
+  return rowCount;
+};
+
+module.exports = { getUsers, updateUserSystemAccess };

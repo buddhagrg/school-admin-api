@@ -1,19 +1,6 @@
 const { ERROR_MESSAGES } = require("../../constants");
 const { ApiError, sendAccountVerificationEmail } = require("../../utils");
-const {
-  addOrUpdateStaff,
-  reviewStaffStatus,
-  getAllStaffs,
-  getStaffDetailById,
-} = require("./staff-repository");
-
-const processGetAllStaff = async (payload) => {
-  const staff = await getAllStaffs(payload);
-  if (staff.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
-  }
-  return { staff };
-};
+const { addOrUpdateStaff, getStaffDetailById } = require("./staff-repository");
 
 const processGetStaff = async (payload) => {
   const staff = await getStaffDetailById(payload);
@@ -21,14 +8,6 @@ const processGetStaff = async (payload) => {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
   return staff;
-};
-
-const processReviewStaffStatus = async (payload) => {
-  const affectedRow = await reviewStaffStatus(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to update staff status");
-  }
-  return { message: "Staff status updated successfully" };
 };
 
 const processAddStaff = async (payload) => {
@@ -43,7 +22,7 @@ const processAddStaff = async (payload) => {
       throw new ApiError(500, result.message);
     }
 
-    if (!payload.enrollToSystem) {
+    if (!payload.hasSystemAccess) {
       return { message: ADD_STAFF_SUCCESS };
     }
 
@@ -70,9 +49,7 @@ const processUpdateStaff = async (payload) => {
 };
 
 module.exports = {
-  processGetAllStaff,
   processGetStaff,
-  processReviewStaffStatus,
   processAddStaff,
   processUpdateStaff,
 };

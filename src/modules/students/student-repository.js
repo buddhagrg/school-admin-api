@@ -1,42 +1,5 @@
 const processDBRequest = require("../../utils/process-db-request");
 
-const findAllStudents = async (payload) => {
-  const { name, classId, section, roll, schoolId } = payload;
-  let query = `
-    SELECT
-      t1.id,
-      t1.name,
-      t1.email,
-      t1.last_login AS "lastLogin",
-      t1.is_active AS "systemAccess"
-    FROM users t1
-    JOIN roles t2 ON t2.id = t1.role_id
-    LEFT JOIN user_profiles t3 ON t3.user_id = t1.id
-    WHERE t2.static_role_id = 4 AND t1.school_id = $1`;
-  let queryParams = [schoolId];
-  if (name) {
-    query += ` AND t1.name = $${queryParams.length + 1}`;
-    queryParams.push(name);
-  }
-  if (classId) {
-    query += ` AND t3.class_id = $${queryParams.length + 1}`;
-    queryParams.push(classId);
-  }
-  if (section) {
-    query += ` AND t3.section_id = $${queryParams.length + 1}`;
-    queryParams.push(section);
-  }
-  if (roll) {
-    query += ` AND t3.roll = $${queryParams.length + 1}`;
-    queryParams.push(roll);
-  }
-
-  query += " ORDER BY t1.id";
-
-  const { rows } = await processDBRequest({ query, queryParams });
-  return rows;
-};
-
 const addOrUpdateStudent = async (payload) => {
   const query = "SELECT * FROM student_add_update($1)";
   const queryParams = [payload];
@@ -81,45 +44,6 @@ const findStudentDetail = async ({ id, schoolId }) => {
   return rows[0];
 };
 
-const findStudentToSetStatus = async ({
-  userId,
-  reviewerId,
-  status,
-  schoolId,
-}) => {
-  const now = new Date();
-  const query = `
-    UPDATE users
-    SET
-      is_active = $1,
-      status_last_reviewed_date = $2,
-      status_last_reviewer_id = $3
-    WHERE id = $4 AND school_id = $5
-  `;
-  const queryParams = [status, now, reviewerId, userId, schoolId];
-  const { rowCount } = await processDBRequest({ query, queryParams });
-  return rowCount;
-};
-
-const findStudentToUpdate = async (paylaod) => {
-  const {
-    basicDetails: { name, email },
-    id,
-  } = paylaod;
-  const currentDate = new Date();
-  const query = `
-    UPDATE users
-    SET
-      name = $1,
-      email = $2,
-      updated_date = $3
-    WHERE id = $4;
-  `;
-  const queryParams = [name, email, currentDate, id];
-  const { rows } = await processDBRequest({ query, queryParams });
-  return rows;
-};
-
 const getStudentDueFees = async (payload) => {
   const { schoolId, studentId, academicyearId } = payload;
   const query = `
@@ -155,10 +79,7 @@ const getStudentDueFees = async (payload) => {
 };
 
 module.exports = {
-  findAllStudents,
   addOrUpdateStudent,
   findStudentDetail,
-  findStudentToSetStatus,
-  findStudentToUpdate,
   getStudentDueFees,
 };
