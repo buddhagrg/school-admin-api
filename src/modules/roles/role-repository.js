@@ -55,7 +55,7 @@ const getAccessControlByIds = async ({ ids, client }) => {
     SELECT id, type
     FROM access_controls
     WHERE id = ANY($1::int[])
-    AND direct_allowed_role_id IN (2, 12)
+    AND direct_allowed_role_id IN ('2', '12')
     `;
   const { rows } = await processDBRequest({
     query,
@@ -140,7 +140,7 @@ const checkPermission = async (
       AND ac.path = $3
       AND ac.method = $4
       AND u.has_system_access = true::boolean
-    `;
+  `;
   const queryParams = [schoolId, roleId, apiPath, apiMethod, userId];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
