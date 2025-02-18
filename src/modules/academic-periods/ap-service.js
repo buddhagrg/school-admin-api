@@ -27,7 +27,6 @@ const processUpdatePeriod = async (payload) => {
 
 const processDeletePeriod = async (payload) => {
   const result = await deletePeriod(payload);
-  console.log(result)
   if (!result || !result.status) {
     throw new ApiError(500, result.message);
   }
