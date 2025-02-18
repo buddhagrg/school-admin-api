@@ -1,4 +1,4 @@
-const expressAsyncHandler = require("express-async-handler");
+const asyncHandler = require("express-async-handler");
 const {
   processAddPeriod,
   processUpdatePeriod,
@@ -8,14 +8,14 @@ const {
   processUpdatePeriodOrder,
 } = require("./ap-service");
 
-const handleAddPeriod = expressAsyncHandler(async (req, res) => {
+const handleAddPeriod = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const payload = req.body;
   const response = await processAddPeriod({ ...payload, schoolId });
   res.json(response);
 });
 
-const handleUpdatePeriod = expressAsyncHandler(async (req, res) => {
+const handleUpdatePeriod = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const payload = req.body;
   const { id: academicPeriodId } = req.params;
@@ -27,7 +27,7 @@ const handleUpdatePeriod = expressAsyncHandler(async (req, res) => {
   res.json(response);
 });
 
-const handleDeletePeriod = expressAsyncHandler(async (req, res) => {
+const handleDeletePeriod = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id: academicPeriodId } = req.params;
   const response = await processDeletePeriod({
@@ -37,20 +37,20 @@ const handleDeletePeriod = expressAsyncHandler(async (req, res) => {
   res.json(response);
 });
 
-const handleGetAllPeriods = expressAsyncHandler(async (req, res) => {
+const handleGetAllPeriods = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const response = await processGetAllPeriods(schoolId);
   res.json(response);
 });
 
-const handleAssignPeriodDates = expressAsyncHandler(async (req, res) => {
+const handleAssignPeriodDates = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const payload = req.body;
   const response = await processAssignPeriodDates({ ...payload, schoolId });
   res.json(response);
 });
 
-const handleUpdatePeriodOrder = expressAsyncHandler(async (req, res) => {
+const handleUpdatePeriodOrder = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id: academicLevelId } = req.params;
   const payload = req.body;
