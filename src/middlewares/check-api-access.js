@@ -8,11 +8,19 @@ const checkApiAccess = asyncHandler(async (req, res, next) => {
     route: { path },
     method,
   } = req;
-  const { staticRoleId, roleId } = req.user;
-  const originalUrl = `${baseUrl}${path}`;
+  const { staticRoleId, roleId, id: userId, schoolId } = req.user;
+  const originalUrl = baseUrl.startsWith("/")
+    ? `${baseUrl.slice(1)}${path}`
+    : `${baseUrl}${path}`;
 
   if (staticRoleId !== 2) {
-    const affectedRow = await checkPermission(roleId, originalUrl, method);
+    const affectedRow = await checkPermission(
+      schoolId,
+      roleId,
+      originalUrl,
+      method,
+      userId
+    );
     if (affectedRow <= 0) {
       throw new ApiError(
         403,

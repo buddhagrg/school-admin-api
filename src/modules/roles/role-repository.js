@@ -123,14 +123,25 @@ const switchUserRole = async ({ userId, roleId, schoolId }) => {
   return rowCount;
 };
 
-const checkPermission = async (roleId, apiPath, apiMethod) => {
+const checkPermission = async (
+  schoolId,
+  roleId,
+  apiPath,
+  apiMethod,
+  userId
+) => {
   const query = `
     SELECT 1
     FROM permissions p
     JOIN access_controls ac ON p.access_control_id = ac.id
-    WHERE p.role_id = $1 AND ac.path = $2 AND ac.method = $3
+    JOIN users u ON u.id = $5
+    WHERE p.school_id = $1
+      AND p.role_id = $2
+      AND ac.path = $3
+      AND ac.method = $4
+      AND u.has_system_access = true::boolean
     `;
-  const queryParams = [roleId, apiPath, apiMethod];
+  const queryParams = [schoolId, roleId, apiPath, apiMethod, userId];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };
