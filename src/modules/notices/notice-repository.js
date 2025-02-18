@@ -56,6 +56,7 @@ const getNoticeById = async ({ noticeId, schoolId }) => {
   return rows[0];
 };
 
+const sanitizeInput = (value) => (value ? value : null);
 const addNewNotice = async (payload) => {
   const now = new Date();
   const {
@@ -78,8 +79,8 @@ const addNewNotice = async (payload) => {
     description,
     status,
     recipientType,
-    recipientRole,
-    recipientFirstField,
+    sanitizeInput(recipientRole),
+    sanitizeInput(recipientFirstField),
     now,
     authorId,
     schoolId,
