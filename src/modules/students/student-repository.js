@@ -50,7 +50,7 @@ const findStudentDetail = async ({ id, schoolId }) => {
       u.id,
       u.name,
       u.email,
-      u.is_active AS "systemAccess",
+      u.has_system_access AS "hasSystemAccess",
       p.phone,
       p.gender,
       p.dob,

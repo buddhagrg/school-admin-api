@@ -39,7 +39,7 @@ const getStaffDetailById = async ({ id, schoolId }) => {
     SELECT
       t1.id,
       t1.name,
-      t1.is_active AS "systemAccess",
+      t1.has_system_access AS "hasSystemAccess",
       t1.role_id AS role,
       t4.name AS "roleName",
       t1.email,

@@ -117,7 +117,7 @@ const getAllTeachersOfSchool = async (schoolId) => {
     SELECT t1.id, t1.name
     FROM users t1
     JOIN roles t2 ON t2.id = t1.role_id AND t2.static_role_id = 3
-    WHERE t1.school_id = $1 AND t1.is_active = TRUE::boolean
+    WHERE t1.school_id = $1 AND t1.has_system_access = TRUE::boolean
   `;
   const queryParams = [schoolId];
   const { rows } = await processDBRequest({ query, queryParams });

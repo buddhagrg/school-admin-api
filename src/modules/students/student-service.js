@@ -37,7 +37,7 @@ const addNewStudent = async (payload) => {
       throw new ApiError(500, result.message);
     }
 
-    if (!payload.sendVerificationEmail) {
+    if (!payload.hasSystemAccess) {
       return { message: ADD_STUDENT_SUCCESS };
     }
 

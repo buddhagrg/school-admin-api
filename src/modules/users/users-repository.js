@@ -10,7 +10,7 @@ const getUsers = async (payload) => {
       t2.name AS "role",
       t2.static_role_id AS "staticRoleId",
       t1.last_login AS "lastLogin",
-      t1.is_active AS "systemAccess"
+      t1.has_system_access AS "hasSystemAccess"
     FROM users t1
     JOIN roles t2 ON t2.id = t1.role_id
     LEFT JOIN user_profiles t3 ON t3.user_id = t1.id AND t2.static_role_id = 3

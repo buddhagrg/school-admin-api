@@ -107,7 +107,7 @@ const deleteUserFromPolicyById = async ({ user, id, schoolId }) => {
 };
 
 const getPolicyEligibleUsers = async (schoolId) => {
-  const query = `SELECT * FROM users WHERE is_active = true and school_id = $1`;
+  const query = `SELECT * FROM users WHERE has_system_access = true and school_id = $1`;
   const queryParams = [schoolId];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;

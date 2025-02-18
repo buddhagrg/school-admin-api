@@ -18,7 +18,6 @@ const {
   getMenusByRoleId,
   saveUserLastLoginDate,
   deleteOldRefreshTokenByUserId,
-  isEmailVerified,
   verifyAccountEmail,
   doesEmailExist,
   setupUserPassword,
@@ -39,9 +38,9 @@ const {
 const PWD_SETUP_EMAIL_SEND_SUCCESS =
   "Password setup link emailed successfully.";
 const USER_DOES_NOT_EXIST = "User does not exist";
+const USER_HAVE_NO_SYSTEM_ACCESS = "User do not have access to the system.";
 const EMAIL_NOT_VERIFIED =
   "Email not verified yet. Please verify your email first.";
-const USER_ALREADY_ACTIVE = "User already in active status. Please login.";
 const UNABLE_TO_VERIFY_EMAIL = "Unable to verify email";
 
 const login = async (username, passwordFromUser) => {
@@ -60,7 +59,7 @@ const login = async (username, passwordFromUser) => {
       name,
       email,
       passwordFromDB,
-      isUserActive,
+      hasSystemAccess,
       schoolId,
       roleName,
       staticRoleId,
@@ -69,8 +68,8 @@ const login = async (username, passwordFromUser) => {
     if (!isSchoolActive) {
       throw new ApiError(403, "Your school account is disabled.");
     }
-    if (!isUserActive) {
-      throw new ApiError(403, "Your account is disabled");
+    if (!hasSystemAccess) {
+      throw new ApiError(403, "You do not have access to the system");
     }
 
     await verifyPassword(passwordFromDB, passwordFromUser);
@@ -159,13 +158,13 @@ const getNewAccessAndCsrfToken = async (refreshToken) => {
     const {
       id: userId,
       role_id: roleId,
-      is_active,
+      has_system_access,
       school_id: schoolId,
       staticRoleId,
       roleName,
     } = user;
-    if (!is_active) {
-      throw new ApiError(401, "Your account is disabled");
+    if (!has_system_access) {
+      throw new ApiError(401, USER_HAVE_NO_SYSTEM_ACCESS);
     }
 
     const csrfToken = uuidV4();
@@ -204,8 +203,11 @@ const processAccountEmailVerify = async (userId) => {
   const EMAIL_VERIFIED_BUT_EMAIL_SEND_FAIL =
     "Email verified successfully but fail to send password setup email.";
   try {
-    const isEmailAlreadyVerified = await isEmailVerified(userId);
-    if (isEmailAlreadyVerified) {
+    const { has_system_access, is_email_verified } = await findUserById(userId);
+    if (!has_system_access) {
+      throw new ApiError(400, USER_HAVE_NO_SYSTEM_ACCESS);
+    }
+    if (is_email_verified) {
       throw new ApiError(400, "Email already verified");
     }
 
@@ -232,8 +234,8 @@ const processAccountEmailVerify = async (userId) => {
 const processPasswordSetup = async (payload) => {
   const { userId, userEmail, password } = payload;
 
-  const totalEmail = await doesEmailExist({ userId, userEmail });
-  if (totalEmail <= 0) {
+  const emailCount = await doesEmailExist({ userId, userEmail });
+  if (emailCount <= 0) {
     throw new ApiError(404, "Bad request");
   }
 
@@ -260,9 +262,9 @@ const processResendEmailVerification = async (userId) => {
       throw new ApiError(404, USER_DOES_NOT_EXIST);
     }
 
-    const { email, is_email_verified, is_active } = user;
-    if (is_active) {
-      throw new ApiError(400, USER_ALREADY_ACTIVE);
+    const { email, is_email_verified, has_system_access } = user;
+    if (!has_system_access) {
+      throw new ApiError(400, USER_HAVE_NO_SYSTEM_ACCESS);
     }
 
     if (is_email_verified) {
@@ -293,9 +295,9 @@ const processResendPwdSetupLink = async (userId) => {
       throw new ApiError(404, USER_DOES_NOT_EXIST);
     }
 
-    const { email, is_active, is_email_verified } = user;
-    if (is_active) {
-      throw new ApiError(400, USER_ALREADY_ACTIVE);
+    const { email, has_system_access, is_email_verified } = user;
+    if (!has_system_access) {
+      throw new ApiError(400, USER_HAVE_NO_SYSTEM_ACCESS);
     }
 
     if (!is_email_verified) {
@@ -320,7 +322,10 @@ const processPwdReset = async (userId) => {
       throw new ApiError(404, USER_DOES_NOT_EXIST);
     }
 
-    const { email, is_email_verified } = user;
+    const { email, is_email_verified, has_system_access } = user;
+    if (!has_system_access) {
+      throw new ApiError(400, USER_HAVE_NO_SYSTEM_ACCESS);
+    }
     if (!is_email_verified) {
       throw new ApiError(400, EMAIL_NOT_VERIFIED);
     }
