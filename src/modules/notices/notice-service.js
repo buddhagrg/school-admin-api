@@ -105,11 +105,11 @@ const handleStatusCheck = (
 };
 
 const processGetAllPendingNotices = async (schoolId) => {
-  const pendingNotices = await getAllPendingNotices(schoolId);
-  if (pendingNotices.length <= 0) {
+  const notices = await getAllPendingNotices(schoolId);
+  if (notices.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-  return { pendingNotices };
+  return { notices };
 };
 
 module.exports = {

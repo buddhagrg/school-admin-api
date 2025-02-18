@@ -18,8 +18,7 @@ const getStudentsForAttendance = async (payload) => {
   const { classId, sectionId, date, schoolId } = payload;
   const query = `${userAttendanceListQuery}
     JOIN roles t5 ON t5.id = t1.role_id
-    WHERE t1.is_active = true
-      AND t5.static_role_id = 4
+    WHERE t5.static_role_id = 4
       AND t1.school_id = $1
       AND t2.class_id = $3
       AND ($4 IS NULL OR t2.section_id = $4)
@@ -33,8 +32,7 @@ const getStudentsForAttendance = async (payload) => {
 const getStaffForAttendance = async (payload) => {
   const { date, schoolId, roleId } = payload;
   const query = `${userAttendanceListQuery}
-    WHERE t1.is_active = true
-      AND t1.school_id = $1
+    WHERE t1.school_id = $1
       AND ($3 IS NULL OR t1.role_id = $3)
     ORDER BY t1.name
   `;

@@ -7,7 +7,7 @@ const findUserById = async (id) => {
       email,
       role_id,
       password,
-      is_active,
+      has_system_access,
       is_email_verified
     FROM users where id = $1`;
   const queryParams = [id];

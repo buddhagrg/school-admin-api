@@ -1,4 +1,4 @@
-const expressAsyncHandler = require("express-async-handler");
+const asyncHandler = require("express-async-handler");
 const {
   processGenerateInvoice,
   processGetInvoiceById,
@@ -11,21 +11,21 @@ const {
   processRemoveInvoiceItem,
 } = require("./invoice-service");
 
-const handleGenerateInvoice = expressAsyncHandler(async (req, res) => {
+const handleGenerateInvoice = asyncHandler(async (req, res) => {
   const payload = req.body;
   const { schoolId } = req.user;
   const response = await processGenerateInvoice({ ...payload, schoolId });
   res.json(response);
 });
 
-const handleGetInvoiceById = expressAsyncHandler(async (req, res) => {
+const handleGetInvoiceById = asyncHandler(async (req, res) => {
   const { id: invoiceId } = req.params;
   const { schoolId } = req.user;
   const response = await processGetInvoiceById({ invoiceId, schoolId });
   res.json(response);
 });
 
-const handleGetAllInvoices = expressAsyncHandler(async (req, res) => {
+const handleGetAllInvoices = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { invoiceNumber, status } = req.query;
   const response = await processGetAllInvoices({
@@ -36,7 +36,7 @@ const handleGetAllInvoices = expressAsyncHandler(async (req, res) => {
   res.json(response);
 });
 
-const handlePayInvoice = expressAsyncHandler(async (req, res) => {
+const handlePayInvoice = asyncHandler(async (req, res) => {
   const { schoolId, id: initiator } = req.user;
   const { id: invoiceId } = req.params;
   const { amount: paymentAmount, method: paymentMethod } = req.body;
@@ -50,7 +50,7 @@ const handlePayInvoice = expressAsyncHandler(async (req, res) => {
   res.json(response);
 });
 
-const handleRefundInvoice = expressAsyncHandler(async (req, res) => {
+const handleRefundInvoice = asyncHandler(async (req, res) => {
   const { schoolId, id: initiator } = req.user;
   const { id: invoiceId } = req.params;
   const { amount: refundAmount, method: refundMethod } = req.body;
@@ -64,7 +64,7 @@ const handleRefundInvoice = expressAsyncHandler(async (req, res) => {
   res.json(response);
 });
 
-const handleDisputeInvoice = expressAsyncHandler(async (req, res) => {
+const handleDisputeInvoice = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id: invoiceId } = req.params;
   const response = await processDisputeInvoice({
@@ -74,7 +74,7 @@ const handleDisputeInvoice = expressAsyncHandler(async (req, res) => {
   res.json(response);
 });
 
-const handleResolveDisputeInvoice = expressAsyncHandler(async (req, res) => {
+const handleResolveDisputeInvoice = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { status: newInvoiceStatus } = req.body;
   const { id: invoiceId } = req.params;
@@ -86,7 +86,7 @@ const handleResolveDisputeInvoice = expressAsyncHandler(async (req, res) => {
   res.json(response);
 });
 
-const handleCancelInvoice = expressAsyncHandler(async (req, res) => {
+const handleCancelInvoice = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id: invoiceId } = req.params;
   const response = await processCancelInvoice({
@@ -96,7 +96,7 @@ const handleCancelInvoice = expressAsyncHandler(async (req, res) => {
   res.json(response);
 });
 
-const handleRemoveInvoiceItem = expressAsyncHandler(async (req, res) => {
+const handleRemoveInvoiceItem = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id: invoiceId, itemId: invoiceItemId } = req.params;
   const response = await processRemoveInvoiceItem({

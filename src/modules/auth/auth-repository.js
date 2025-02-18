@@ -8,7 +8,7 @@ const findUserByUsername = async ({ username, client }) => {
       t1.name,
       t1.email,
       t1.password AS "passwordFromDB",
-      t1.is_active AS "isUserActive",
+      t1.has_system_access AS "hasSystemAccess",
       t1.school_id AS "schoolId",
       lower(t2.name) AS "roleName",
       t2.static_role_id AS "staticRoleId",
@@ -63,7 +63,8 @@ const updateUserRefreshToken = async (
 };
 
 const getMenusByRoleId = async ({ staticRoleId, roleId, schoolId, client }) => {
-  const directAllowedRoleId = Number(staticRoleId) === 2 ? [2, 12] : [1, 12];
+  const directAllowedRoleId =
+    Number(staticRoleId) === 2 ? ["2", "12"] : ["1", "12"];
   const isUserAdminOrSuperAdmin = [1, 2].includes(staticRoleId);
 
   const query = isUserAdminOrSuperAdmin
@@ -80,7 +81,7 @@ const getMenusByRoleId = async ({ staticRoleId, roleId, schoolId, client }) => {
       FROM permissions p
       JOIN access_controls ac ON p.access_control_id = ac.id
       WHERE p.role_id = $1 AND p.school_id = $2
-      AND ac.direct_allowed_role_id IN (2, 12)`;
+      AND ac.direct_allowed_role_id IN ('2', '12')`;
   const queryParams = isUserAdminOrSuperAdmin
     ? [directAllowedRoleId]
     : [roleId, schoolId];
@@ -109,17 +110,9 @@ const deleteOldRefreshTokenByUserId = async ({ userId, client }) => {
   });
 };
 
-const isEmailVerified = async (id) => {
-  const query = "SELECT is_email_verified FROM users WHERE id = $1";
-  const queryParams = [id];
-  const { rows } = await processDBRequest({ query, queryParams });
-  return rows[0].is_email_verified;
-};
-
 const verifyAccountEmail = async (id) => {
   const query = `
-    UPDATE users
-      SET is_email_verified = true
+    UPDATE users SET is_email_verified = true
     WHERE id = $1
     RETURNING *
   `;
@@ -139,8 +132,7 @@ const setupUserPassword = async (payload) => {
   const { userId, userEmail, password } = payload;
   const query = `
     WITH updateUser AS (
-      UPDATE users
-      SET password = $1, is_active = true
+      UPDATE users SET password = $1
       WHERE id = $2 AND email = $3
       RETURNING school_id
     )
@@ -199,7 +191,6 @@ module.exports = {
   getMenusByRoleId,
   saveUserLastLoginDate,
   deleteOldRefreshTokenByUserId,
-  isEmailVerified,
   verifyAccountEmail,
   doesEmailExist,
   setupUserPassword,
