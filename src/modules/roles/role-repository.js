@@ -7,10 +7,12 @@ const getRoleDetail = async (id) => {
   return rows[0];
 };
 
-const insertRole = async ({ name, schoolId }) => {
+const addRole = async (payload) => {
+  const { name, schoolId } = payload;
   const STATIC_ROLE_ID = 10;
-  const query =
-    "INSERT INTO roles(name, school_id, static_role_id) VALUES($1, $2, $3)";
+  const query = `
+    INSERT INTO roles(name, school_id, static_role_id)
+    VALUES($1, $2, $3)`;
   const queryParams = [name, schoolId, STATIC_ROLE_ID];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
@@ -34,75 +36,90 @@ const getRoles = async (schoolId) => {
   return rows;
 };
 
-const updateRoleById = async ({ id, name, schoolId }) => {
-  const query =
-    "UPDATE roles SET name = $1 WHERE id = $2 AND is_editable = true AND school_id = $3";
+const updateRole = async ({ id, name, schoolId }) => {
+  const query = `
+    UPDATE roles 
+    SET name = $1
+    WHERE id = $2
+      AND is_editable = true
+      AND school_id = $3
+  `;
   const queryParams = [name, id, schoolId];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };
 
-const enableOrDisableRoleStatusByRoleId = async ({ id, status, schoolId }) => {
-  const query =
-    "UPDATE roles SET is_active = $1 WHERE id = $2 AND is_editable = true AND school_id = $3";
+const updateRoleStatus = async ({ id, status, schoolId }) => {
+  const query = `
+    UPDATE roles
+    SET is_active = $1::boolean
+    WHERE id = $2
+      AND is_editable = true
+      AND school_id = $3
+  `;
   const queryParams = [status, id, schoolId];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };
 
-const getAccessControlByIds = async ({ ids, client }) => {
+const assignPermissionsForRole = async (payload) => {
+  const { schoolId, roleId, permissions } = payload;
   const query = `
-    SELECT id, type
-    FROM access_controls
-    WHERE id = ANY($1::int[])
-    AND direct_allowed_role_id IN ('2', '12')
-    `;
-  const { rows } = await processDBRequest({
-    query,
-    queryParams: [ids],
-    client,
-  });
-  return rows;
+    INSERT INTO role_permissions(school_id, role_id, permission_id, type)
+    SELECT
+      $1,
+      $2,
+      t1.id,
+      t1.type
+    FROM UNNEST($3::int[]) AS permission_id
+    JOIN permissions t1 ON t1.id = permission_id
+    ON CONFLICT(school_id, role_id, permission_id) DO NOTHING`;
+  const queryParams = [schoolId, roleId, permissions];
+  const { rowCount } = await processDBRequest({ query, queryParams });
+  return rowCount;
 };
 
-const insertPermissionForRoleId = async ({ queryParams, client }) => {
+const deletePermissionsOfRole = async (payload) => {
+  const { schoolId, roleId, permissions } = payload;
   const query = `
-    INSERT INTO permissions(role_id, access_control_id, type, school_id)
-    VALUES ${queryParams}
-    ON CONFLICT (role_id, access_control_id, school_id) DO NOTHING`;
-  await processDBRequest({ query, client });
+    DELETE FROM role_permissions
+    WHERE school_id = $1
+      AND role_id = $2
+      AND permission_id = ANY($3::INT[])
+  `;
+  const queryParams = [schoolId, roleId, permissions];
+  const { rowCount } = await processDBRequest({ query, queryParams });
+  return rowCount;
 };
-const deletePermissionForRoleId = async ({ roleId, schoolId, client }) => {
-  const query = "DELETE FROM permissions WHERE role_id = $1 AND school_id = $2";
-  const queryParams = [roleId, schoolId];
-  await processDBRequest({ query, queryParams, client });
-};
+
 const getStaticRoleIdById = async (roleId) => {
   const query = `SELECT static_role_id FROM roles WHERE id = $1`;
   const queryParams = [roleId];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows[0].static_role_id;
 };
-const getPermissionsById = async ({ roleId, staticRoleId, schoolId }) => {
+
+const getRolePermissions = async ({ roleId, staticRoleId, schoolId }) => {
   const isUserAdmin = staticRoleId === 2;
 
   const query = isUserAdmin
-    ? `SELECT id, name FROM access_controls WHERE direct_allowed_role_id = ANY($1)`
+    ? `SELECT id, name FROM permissions WHERE direct_allowed_role_id = ANY($1)`
     : `
       SELECT
-        ac.id,
-        ac.name
-      FROM permissions p
-      JOIN access_controls ac ON p.access_control_id = ac.id
-      WHERE p.role_id = $1 AND p.school_id = $2
-      AND ac.direct_allowed_role_id IN ('2', '12')
+        t2.id,
+        t2.name
+      FROM role_permissions t1
+      JOIN permissions t2 ON t2.id = t1.permission_id
+      WHERE t1.role_id = $1 AND t1.school_id = $2
+      AND t2.direct_allowed_role_id IN ('2', '12')
     `;
   const queryParams = isUserAdmin ? [[2, 12]] : [roleId, schoolId];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
 };
 
-const getUsersByRoleId = async ({ roleId, schoolId }) => {
+const getRoleUsers = async (payload) => {
+  const { roleId, schoolId } = payload;
   const query = `
     SELECT
       id,
@@ -116,14 +133,7 @@ const getUsersByRoleId = async ({ roleId, schoolId }) => {
   return rows;
 };
 
-const switchUserRole = async ({ userId, roleId, schoolId }) => {
-  const query = `UPDATE users SET role_id = $1 WHERE id = $2 AND school_id = $3`;
-  const queryParams = [roleId, userId, schoolId];
-  const { rowCount } = await processDBRequest({ query, queryParams });
-  return rowCount;
-};
-
-const checkPermission = async (
+const checkApiAccessOfRole = async (
   schoolId,
   roleId,
   apiPath,
@@ -132,14 +142,14 @@ const checkPermission = async (
 ) => {
   const query = `
     SELECT 1
-    FROM permissions p
-    JOIN access_controls ac ON p.access_control_id = ac.id
-    JOIN users u ON u.id = $5
-    WHERE p.school_id = $1
-      AND p.role_id = $2
-      AND ac.path = $3
-      AND ac.method = $4
-      AND u.has_system_access = true::boolean
+    FROM role_permissions t1
+    JOIN permissions t2 ON t2.id = t1.permission_id
+    JOIN users t3 ON t3.id = $5
+    WHERE t1.school_id = $1
+      AND t1.role_id = $2
+      AND t2.path = $3
+      AND t2.method = $4
+      AND t3.has_system_access = true
   `;
   const queryParams = [schoolId, roleId, apiPath, apiMethod, userId];
   const { rowCount } = await processDBRequest({ query, queryParams });
@@ -147,17 +157,15 @@ const checkPermission = async (
 };
 
 module.exports = {
-  insertRole,
+  addRole,
   getRoles,
   getRoleDetail,
-  updateRoleById,
-  enableOrDisableRoleStatusByRoleId,
-  getPermissionsById,
-  getUsersByRoleId,
-  getAccessControlByIds,
-  insertPermissionForRoleId,
-  switchUserRole,
-  checkPermission,
-  deletePermissionForRoleId,
+  updateRole,
+  updateRoleStatus,
+  getRolePermissions,
+  getRoleUsers,
+  assignPermissionsForRole,
+  checkApiAccessOfRole,
+  deletePermissionsOfRole,
   getStaticRoleIdById,
 };

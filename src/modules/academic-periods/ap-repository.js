@@ -53,85 +53,41 @@ const getAllPeriods = async (schoolId) => {
   return rows;
 };
 
-const assignPeriodDates = async (payload) => {
-  const { schoolId, periods } = payload;
-  const queryParams = [];
-  const insertValues = periods
-    .map((item, index) => {
-      const offset = 5 * index;
-      queryParams.push(
-        schoolId,
-        item.academicPeriodId,
-        item.startDate,
-        item.endDate
-      );
-      return `(
-        $${offset + 1},
-        $${offset + 1},
-        $${offset + 1},
-        $${offset + 1},
-        $${offset + 1}
-      )`;
-    })
-    .join(",");
-
+const getAllPeriodDates = async (schoolId) => {
   const query = `
-    INSERT INTO academic_period_dates(school_id, academic_period_id, start_date, end_date)
-    VALUES ${insertValues}
-    ON CONFLICT(school_id, academic_period_id)
-    DO UPDATE SET
-      start_date = EXCLUDED.start_date,
-      end_date = EXCLUDED.end_date;
+    SELECT
+      t1.id,
+      t1.name,
+      t1.sort_order AS "sortOrder",
+      t1.start_date AS "startDate",
+      t1.end_date AS "endDate",
+      t2.name AS "academicLevelName"
+    FROM periods t1
+    JOIN academic_levels t2 On t2.id = t1.academic_level_id
+    WHERE t1.school_id = $1
   `;
-  const { rowCount } = await processDBRequest({ query, queryParams });
-  return rowCount;
+  const queryParams = [schoolId];
+  const { rows } = await processDBRequest({ query, queryParams });
+  return rows;
 };
 
-const updatePeriodOrder = async (payload) => {
-  const { schoolId, periods, academicLevelId } = payload;
-  const client = await db.connect();
-  try {
-    await client.query("BEGIN");
-
-    const negativeOrderQueryParams = [schoolId, academicLevelId];
-    const negativeOrderQuery = `
-      UPDATE academic_Periods
-      SET sort_order = -sort_order
-      WHERE school_id = $1
-        AND academic_level_id = $2
-        AND id IN(${periods.map(({ id }) => id).join(", ")});
-    `;
-    await processDBRequest({
-      query: negativeOrderQuery,
-      queryParams: negativeOrderQueryParams,
-      client,
-    });
-
-    const query = `
-    UPDATE academic_periods
-    SET sort_order = CASE
-      ${periods
-        .map(
-          ({ id, orderId }) => `
-          WHEN id = ${id} THEN ${orderId}
-        `
-        )
-        .join("")}
-      ELSE sort_order
-    END
-    WHERE school_id = $1 AND id IN (${periods.map(({ id }) => id).join(", ")})
+const definePeriodsDates = async (payload) => {
+  const { schoolId, periods } = payload;
+  const query = `
+    UPDATE academic_periods t1
+    SET
+      t1.start_date = t2.startDate::DATE,
+      t1.end_date = t2.endDate::DATE
+    FROM (
+      SELECT * FROM jsonb_to_recordset($2::jsonb)
+      AS t2(id INT, startDate TEXT, endDate TEXT)
+    ) AS t2
+    WHERE t1.school_id = $1 AND t1.id = t2.id
   `;
-    const queryParams = [schoolId];
-    const { rowCount } = await processDBRequest({ query, queryParams, client });
+  const queryParams = [schoolId, JSON.stringify(periods)];
 
-    await client.query("COMMIT");
-    return rowCount;
-  } catch (error) {
-    await client.query("ROLLBACK");
-    return 0;
-  } finally {
-    client.release();
-  }
+  const { rowCount } = await processDBRequest({ query, queryParams });
+  return rowCount;
 };
 
 module.exports = {
@@ -139,6 +95,6 @@ module.exports = {
   updatePeriod,
   deletePeriod,
   getAllPeriods,
-  assignPeriodDates,
-  updatePeriodOrder,
+  getAllPeriodDates,
+  definePeriodsDates,
 };

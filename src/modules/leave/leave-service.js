@@ -1,52 +1,41 @@
 const { ERROR_MESSAGES } = require("../../constants");
 const { ApiError } = require("../../utils");
 const {
-  createNewLeavePolicy,
-  updateLeavePolicyById,
+  addNewLeavePolicy,
+  updateLeavePolicy,
   getLeavePolicies,
-  getUsersByPolicyId,
-  updatePolicyUsersById,
-  enableDisableLeavePolicy,
-  deleteUserFromPolicyById,
+  getPolicyUsers,
+  linkPolicyUsers,
+  updateLeavePolicyStatus,
+  unlinkPolicyUser,
   getPolicyEligibleUsers,
-  createNewLeaveRequest,
-  updateLeaveRequestById,
-  getLeaveRequestHistoryByUser,
-  deleteLeaveRequestByRequestId,
+  addNewLeaveRequest,
+  updateLeaveRequest,
+  getUserLeaveHistory,
+  deleteLeaveRequest,
   getPendingLeaveRequests,
-  approveOrCancelPendingLeaveRequest,
-  findReviewerIdByRequestId,
+  updatePendingLeaveRequestStatus,
+  findLeaveRequestReviewer,
   getMyLeavePolicy,
-  findPolicyStatusById,
 } = require("./leave-repository");
 
-const checkIfPolicyIsActive = async (id) => {
-  const policy = await findPolicyStatusById(id);
-  if (!policy.is_active)
-    throw new ApiError(
-      403,
-      "Policy is not active. Please activate the policy first."
-    );
-};
-
-const makeNewLeavePolicy = async (payload) => {
-  const affectedRow = await createNewLeavePolicy(payload);
+const processAddNewLeavePolicy = async (payload) => {
+  const affectedRow = await addNewLeavePolicy(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to add policy");
+    throw new ApiError(500, "Unable to add leave policy");
   }
-  return { message: "Policy added successfully" };
+  return { message: "Leave policy added successfully" };
 };
 
-const updateLeavePolicy = async ({ name, id, schoolId }) => {
-  await checkIfPolicyIsActive(id);
-  const affectedRow = await updateLeavePolicyById({ name, id, schoolId });
+const processUpdateLeavePolicy = async (payload) => {
+  const affectedRow = await updateLeavePolicy(payload);
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to update policy");
   }
   return { message: "Policy updated successfully" };
 };
 
-const fetchLeavePolicies = async (schoolId) => {
+const processGetLeavePolicies = async (schoolId) => {
   const leavePolicies = await getLeavePolicies(schoolId);
   if (!Array.isArray(leavePolicies) || leavePolicies.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
@@ -54,60 +43,47 @@ const fetchLeavePolicies = async (schoolId) => {
   return { leavePolicies };
 };
 
-const processGetMyLeavePolicy = async ({ id, schoolId }) => {
-  const myLeavePolicies = await getMyLeavePolicy({ id, schoolId });
+const processGetMyLeavePolicy = async (payload) => {
+  const myLeavePolicies = await getMyLeavePolicy(payload);
   if (!Array.isArray(myLeavePolicies) || myLeavePolicies.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
   return { myLeavePolicies };
 };
 
-const fetchPolicyUsers = async ({ id, schoolId }) => {
-  await checkIfPolicyIsActive(id);
-  const leavePolicyUsers = await getUsersByPolicyId({ id, schoolId });
+const processGetPolicyUsers = async (payload) => {
+  const leavePolicyUsers = await getPolicyUsers(payload);
   if (!Array.isArray(leavePolicyUsers) || leavePolicyUsers.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
   return { leavePolicyUsers };
 };
 
-const updatePolicyUsers = async ({ policyId, users, schoolId }) => {
-  await checkIfPolicyIsActive(policyId);
-  const affectedRow = await updatePolicyUsersById({
-    policyId,
-    users,
-    schoolId,
-  });
+const processLinkPolicyUsers = async (payload) => {
+  const affectedRow = await linkPolicyUsers(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, "Unable to add users to policy");
   }
-  return { message: "Users of policy updated" };
+  return { message: "Users added to policy successfully" };
 };
 
-const deletePolicyUser = async ({ user, id, schoolId }) => {
-  await checkIfPolicyIsActive(id);
-  const affectedRow = await deleteUserFromPolicyById({ user, id, schoolId });
+const processUnlinkPolicyUser = async (payload) => {
+  const affectedRow = await unlinkPolicyUser(payload);
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to delete user from policy");
   }
   return { message: "User deleted from policy successfully" };
 };
 
-const reviewLeavePolicy = async ({ status, policyId, schoolId }) => {
-  const affectedRow = await enableDisableLeavePolicy({
-    status,
-    policyId,
-    schoolId,
-  });
+const processUpdateLeavePolicyStatus = async (payload) => {
+  const affectedRow = await updateLeavePolicyStatus(payload);
   if (affectedRow <= 0) {
-    const sts = status ? "enable" : "disable";
-    throw new ApiError(500, `Unable to ${sts} policy`);
+    throw new ApiError(500, `Unable to update policy status`);
   }
-  const responseStatus = status ? "enabled" : "disabled";
-  return { message: `Policy ${responseStatus} successfully` };
+  return { message: `Policy status updated successfully` };
 };
 
-const fetchPolicyEligibleUsers = async (schoolId) => {
+const processGetPolicyEligibleUsers = async (schoolId) => {
   const leavePolicyEligibleUsers = await getPolicyEligibleUsers(schoolId);
   if (
     !Array.isArray(leavePolicyEligibleUsers) ||
@@ -118,42 +94,39 @@ const fetchPolicyEligibleUsers = async (schoolId) => {
   return { leavePolicyEligibleUsers };
 };
 
-const addNewLeaveRequest = async (payload) => {
-  await checkIfPolicyIsActive(payload.policy);
-
-  const affectedRow = await createNewLeaveRequest(payload);
+const processAddNewLeaveRequest = async (payload) => {
+  const affectedRow = await addNewLeaveRequest(payload);
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to add new leave request");
   }
   return { message: "Leave request added successfully" };
 };
 
-const updateLeaveRequest = async (payload) => {
-  await checkIfPolicyIsActive(payload.policy);
-  const affectedRow = await updateLeaveRequestById(payload);
+const processUpdateLeaveRequest = async (payload) => {
+  const affectedRow = await updateLeaveRequest(payload);
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to update leave request");
   }
   return { message: "Leave request updated successfully" };
 };
 
-const getUserLeaveHistory = async ({ id, schoolId }) => {
-  const leaveHistory = await getLeaveRequestHistoryByUser({ id, schoolId });
+const processGetUserLeaveHistory = async (payload) => {
+  const leaveHistory = await getUserLeaveHistory(payload);
   if (!Array.isArray(leaveHistory) || leaveHistory.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
   return { leaveHistory };
 };
 
-const deleteLeaveRequest = async ({ id, schoolId }) => {
-  const affectedRow = await deleteLeaveRequestByRequestId({ id, schoolId });
+const processDeleteLeaveRequest = async (payload) => {
+  const affectedRow = await deleteLeaveRequest(payload);
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to delete leave request");
   }
   return { message: "Leave reuquest deleted successfully" };
 };
 
-const fetchPendingLeaveRequests = async (schoolId) => {
+const processGetPendingLeaveRequests = async (schoolId) => {
   const pendingLeaves = await getPendingLeaveRequests(schoolId);
   if (!Array.isArray(pendingLeaves) || pendingLeaves.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
@@ -161,14 +134,14 @@ const fetchPendingLeaveRequests = async (schoolId) => {
   return { pendingLeaves };
 };
 
-const reviewPendingLeaveRequest = async ({
+const processUpdatePendingLeaveRequestStatus = async ({
   reviewerUserId,
   requestId,
   status,
   schoolId,
   reviewerRoleId,
 }) => {
-  const user = await findReviewerIdByRequestId(requestId);
+  const user = await findLeaveRequestReviewer(requestId);
   if (!user) {
     throw new ApiError(404, "User does not exist.");
   }
@@ -178,7 +151,7 @@ const reviewPendingLeaveRequest = async ({
     throw new ApiError(403, "Forbidden. Authorised reviewer only.");
   }
 
-  const affectedRow = await approveOrCancelPendingLeaveRequest({
+  const affectedRow = await updatePendingLeaveRequestStatus({
     reviewerUserId,
     requestId,
     status,
@@ -192,19 +165,19 @@ const reviewPendingLeaveRequest = async ({
 };
 
 module.exports = {
-  makeNewLeavePolicy,
-  updateLeavePolicy,
-  fetchLeavePolicies,
-  fetchPolicyUsers,
-  updatePolicyUsers,
-  reviewLeavePolicy,
-  deletePolicyUser,
-  fetchPolicyEligibleUsers,
-  addNewLeaveRequest,
-  updateLeaveRequest,
-  getUserLeaveHistory,
-  deleteLeaveRequest,
-  fetchPendingLeaveRequests,
-  reviewPendingLeaveRequest,
+  processAddNewLeavePolicy,
+  processUpdateLeavePolicy,
+  processGetLeavePolicies,
+  processGetPolicyUsers,
+  processLinkPolicyUsers,
+  processUpdateLeavePolicyStatus,
+  processUnlinkPolicyUser,
+  processGetPolicyEligibleUsers,
+  processAddNewLeaveRequest,
+  processUpdateLeaveRequest,
+  processGetUserLeaveHistory,
+  processDeleteLeaveRequest,
+  processGetPendingLeaveRequests,
+  processUpdatePendingLeaveRequestStatus,
   processGetMyLeavePolicy,
 };

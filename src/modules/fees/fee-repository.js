@@ -64,7 +64,7 @@ const addOrUpdateFeeStructures = async (payload) => {
     ON CONFLICT(school_id, fee_id, class_id)
     DO UPDATE SET
       amount = EXCLUDED.amount,
-      is_active = EXCLUDED.is_active;
+      is_active = EXCLUDED.is_active::boolean;
   `;
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;

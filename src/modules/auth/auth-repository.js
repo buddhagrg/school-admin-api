@@ -68,20 +68,20 @@ const getMenusByRoleId = async ({ staticRoleId, roleId, schoolId, client }) => {
   const isUserAdminOrSuperAdmin = [1, 2].includes(staticRoleId);
 
   const query = isUserAdminOrSuperAdmin
-    ? `SELECT * FROM access_controls WHERE direct_allowed_role_id = ANY($1)`
+    ? `SELECT * FROM permissions WHERE direct_allowed_role_id = ANY($1)`
     : `
       SELECT
-        ac.id,
-        ac.name,
-        ac.path,
-        ac.icon,
-        ac.parent_path,
-        ac.hierarchy_id,
-        ac.type
-      FROM permissions p
-      JOIN access_controls ac ON p.access_control_id = ac.id
-      WHERE p.role_id = $1 AND p.school_id = $2
-      AND ac.direct_allowed_role_id IN ('2', '12')`;
+        t2.id,
+        t2.name,
+        t2.path,
+        t2.icon,
+        t2.parent_path,
+        t2.hierarchy_id,
+        t2.type
+      FROM role_permissions t1
+      JOIN permissions t2 ON t2.id = t1.permission_id
+      WHERE t1.role_id = $1 AND t1.school_id = $2
+      AND t2.direct_allowed_role_id IN ('2', '12')`;
   const queryParams = isUserAdminOrSuperAdmin
     ? [directAllowedRoleId]
     : [roleId, schoolId];

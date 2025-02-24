@@ -21,8 +21,8 @@ const {
   handleGetDashboardData,
 } = require("../modules/dashboard/dashboard-controller.js");
 const {
-  accessControlRoutes,
-} = require("../modules/access-control/access-control-router.js");
+  permissionRoutes,
+} = require("../modules/permissions/permission-router.js");
 const {
   attendanceRoutes,
 } = require("../modules/attendance/attendance-router.js");
@@ -45,9 +45,6 @@ const {
   academicPeriodRoutes,
 } = require("../modules/academic-periods/ap-router.js");
 const {
-  handleGetAcademicStructure,
-} = require("../modules/academic-levels/level-controller.js");
-const {
   handleGetAllTeachersOfSchool,
 } = require("../modules/classes/class-controller.js");
 const { userRoutes } = require("../modules/users/users-router.js");
@@ -66,12 +63,7 @@ router.get(
   checkApiAccess,
   handleGetDashboardData
 );
-router.use(
-  "/access-controls",
-  authenticateToken,
-  csrfProtection,
-  accessControlRoutes
-);
+router.use("/permissions", authenticateToken, csrfProtection, permissionRoutes);
 router.use("/auth", authRoutes);
 router.use("/account", authenticateToken, csrfProtection, accountRoutes);
 router.use("/leaves", authenticateToken, csrfProtection, leaveRoutes);
@@ -81,27 +73,7 @@ router.use("/notices", authenticateToken, csrfProtection, noticeRoutes);
 router.use("/staff", authenticateToken, csrfProtection, staffRoutes);
 router.use("/departments", authenticateToken, csrfProtection, departmentRoutes);
 router.use("/roles", authenticateToken, csrfProtection, roleRoutes);
-router.use(
-  "/schools",
-  authenticateToken,
-  csrfProtection,
-  isUserAdminOrSuperAdmin([1]),
-  schoolRoutes
-);
-router.get(
-  "/academic/structure",
-  authenticateToken,
-  csrfProtection,
-  isUserAdminOrSuperAdmin([1, 2]),
-  handleGetAcademicStructure
-);
-router.use(
-  "/academic/levels",
-  authenticateToken,
-  csrfProtection,
-  isUserAdminOrSuperAdmin([1, 2]),
-  academicLevelRoutes
-);
+router.use("/schools", authenticateToken, csrfProtection, schoolRoutes);
 router.use(
   "/academic-years",
   authenticateToken,
@@ -123,6 +95,14 @@ router.use("/invoices", authenticateToken, csrfProtection, invoiceRoutes);
 router.use("/deposits", authenticateToken, csrfProtection, depositRoutes);
 router.use("/fees", authenticateToken, csrfProtection, feeRoutes);
 router.use("/payments", authenticateToken, csrfProtection, paymentRoutes);
+
+router.use(
+  "/academic/levels",
+  authenticateToken,
+  csrfProtection,
+  isUserAdminOrSuperAdmin([1, 2]),
+  academicLevelRoutes
+);
 router.use(
   "/academic/periods",
   authenticateToken,

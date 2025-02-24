@@ -3,21 +3,16 @@ const router = express.Router();
 const classController = require("./class-controller");
 const { checkApiAccess } = require("../../middlewares");
 
-router.get("", checkApiAccess, classController.handleFetchAllClasses);
 router.get(
-  "/structure",
+  "/sections",
   checkApiAccess,
-  classController.handleGetClassStructure
+  classController.handleGetClassesWithSections
 );
+router.get("", checkApiAccess, classController.handleFetchAllClasses);
 router.post("", checkApiAccess, classController.handleAddClass);
 router.put("/:id", checkApiAccess, classController.handleUpdateClass);
-router.post(
-  "/:id/deactivate",
-  checkApiAccess,
-  classController.handleUpdateClassStatus
-);
-router.post(
-  "/:id/activate",
+router.patch(
+  "/:id/status",
   checkApiAccess,
   classController.handleUpdateClassStatus
 );
@@ -29,19 +24,14 @@ router.put(
   checkApiAccess,
   classController.handleUpdateSection
 );
-router.post(
-  "/:id/sections/:sectionId/deactivate",
-  checkApiAccess,
-  classController.handleUpdateSectionStatus
-);
-router.post(
-  "/:id/sections/:sectionId/activate",
+router.patch(
+  "/:id/sections/:sectionId/status",
   checkApiAccess,
   classController.handleUpdateSectionStatus
 );
 
 //class-teacher
-router.post(
+router.put(
   "/:id/teachers/:teacherId",
   checkApiAccess,
   classController.handleAssignClassTeacher
@@ -52,7 +42,7 @@ router.get(
   classController.handleGetAllClassTeachers
 );
 router.delete(
-  "/teachers",
+  "/teachers/:id",
   checkApiAccess,
   classController.handleDeleteClassTeacher
 );

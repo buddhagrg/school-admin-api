@@ -41,14 +41,14 @@ const updateClassStatus = async (payload) => {
   const { schoolId, id, status } = payload;
   const query = `
     UPDATE classes
-    SET is_active = $3
+    SET is_active = $3::boolean
     WHERE school_id = $1 AND id = $2`;
   const queryParams = [schoolId, id, status];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };
 
-const getClassStructure = async (schoolId) => {
+const getClassesWithSections = async (schoolId) => {
   const query = `
     SELECT
       t1.id,
@@ -104,7 +104,7 @@ const updateSectionStatus = async (payload) => {
   const { schoolId, classId, sectionId, status } = payload;
   const query = `
     UPDATE sections
-    SET is_active = $4
+    SET is_active = $4::boolean
     WHERE school_id = $1 AND class_id = $2 AND id = $3
   `;
   const queryParams = [schoolId, classId, sectionId, status];
@@ -117,7 +117,7 @@ const getAllTeachersOfSchool = async (schoolId) => {
     SELECT t1.id, t1.name
     FROM users t1
     JOIN roles t2 ON t2.id = t1.role_id AND t2.static_role_id = 3
-    WHERE t1.school_id = $1 AND t1.has_system_access = TRUE::boolean
+    WHERE t1.school_id = $1 AND t1.has_system_access = TRUE
   `;
   const queryParams = [schoolId];
   const { rows } = await processDBRequest({ query, queryParams });
@@ -168,7 +168,7 @@ module.exports = {
   addNewClass,
   updateClassDetailById,
   updateClassStatus,
-  getClassStructure,
+  getClassesWithSections,
   addSection,
   updateSection,
   updateSectionStatus,

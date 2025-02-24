@@ -7,7 +7,7 @@ const getNotices = async (userId) => {
   return rows;
 };
 
-const getAllPendingNotices = async (schoolId) => {
+const getPendingNotices = async (schoolId) => {
   const query = `
     SELECT
       t1.id,
@@ -21,11 +21,30 @@ const getAllPendingNotices = async (schoolId) => {
       t1.reviewed_date AS "reviewedDate",
       t3.alias AS "status",
       t1.status AS "statusId",
-      NULL AS "whoHasAccess"
+      CASE
+        WHEN t1.recipient_type = 'SP' THEN
+          CASE
+              WHEN t5.static_role_id = 3 THEN
+                CASE
+                  WHEN t1.recipient_first_field IS NULL THEN 'All Teachers'
+                  ELSE 'Teachers from' || ' "' || t6.name || '" ' || 'department'
+                END
+              WHEN t5.static_role_id = 4 THEN
+                CASE
+                  WHEN t1.recipient_first_field IS NULL THEN 'All Students'
+                  ELSE 'Students from' || ' "' || t7.name || '" ' || 'class'
+                END
+          ELSE 'Unknown Recipient'
+          END
+      ELSE 'Everyone'
+      END AS "whoHasAccess"
     FROM notices t1
     LEFT JOIN users t2 ON t1.author_id = t2.id
     LEFT JOIN notice_status t3 ON t1.status = t3.id
     LEFT JOIN users t4 ON t1.reviewer_id = t4.id
+    LEFT JOIN roles t5 ON t5.id = t1.recipient_role_id
+    LEFT JOIN departments t6 ON t6.id = t1.recipient_first_field
+    LEFT JOIN classes t7 ON t7.id = t1.recipient_first_field
     WHERE t1.status IN (2, 3) AND t1.school_id = $1
   `;
   const queryParams = [schoolId];
@@ -33,7 +52,7 @@ const getAllPendingNotices = async (schoolId) => {
   return rows;
 };
 
-const getNoticeById = async ({ noticeId, schoolId }) => {
+const getNotice = async ({ noticeId, schoolId }) => {
   const query = `
     SELECT
       t1.id,
@@ -57,7 +76,7 @@ const getNoticeById = async ({ noticeId, schoolId }) => {
 };
 
 const sanitizeInput = (value) => (value ? value : null);
-const addNewNotice = async (payload) => {
+const addNotice = async (payload) => {
   const now = new Date();
   const {
     title,
@@ -89,7 +108,7 @@ const addNewNotice = async (payload) => {
   return rowCount;
 };
 
-const updateNoticeById = async (payload) => {
+const updateNotice = async (payload) => {
   const now = new Date();
   const {
     id,
@@ -128,7 +147,7 @@ const updateNoticeById = async (payload) => {
   return rowCount;
 };
 
-const getNoticeRecipientList = async (schoolId) => {
+const getNoticeRecipients = async (schoolId) => {
   try {
     const queries = [
       {
@@ -169,38 +188,39 @@ const getNoticeRecipientList = async (schoolId) => {
             })
           : [];
 
-      const recipient =
-        resultantRows.length > 0
-          ? {
-              id: rows[0].roleId,
-              roleId: rows[0].roleId,
-              name: roleName,
-              primaryDependents: {
-                name: dependentName,
-                list: resultantRows,
-              },
-            }
-          : {};
-      return recipient;
+      return resultantRows.length > 0
+        ? {
+            id: rows[0].roleId,
+            roleId: rows[0].roleId,
+            name: roleName,
+            primaryDependents: {
+              name: dependentName,
+              list: resultantRows,
+            },
+          }
+        : [];
     });
 
     const staticResult = await Promise.all(staticRecipients);
-
+    const finalStaticResult = staticResult.filter((item) => item.id);
     const dynamicQuery = `
-    SELECT id, name, id AS "roleId" FROM roles WHERE school_id = $1 AND static_role_id NOT IN (1,2,3,4)`;
+      SELECT id, name, id AS "roleId"
+      FROM roles
+      WHERE school_id = $1 AND static_role_id NOT IN (1,2,3,4)
+    `;
     const dynamicQueryParams = [schoolId];
     const { rows } = await processDBRequest({
       query: dynamicQuery,
       queryParams: dynamicQueryParams,
     });
 
-    return [...staticResult, ...rows];
+    return [...finalStaticResult, ...rows];
   } catch (error) {
     throw error;
   }
 };
 
-const manageNoticeStatus = async (payload) => {
+const updateNoticeStatus = async (payload) => {
   const { status, currentUserId, noticeId } = payload;
   const now = new Date();
   const query = `
@@ -217,11 +237,11 @@ const manageNoticeStatus = async (payload) => {
 };
 
 module.exports = {
-  getNoticeById,
-  addNewNotice,
-  updateNoticeById,
-  getNoticeRecipientList,
-  manageNoticeStatus,
+  getNotice,
+  addNotice,
+  updateNotice,
+  getNoticeRecipients,
+  updateNoticeStatus,
   getNotices,
-  getAllPendingNotices,
+  getPendingNotices,
 };

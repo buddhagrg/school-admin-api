@@ -2,36 +2,26 @@ const { db } = require("../../config");
 const { ERROR_MESSAGES } = require("../../constants");
 const { ApiError } = require("../../utils");
 const {
-  insertRole,
+  addRole,
   getRoles,
-  getRoleDetail,
-  enableOrDisableRoleStatusByRoleId,
-  updateRoleById,
-  getPermissionsById,
-  getUsersByRoleId,
-  getAccessControlByIds,
-  insertPermissionForRoleId,
-  switchUserRole,
-  deletePermissionForRoleId,
+  updateRoleStatus,
+  updateRole,
+  getRolePermissions,
+  getRoleUsers,
+  assignPermissionsForRole,
   getStaticRoleIdById,
+  deletePermissionsOfRole,
 } = require("./role-repository");
 
-const checkIfRoleIdExist = async (id) => {
-  const role = await getRoleDetail(id);
-  if (!role) {
-    throw new ApiError(404, "Invalid role id");
-  }
-};
-
-const addRole = async ({ name, schoolId }) => {
-  const affectedRow = await insertRole({ name, schoolId });
+const processAddRole = async (payload) => {
+  const affectedRow = await addRole(payload);
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to add role");
   }
   return { message: "Role added successfully" };
 };
 
-const fetchRoles = async (schoolId) => {
+const processGetRoles = async (schoolId) => {
   const roles = await getRoles(schoolId);
   if (!Array.isArray(roles) || roles.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
@@ -39,69 +29,37 @@ const fetchRoles = async (schoolId) => {
   return { roles };
 };
 
-const updateRole = async (payload) => {
-  const affectedRow = await updateRoleById(payload);
+const processUpdateRole = async (payload) => {
+  const affectedRow = await updateRole(payload);
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to update role");
   }
   return { message: "Role updated successfully" };
 };
 
-const processRoleStatus = async ({ id, status, schoolId }) => {
-  await checkIfRoleIdExist(id);
-  const affectedRow = await enableOrDisableRoleStatusByRoleId({
-    id,
-    status,
-    schoolId,
-  });
+const processUpdateRoleStatus = async (payload) => {
+  const affectedRow = await updateRoleStatus(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to disable role");
+    throw new ApiError(500, "Unable to update role status");
   }
-  const stsText = status ? "enabled" : "disabled";
-  return { message: `Role ${stsText} successfully` };
+  return { message: `Role status updated successfully` };
 };
 
-const addRolePermission = async ({ roleId, permissions, schoolId }) => {
-  await checkIfRoleIdExist(roleId);
-  const client = await db.connect();
-  try {
-    await client.query("BEGIN");
-    const idArray = permissions
-      .split(",")
-      .map((id) => id.trim())
-      .filter(Boolean);
-    if (idArray.length === 0) {
-      await deletePermissionForRoleId({ roleId, schoolId, client });
-      await client.query("COMMIT");
-      return { message: "Permission of given role deleted successfully" };
-    }
-    const ids = idArray.map((id) => parseInt(id, 10));
-    const accessControls = await getAccessControlByIds({ ids, client });
-
-    if (accessControls.length > 0) {
-      const queryParams = accessControls
-        .map(({ id, type }) => `(${roleId}, ${id}, '${type}', '${schoolId}')`)
-        .join(", ");
-      await insertPermissionForRoleId({ queryParams, client });
-    }
-
-    await client.query("COMMIT");
-    return { message: "Permission of given role saved successfully" };
-  } catch (error) {
-    await client.query("ROLLBACK");
-    throw new ApiError(500, "Unable to assign permission to given role");
-  } finally {
-    client.release();
+const processAssignPermissionsForRole = async (payload) => {
+  const affectedRow = await await assignPermissionsForRole(payload);
+  if (affectedRow <= 0) {
+    throw new ApiError(500, "Unable to assign permissions to given role");
   }
+  return { message: "Permissions assigned for given role successfully" };
 };
 
-const getRolePermissions = async ({ roleId, schoolId }) => {
+const processGetRolePermissions = async ({ roleId, schoolId }) => {
   const staticRoleId = await getStaticRoleIdById(roleId);
   if (!staticRoleId) {
     throw new ApiError(404, "Role does not exist");
   }
 
-  const permissions = await getPermissionsById({
+  const permissions = await getRolePermissions({
     roleId,
     staticRoleId,
     schoolId,
@@ -113,30 +71,29 @@ const getRolePermissions = async ({ roleId, schoolId }) => {
   return { permissions };
 };
 
-const fetchUsersByRoleId = async ({ roleId, schoolId }) => {
-  await checkIfRoleIdExist(roleId);
-  const users = await getUsersByRoleId({ roleId, schoolId });
+const processGetRoleUsers = async (payload) => {
+  const users = await getRoleUsers(payload);
   if (!Array.isArray(users) || users.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
   return { users };
 };
 
-const processSwitchRole = async (payload) => {
-  const affectedRow = await switchUserRole(payload);
+const processDeletePermissionsOfRole = async (payload) => {
+  const affectedRow = await deletePermissionsOfRole(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to switch role");
+    throw new ApiError(500, "Unable to delete permissions for given role");
   }
-  return { message: "Role switched successfully" };
+  return { message: "Permissions deleted for given role successfully" };
 };
 
 module.exports = {
-  addRole,
-  fetchRoles,
-  updateRole,
-  processRoleStatus,
-  addRolePermission,
-  getRolePermissions,
-  fetchUsersByRoleId,
-  processSwitchRole,
+  processAddRole,
+  processGetRoles,
+  processUpdateRole,
+  processUpdateRoleStatus,
+  processAssignPermissionsForRole,
+  processGetRolePermissions,
+  processGetRoleUsers,
+  processDeletePermissionsOfRole,
 };

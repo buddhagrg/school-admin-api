@@ -42,7 +42,7 @@ const addClassToLevel = async (payload) => {
   return rowCount;
 };
 
-const getAcademicStructure = async (schoolId) => {
+const getAcademicLevelsWithPeriods = async (schoolId) => {
   const query = `
     SELECT
       t2.id,
@@ -99,13 +99,73 @@ const deleteLevelFromClass = async (payload) => {
   return rowCount;
 };
 
+const reorderPeriods = async (payload) => {
+  const { schoolId, periods, academicLevelId } = payload;
+  const client = await db.connect();
+  try {
+    await client.query("BEGIN");
+
+    const negativeOrderQueryParams = [schoolId, academicLevelId];
+    const negativeOrderQuery = `
+      UPDATE academic_Periods
+      SET sort_order = -sort_order
+      WHERE school_id = $1
+        AND academic_level_id = $2
+        AND id IN(${periods.map(({ id }) => id).join(", ")});
+    `;
+    await processDBRequest({
+      query: negativeOrderQuery,
+      queryParams: negativeOrderQueryParams,
+      client,
+    });
+
+    const query = `
+    UPDATE academic_periods
+    SET sort_order = CASE
+      ${periods
+        .map(
+          ({ id, orderId }) => `
+          WHEN id = ${id} THEN ${orderId}
+        `
+        )
+        .join("")}
+      ELSE sort_order
+    END
+    WHERE school_id = $1 AND id IN (${periods.map(({ id }) => id).join(", ")})
+  `;
+    const queryParams = [schoolId];
+    const { rowCount } = await processDBRequest({ query, queryParams, client });
+
+    await client.query("COMMIT");
+    return rowCount;
+  } catch (error) {
+    await client.query("ROLLBACK");
+    return 0;
+  } finally {
+    client.release();
+  }
+};
+
+const getPeriodsDates = async (payload) => {
+  const { schoolId, academicLevelId } = payload;
+  const query = `
+    SELECT * FROM academic_periods t1
+    WHERE school_id = $1 AND academic_level_id = $2
+  `;
+  const queryParams = [schoolId, academicLevelId];
+  const { rows } = await processDBRequest({ query, queryParams });
+  return rows;
+};
+
 module.exports = {
   addLevel,
   getAllLevels,
   updateLevel,
   addClassToLevel,
-  getAcademicStructure,
+  getAcademicLevelsWithPeriods,
   deleteLevel,
   getLevelsWithClasses,
   deleteLevelFromClass,
+  reorderPeriods,
+  getPeriodsDates,
 };

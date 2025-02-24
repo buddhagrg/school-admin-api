@@ -4,7 +4,7 @@ const {
   addClass,
   updateClassDetail,
   processUpdateClassStatus,
-  processGetClassStructure,
+  processGetClassesWithSections,
   processAddSection,
   processUpdateSection,
   processUpdateSectionStatus,
@@ -39,15 +39,14 @@ const handleUpdateClass = asyncHandler(async (req, res) => {
 const handleUpdateClassStatus = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { schoolId } = req.user;
-  const { path } = req.route;
-  const status = path.includes("deactivate") ? false : true;
+  const { status } = req.body;
   const response = await processUpdateClassStatus({ id, schoolId, status });
   res.json(response);
 });
 
-const handleGetClassStructure = asyncHandler(async (req, res) => {
+const handleGetClassesWithSections = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const response = await processGetClassStructure(schoolId);
+  const response = await processGetClassesWithSections(schoolId);
   res.json(response);
 });
 
@@ -79,8 +78,7 @@ const handleUpdateSection = asyncHandler(async (req, res) => {
 const handleUpdateSectionStatus = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { sectionId, id: classId } = req.params;
-  const { path } = req.route;
-  const status = path.includes("deactivate") ? false : true;
+  const { status } = req.body;
   const response = await processUpdateSectionStatus({
     schoolId,
     classId,
@@ -115,7 +113,7 @@ const handleGetAllTeachersOfSchool = asyncHandler(async (req, res) => {
 
 const handleDeleteClassTeacher = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const { id } = req.body;
+  const { id } = req.params;
   const response = await processDeleteClassTeacher({ schoolId, id });
   res.json(response);
 });
@@ -125,7 +123,7 @@ module.exports = {
   handleAddClass,
   handleUpdateClass,
   handleUpdateClassStatus,
-  handleGetClassStructure,
+  handleGetClassesWithSections,
   handleAddSection,
   handleUpdateSection,
   handleUpdateSectionStatus,

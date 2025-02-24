@@ -4,8 +4,8 @@ const {
   processUpdatePeriod,
   processDeletePeriod,
   processGetAllPeriods,
-  processAssignPeriodDates,
-  processUpdatePeriodOrder,
+  processGetAllPeriodDates,
+  processDefinePeriodsDates,
 } = require("./ap-service");
 
 const handleAddPeriod = asyncHandler(async (req, res) => {
@@ -39,26 +39,17 @@ const handleDeletePeriod = asyncHandler(async (req, res) => {
 
 const handleGetAllPeriods = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const response = await processGetAllPeriods(schoolId);
+  const { dates } = req.query;
+  const response = dates
+    ? await processGetAllPeriodDates(schoolId)
+    : await processGetAllPeriods(schoolId);
   res.json(response);
 });
 
-const handleAssignPeriodDates = asyncHandler(async (req, res) => {
+const handleDefinePeriodsDates = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const payload = req.body;
-  const response = await processAssignPeriodDates({ ...payload, schoolId });
-  res.json(response);
-});
-
-const handleUpdatePeriodOrder = asyncHandler(async (req, res) => {
-  const { schoolId } = req.user;
-  const { id: academicLevelId } = req.params;
-  const payload = req.body;
-  const response = await processUpdatePeriodOrder({
-    schoolId,
-    periods: payload,
-    academicLevelId,
-  });
+  const { periods } = req.body;
+  const response = await processDefinePeriodsDates({ ...periods, schoolId });
   res.json(response);
 });
 
@@ -67,6 +58,5 @@ module.exports = {
   handleUpdatePeriod,
   handleDeletePeriod,
   handleGetAllPeriods,
-  handleAssignPeriodDates,
-  handleUpdatePeriodOrder,
+  handleDefinePeriodsDates,
 };

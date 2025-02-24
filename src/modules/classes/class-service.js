@@ -5,7 +5,7 @@ const {
   addNewClass,
   updateClassDetailById,
   updateClassStatus,
-  getClassStructure,
+  getClassesWithSections,
   addSection,
   updateSection,
   updateSectionStatus,
@@ -87,14 +87,14 @@ const formatResponse = (data) =>
       return classItem;
     });
 
-const processGetClassStructure = async (schoolId) => {
-  const data = await getClassStructure(schoolId);
+const processGetClassesWithSections = async (schoolId) => {
+  const data = await getClassesWithSections(schoolId);
   if (!Array.isArray(data) || data.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
-  const classSectionStructure = formatResponse(data);
-  return { classSectionStructure };
+  const classesWithSections = formatResponse(data);
+  return { classesWithSections };
 };
 
 const processAddSection = async (payload) => {
@@ -158,7 +158,7 @@ module.exports = {
   addClass,
   updateClassDetail,
   processUpdateClassStatus,
-  processGetClassStructure,
+  processGetClassesWithSections,
   processAddSection,
   processUpdateSection,
   processUpdateSectionStatus,

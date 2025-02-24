@@ -59,4 +59,12 @@ const updateUserSystemAccess = async (payload) => {
   return rowCount;
 };
 
-module.exports = { getUsers, updateUserSystemAccess };
+const switchUserRole = async (payload) => {
+  const { userId, roleId, schoolId } = payload;
+  const query = `UPDATE users SET role_id = $1 WHERE id = $2 AND school_id = $3`;
+  const queryParams = [roleId, userId, schoolId];
+  const { rowCount } = await processDBRequest({ query, queryParams });
+  return rowCount;
+};
+
+module.exports = { getUsers, updateUserSystemAccess, switchUserRole };

@@ -1,5 +1,5 @@
 const asyncHandler = require("express-async-handler");
-const { checkPermission } = require("../modules/roles/role-repository");
+const { checkApiAccessOfRole } = require("../modules/roles/role-repository");
 const { ApiError } = require("../utils");
 
 const checkApiAccess = asyncHandler(async (req, res, next) => {
@@ -14,7 +14,7 @@ const checkApiAccess = asyncHandler(async (req, res, next) => {
     : `${baseUrl}${path}`;
 
   if (staticRoleId !== 2) {
-    const affectedRow = await checkPermission(
+    const affectedRow = await checkApiAccessOfRole(
       schoolId,
       roleId,
       originalUrl,
