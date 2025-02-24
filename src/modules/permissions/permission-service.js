@@ -5,25 +5,25 @@ const {
   formatMyPermission,
 } = require("../../utils");
 const {
-  getAllAccessControls,
-  getMyAccessControl,
-  addAccessControl,
-  updateAccessControl,
-  deleteAccessControl,
-} = require("./access-control-repository");
+  getAllPermissions,
+  getMyPermissions,
+  addPermission,
+  updatePermission,
+  deletePermission,
+} = require("./permission-repository");
 
-const processGetAllAccessControls = async (staticRoleId) => {
-  const data = await getAllAccessControls(staticRoleId);
+const processGetAllPermissions = async (staticRoleId) => {
+  const data = await getAllPermissions(staticRoleId);
   if (!data || data.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
-  const accessControls = getAccessItemHierarchy(data);
-  return { accessControls };
+  const permissions = getAccessItemHierarchy(data);
+  return { permissions };
 };
 
-const processGetMyAccessControl = async (payload) => {
-  const permissions = await getMyAccessControl(payload);
+const processGetMyPermissions = async (payload) => {
+  const permissions = await getMyPermissions(payload);
   if (permissions.length <= 0) {
     throw new ApiError(404, "You do not have permission to the system.");
   }
@@ -35,8 +35,8 @@ const processGetMyAccessControl = async (payload) => {
   };
 };
 
-const processAddAccessControl = async (payload) => {
-  const affectedRow = await addAccessControl(payload);
+const processAddPermission = async (payload) => {
+  const affectedRow = await addPermission(payload);
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to add access control");
   }
@@ -44,8 +44,8 @@ const processAddAccessControl = async (payload) => {
   return { message: "New access control added successfully" };
 };
 
-const processUpdateAccessControl = async (payload) => {
-  const affectedRow = await updateAccessControl(payload);
+const processUpdatePermission = async (payload) => {
+  const affectedRow = await updatePermission(payload);
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to update access control");
   }
@@ -53,8 +53,8 @@ const processUpdateAccessControl = async (payload) => {
   return { message: "Access control updated successfully" };
 };
 
-const processDeleteAccessControl = async (id) => {
-  const affectedRow = await deleteAccessControl(id);
+const processDeletePermission = async (id) => {
+  const affectedRow = await deletePermission(id);
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unabe to delete access control");
   }
@@ -63,9 +63,9 @@ const processDeleteAccessControl = async (id) => {
 };
 
 module.exports = {
-  processGetAllAccessControls,
-  processGetMyAccessControl,
-  processAddAccessControl,
-  processUpdateAccessControl,
-  processDeleteAccessControl,
+  processGetAllPermissions,
+  processGetMyPermissions,
+  processAddPermission,
+  processUpdatePermission,
+  processDeletePermission,
 };

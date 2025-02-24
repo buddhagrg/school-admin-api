@@ -4,10 +4,12 @@ const {
   processUpdateLevel,
   processGetLevels,
   processAddClassToLevel,
-  processGetAcademicStructure,
+  processGetAcademicLevelsWithPeriods,
   processDeleteLevel,
   processGetLevelsWithClasses,
   processDeleteLevelFromClass,
+  processReorderPeriods,
+  processGetPeriodsDates,
 } = require("./level-service");
 
 const handleAddLevel = asyncHandler(async (req, res) => {
@@ -37,7 +39,8 @@ const handleGetLevels = asyncHandler(async (req, res) => {
 
 const handleAddClassToLevel = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const { id: academicLevelId, classId } = req.params;
+  const { classId } = req.body;
+  const { id: academicLevelId } = req.params;
   const response = await processAddClassToLevel({
     schoolId,
     classId,
@@ -46,9 +49,9 @@ const handleAddClassToLevel = asyncHandler(async (req, res) => {
   res.json(response);
 });
 
-const handleGetAcademicStructure = asyncHandler(async (req, res) => {
+const handleGetAcademicLevelsWithPeriods = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const response = await processGetAcademicStructure(schoolId);
+  const response = await processGetAcademicLevelsWithPeriods(schoolId);
   res.json(response);
 });
 
@@ -75,13 +78,37 @@ const handleDeleteLevelFromClass = asyncHandler(async (req, res) => {
   res.json(response);
 });
 
+const handleReorderPeriods = asyncHandler(async (req, res) => {
+  const { schoolId } = req.user;
+  const { id: academicLevelId } = req.params;
+  const { periods } = req.body;
+  const response = await processReorderPeriods({
+    schoolId,
+    ...periods,
+    academicLevelId,
+  });
+  res.json(response);
+});
+
+const handleGetPeriodsDates = asyncHandler(async (req, res) => {
+  const { schoolId } = req.user;
+  const { id: academicLevelId } = req.params;
+  const response = await processGetPeriodsDates({
+    schoolId,
+    academicLevelId,
+  });
+  res.json(response);
+});
+
 module.exports = {
   handleAddLevel,
   handleUpdateLevel,
   handleGetLevels,
   handleAddClassToLevel,
-  handleGetAcademicStructure,
+  handleGetAcademicLevelsWithPeriods,
   handleDeleteLevel,
   handleGetLevelsWithClasses,
   handleDeleteLevelFromClass,
+  handleReorderPeriods,
+  handleGetPeriodsDates,
 };

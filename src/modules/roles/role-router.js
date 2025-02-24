@@ -4,11 +4,11 @@ const roleController = require("./role-controller");
 
 router.get("", roleController.handleGetRoles);
 router.post("", roleController.handleAddRole);
-router.post("/switch", roleController.handleSwitchRole);
 router.put("/:id", roleController.handleUpdateRole);
-router.post("/:id/status", roleController.handleRoleStatus);
-router.get("/:id/permissions", roleController.handleGetRolePermission);
-router.post("/:id/permissions", roleController.handleAddRolePermission);
-router.get("/:id/users", roleController.handleGetUsersByRoleId);
+router.patch("/:id/status", roleController.handleUpdateRoleStatus);
+router.get("/:id/permissions", roleController.handleGetRolePermissions);
+router.post("/:id/permissions", roleController.handleAssignPermissionsForRole);
+router.delete("/:id/permissions", roleController.handleDeletePermissionsOfRole);
+router.get("/:id/users", roleController.handleGetRoleUsers);
 
 module.exports = { roleRoutes: router };

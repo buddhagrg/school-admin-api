@@ -3,10 +3,14 @@ const router = express.Router();
 const leaveController = require("./leave-controller");
 const { checkApiAccess } = require("../../middlewares");
 
-router.post("/policies", checkApiAccess, leaveController.handleMakeNewPolicy);
+router.post(
+  "/policies",
+  checkApiAccess,
+  leaveController.handleAddNewLeavePolicy
+);
 router.get("/policies", checkApiAccess, leaveController.handleGetLeavePolicies);
 router.get(
-  "/policies/me",
+  "/policies/my",
   checkApiAccess,
   leaveController.handleGetMyLeavePolicy
 );
@@ -15,15 +19,15 @@ router.put(
   checkApiAccess,
   leaveController.handleUpdateLeavePolicy
 );
-router.post(
+router.patch(
   "/policies/:id/status",
   checkApiAccess,
-  leaveController.handleReviewLeavePolicy
+  leaveController.handleUpdateLeavePolicyStatus
 );
-router.post(
+router.put(
   "/policies/:id/users",
   checkApiAccess,
-  leaveController.handleUpdatePolicyUsers
+  leaveController.handleLinkPolicyUsers
 );
 router.get(
   "/policies/:id/users",
@@ -31,46 +35,46 @@ router.get(
   leaveController.handleGetPolicyUsers
 );
 router.delete(
-  "/policies/:id/users",
+  "/policies/:id/users/:userId",
   checkApiAccess,
-  leaveController.handleRemovePolicyUser
+  leaveController.handleUnlinkPolicyUser
 );
 router.get(
   "/policies/eligible-users",
   checkApiAccess,
-  leaveController.handleFetchPolicyEligibleUsers
+  leaveController.handleGetPolicyEligibleUsers
 );
 
 router.get(
-  "/request",
+  "/requests",
   checkApiAccess,
   leaveController.handleGetUserLeaveHistory
 );
 router.post(
-  "/request",
+  "/requests",
   checkApiAccess,
-  leaveController.handleCreateNewLeaveRequest
+  leaveController.handleAddNewLeaveRequest
 );
 router.put(
-  "/request/:id",
+  "/requests/:id",
   checkApiAccess,
   leaveController.handleUpdateLeaveRequest
 );
 router.delete(
-  "/request/:id",
+  "/requests/:id",
   checkApiAccess,
   leaveController.handleDeleteLeaveRequest
 );
 
 router.get(
-  "/pending",
+  "requests/pending",
   checkApiAccess,
-  leaveController.handleFetchPendingLeaveRequests
+  leaveController.handleGetPendingLeaveRequests
 );
-router.post(
-  "/pending/:id/status",
+router.patch(
+  "requests/pending/:id/status",
   checkApiAccess,
-  leaveController.handleReviewLeaveRequest
+  leaveController.handleUpdatePendingLeaveRequestStatus
 );
 
 module.exports = { leaveRoutes: router };

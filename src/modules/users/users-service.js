@@ -1,6 +1,10 @@
 const { ERROR_MESSAGES } = require("../../constants");
 const { ApiError } = require("../../utils");
-const { getUsers, updateUserSystemAccess } = require("./users-repository");
+const {
+  getUsers,
+  updateUserSystemAccess,
+  switchUserRole,
+} = require("./users-repository");
 
 const processGetUsers = async (payload) => {
   const users = await getUsers(payload);
@@ -18,4 +22,16 @@ const processUpdateUserSystemAccess = async (paylaod) => {
   return { message: "User system access updated successfully" };
 };
 
-module.exports = { processGetUsers, processUpdateUserSystemAccess };
+const processSwitchRole = async (payload) => {
+  const affectedRow = await switchUserRole(payload);
+  if (affectedRow <= 0) {
+    throw new ApiError(500, "Unable to switch user role");
+  }
+  return { message: "User role switched successfully" };
+};
+
+module.exports = {
+  processGetUsers,
+  processUpdateUserSystemAccess,
+  processSwitchRole,
+};

@@ -1,24 +1,24 @@
 const { ERROR_MESSAGES } = require("../../constants");
 const { ApiError } = require("../../utils");
 const {
-  getNoticeById,
-  addNewNotice,
-  updateNoticeById,
-  manageNoticeStatus,
+  getNotice,
+  addNotice,
+  updateNotice,
+  updateNoticeStatus,
   getNotices,
-  getNoticeRecipientList,
-  getAllPendingNotices,
+  getNoticeRecipients,
+  getPendingNotices,
 } = require("./notice-repository");
 
-const fetchNoticeRecipients = async (schoolId) => {
-  const noticeRecipients = await getNoticeRecipientList(schoolId);
+const processGetNoticeRecipients = async (schoolId) => {
+  const noticeRecipients = await getNoticeRecipients(schoolId);
   if (!Array.isArray(noticeRecipients) || noticeRecipients.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
   return { noticeRecipients };
 };
 
-const fetchAllNotices = async (userId) => {
+const processGetNotices = async (userId) => {
   const notices = await getNotices(userId);
   if (notices.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
@@ -26,24 +26,24 @@ const fetchAllNotices = async (userId) => {
   return { notices };
 };
 
-const fetchNoticeDetailById = async (payload) => {
-  const noticeDetail = await getNoticeById(payload);
+const processGetNotice = async (payload) => {
+  const noticeDetail = await getNotice(payload);
   if (!noticeDetail) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
   return noticeDetail;
 };
 
-const addNotice = async (payload) => {
-  const affectedRow = await addNewNotice(payload);
+const processAddNotice = async (payload) => {
+  const affectedRow = await addNotice(payload);
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to add new notice");
   }
   return { message: "Notice added successfully" };
 };
 
-const updateNotice = async (payload) => {
-  const affectedRow = await updateNoticeById(payload);
+const processUpdateNotice = async (payload) => {
+  const affectedRow = await updateNotice(payload);
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to update notice");
   }
@@ -53,13 +53,13 @@ const updateNotice = async (payload) => {
 const processNoticeStatus = async (payload) => {
   const { noticeId, status, currentUserId, currentUserRoleId, schoolId } =
     payload;
-  const notice = await getNoticeById({ noticeId, schoolId });
+  const notice = await getNotice({ noticeId, schoolId });
   if (!notice) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
   const { authorId } = notice;
-  const userCanManageStatus = handleStatusCheck(
+  const userCanManageStatus = checkStatus(
     currentUserRoleId,
     currentUserId,
     authorId,
@@ -72,7 +72,7 @@ const processNoticeStatus = async (payload) => {
     );
   }
 
-  const affectedRow = await manageNoticeStatus({
+  const affectedRow = await updateNoticeStatus({
     noticeId,
     status,
     currentUserId,
@@ -83,7 +83,7 @@ const processNoticeStatus = async (payload) => {
   return { message: "Success" };
 };
 
-const handleStatusCheck = (
+const checkStatus = (
   currentUserRoleId,
   currentUserId,
   authorId,
@@ -104,8 +104,8 @@ const handleStatusCheck = (
   return false;
 };
 
-const processGetAllPendingNotices = async (schoolId) => {
-  const notices = await getAllPendingNotices(schoolId);
+const processGetPendingNotices = async (schoolId) => {
+  const notices = await getPendingNotices(schoolId);
   if (notices.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
@@ -113,11 +113,11 @@ const processGetAllPendingNotices = async (schoolId) => {
 };
 
 module.exports = {
-  fetchNoticeRecipients,
-  fetchAllNotices,
-  fetchNoticeDetailById,
-  addNotice,
-  updateNotice,
+  processGetNoticeRecipients,
+  processGetNotices,
+  processGetNotice,
+  processAddNotice,
+  processUpdateNotice,
   processNoticeStatus,
-  processGetAllPendingNotices,
+  processGetPendingNotices,
 };

@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 const {
   processGetUsers,
   processUpdateUserSystemAccess,
+  processSwitchRole,
 } = require("./users-service");
 
 const handleGetUsers = asyncHandler(async (req, res) => {
@@ -24,4 +25,16 @@ const handleUpdateUserSystemAccess = asyncHandler(async (req, res) => {
   res.json(response);
 });
 
-module.exports = { handleGetUsers, handleUpdateUserSystemAccess };
+const handleSwitchRole = asyncHandler(async (req, res) => {
+  const { schoolId } = req.user;
+  const { roleId } = req.body;
+  const { id: userId } = req.params;
+  const response = await processSwitchRole({ userId, roleId, schoolId });
+  res.json(response);
+});
+
+module.exports = {
+  handleGetUsers,
+  handleUpdateUserSystemAccess,
+  handleSwitchRole,
+};

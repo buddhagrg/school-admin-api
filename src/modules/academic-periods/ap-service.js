@@ -5,8 +5,8 @@ const {
   updatePeriod,
   deletePeriod,
   getAllPeriods,
-  assignPeriodDates,
-  updatePeriodOrder,
+  getAllPeriodDates,
+  definePeriodsDates,
 } = require("./ap-repository");
 
 const processAddPeriod = async (payload) => {
@@ -42,26 +42,20 @@ const processGetAllPeriods = async (schoolId) => {
   return { academicPeriods };
 };
 
-const processAssignPeriodDates = async (payload) => {
-  const affectedRow = await assignPeriodDates(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to assign academic period dates");
+const processGetAllPeriodDates = async (schoolId) => {
+  const periodDates = await getAllPeriodDates(schoolId);
+  if (!periodDates || periodDates.length <= 0) {
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-  return { message: "Academic Period dates assigned successfully" };
+  return { periodDates };
 };
 
-const processUpdatePeriodOrder = async (payload) => {
-  const { periods } = payload;
-  if (!Array.isArray(periods) || periods.length <= 0) {
-    throw new ApiError(400, "Bad request");
-  }
-
-  const affectedRow = await updatePeriodOrder(payload);
+const processDefinePeriodsDates = async (payload) => {
+  const affectedRow = await definePeriodsDates(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to manage period order");
+    throw new ApiError(500, "Unable to define academic period dates");
   }
-
-  return { message: "Period order updated successfully" };
+  return { message: "Academic Period dates defined successfully" };
 };
 
 module.exports = {
@@ -69,6 +63,6 @@ module.exports = {
   processUpdatePeriod,
   processDeletePeriod,
   processGetAllPeriods,
-  processAssignPeriodDates,
-  processUpdatePeriodOrder,
+  processGetAllPeriodDates,
+  processDefinePeriodsDates,
 };

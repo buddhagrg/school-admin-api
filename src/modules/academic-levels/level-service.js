@@ -5,10 +5,12 @@ const {
   updateLevel,
   addLevel,
   addClassToLevel,
-  getAcademicStructure,
+  getAcademicLevelsWithPeriods,
   deleteLevel,
   getLevelsWithClasses,
   deleteLevelFromClass,
+  reorderPeriods,
+  getPeriodsDates,
 } = require("./level-repository");
 
 const processAddLevel = async (payload) => {
@@ -71,14 +73,14 @@ const formatResponse = (data, type) =>
     return level;
   });
 
-const processGetAcademicStructure = async (schoolId) => {
-  const data = await getAcademicStructure(schoolId);
+const processGetAcademicLevelsWithPeriods = async (schoolId) => {
+  const data = await getAcademicLevelsWithPeriods(schoolId);
   if (!data || data.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
-  const academicStructure = formatResponse(data, "periods");
-  return { academicStructure };
+  const levelsWithPeriods = formatResponse(data, "periods");
+  return { levelsWithPeriods };
 };
 
 const processDeleteLevel = async (payload) => {
@@ -95,8 +97,8 @@ const processGetLevelsWithClasses = async (schoolId) => {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
 
-  const levelClass = formatResponse(data, "classes");
-  return { levelClass };
+  const levelsWithClasses = formatResponse(data, "classes");
+  return { levelsWithClasses };
 };
 
 const processDeleteLevelFromClass = async (payload) => {
@@ -107,13 +109,37 @@ const processDeleteLevelFromClass = async (payload) => {
   return { message: "Class deleted successfuly from academic-level" };
 };
 
+const processReorderPeriods = async (payload) => {
+  const { periods } = payload;
+  if (!Array.isArray(periods) || periods.length <= 0) {
+    throw new ApiError(400, "Bad request");
+  }
+
+  const affectedRow = await reorderPeriods(payload);
+  if (affectedRow <= 0) {
+    throw new ApiError(500, "Unable to manage period order");
+  }
+
+  return { message: "Period order updated successfully" };
+};
+
+const processGetPeriodsDates = async (payload) => {
+  const periodsDates = await getPeriodsDates(payload);
+  if (!Array.isArray(periodsDates) || periodsDates.length <= 0) {
+    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+  }
+  return { periodsDates };
+};
+
 module.exports = {
   processAddLevel,
   processUpdateLevel,
   processGetLevels,
   processAddClassToLevel,
-  processGetAcademicStructure,
+  processGetAcademicLevelsWithPeriods,
   processDeleteLevel,
   processGetLevelsWithClasses,
   processDeleteLevelFromClass,
+  processReorderPeriods,
+  processGetPeriodsDates,
 };

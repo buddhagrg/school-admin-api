@@ -4,22 +4,22 @@ const noticeController = require("./notice-controller");
 const { checkApiAccess } = require("../../middlewares");
 
 router.get(
-  "/recipients/list",
+  "/recipients",
   checkApiAccess,
-  noticeController.handleFetchNoticeRecipients
+  noticeController.handleGetNoticeRecipients
 );
-router.post("/:id/status", checkApiAccess, noticeController.handleNoticeStatus);
+router.patch("/:id/status", checkApiAccess, noticeController.handleNoticeStatus);
 router.get(
   "/pending",
   checkApiAccess,
-  noticeController.handleFetchAllPendingNotices
+  noticeController.handleGetPendingNotices
 );
 router.get(
   "/:id",
   checkApiAccess,
-  noticeController.handleFetchNoticeDetailById
+  noticeController.handleGetNotice
 );
-router.get("", checkApiAccess, noticeController.handleFetchAllNotices);
+router.get("", checkApiAccess, noticeController.handleGetNotices);
 router.post("", checkApiAccess, noticeController.handleAddNotice);
 router.put("/:id", checkApiAccess, noticeController.handleUpdateNotice);
 
