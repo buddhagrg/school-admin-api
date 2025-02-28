@@ -38,7 +38,7 @@ const processUpdateLeavePolicy = async (payload) => {
 const processGetLeavePolicies = async (schoolId) => {
   const leavePolicies = await getLeavePolicies(schoolId);
   if (!Array.isArray(leavePolicies) || leavePolicies.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { leavePolicies };
 };
@@ -46,7 +46,7 @@ const processGetLeavePolicies = async (schoolId) => {
 const processGetMyLeavePolicy = async (payload) => {
   const myLeavePolicies = await getMyLeavePolicy(payload);
   if (!Array.isArray(myLeavePolicies) || myLeavePolicies.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { myLeavePolicies };
 };
@@ -54,7 +54,7 @@ const processGetMyLeavePolicy = async (payload) => {
 const processGetPolicyUsers = async (payload) => {
   const leavePolicyUsers = await getPolicyUsers(payload);
   if (!Array.isArray(leavePolicyUsers) || leavePolicyUsers.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { leavePolicyUsers };
 };
@@ -89,7 +89,7 @@ const processGetPolicyEligibleUsers = async (schoolId) => {
     !Array.isArray(leavePolicyEligibleUsers) ||
     leavePolicyEligibleUsers.length <= 0
   ) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { leavePolicyEligibleUsers };
 };
@@ -113,7 +113,7 @@ const processUpdateLeaveRequest = async (payload) => {
 const processGetUserLeaveHistory = async (payload) => {
   const leaveHistory = await getUserLeaveHistory(payload);
   if (!Array.isArray(leaveHistory) || leaveHistory.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { leaveHistory };
 };
@@ -129,7 +129,7 @@ const processDeleteLeaveRequest = async (payload) => {
 const processGetPendingLeaveRequests = async (schoolId) => {
   const pendingLeaves = await getPendingLeaveRequests(schoolId);
   if (!Array.isArray(pendingLeaves) || pendingLeaves.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { pendingLeaves };
 };

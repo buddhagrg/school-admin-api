@@ -24,7 +24,7 @@ const processAddRole = async (payload) => {
 const processGetRoles = async (schoolId) => {
   const roles = await getRoles(schoolId);
   if (!Array.isArray(roles) || roles.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { roles };
 };
@@ -65,7 +65,7 @@ const processGetRolePermissions = async ({ roleId, schoolId }) => {
     schoolId,
   });
   if (permissions.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
 
   return { permissions };
@@ -74,7 +74,7 @@ const processGetRolePermissions = async ({ roleId, schoolId }) => {
 const processGetRoleUsers = async (payload) => {
   const users = await getRoleUsers(payload);
   if (!Array.isArray(users) || users.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { users };
 };

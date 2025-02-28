@@ -10,7 +10,7 @@ const {
 const processGetAllAcademicYears = async (schoolId) => {
   const academicYears = await getAllAcademicYears(schoolId);
   if (academicYears.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { academicYears };
 };

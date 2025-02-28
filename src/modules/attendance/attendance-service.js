@@ -12,7 +12,7 @@ const {
 const processGetStudentsForAttendance = async (payload) => {
   const students = await getStudentsForAttendance(payload);
   if (!students || students.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { students };
 };
@@ -20,7 +20,7 @@ const processGetStudentsForAttendance = async (payload) => {
 const processGetStaffForAttendance = async (payload) => {
   const staff = await getStaffForAttendance(payload);
   if (!staff || staff.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { staff };
 };
@@ -41,7 +41,7 @@ const processGetStudentsAttendanceRecord = async (payload) => {
     students = await getStudentDailyAttendanceRecord(payload);
   }
   if (!students || students.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { students };
 };
@@ -49,7 +49,7 @@ const processGetStudentsAttendanceRecord = async (payload) => {
 const processGetStaffAttendanceRecord = async (payload) => {
   const staff = await getStaffDailyAttendanceRecord(payload);
   if (!staff || staff.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { staff };
 };

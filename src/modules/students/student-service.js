@@ -9,7 +9,7 @@ const {
 const getStudentDetail = async (paylaod) => {
   const student = await findStudentDetail(paylaod);
   if (!student) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return student;
 };
@@ -56,7 +56,7 @@ const updateStudent = async (payload) => {
 const processGetStudentDueFees = async (payload) => {
   const dueFees = await getStudentDueFees(payload);
   if (!dueFees || dueFees.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { dueFees };
 };

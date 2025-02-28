@@ -30,7 +30,7 @@ const processUpdateFee = async (payload) => {
 const processGetAllFees = async (schoolId) => {
   const fees = await getAllFees(schoolId);
   if (!fees || fees.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { fees };
 };
@@ -46,7 +46,7 @@ const processAddOrUpdateFeeStructures = async (payload) => {
 const processGetAllFeeStructures = async (payload) => {
   const feeStructures = await getAllFeeStructures(payload);
   if (feeStructures.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { feeStructures };
 };
@@ -62,7 +62,7 @@ const processAssignFeeToStudent = async (payload) => {
 const processGetFeesAssignedToStudent = async (payload) => {
   const feesAssigned = await getFeesAssignedToStudent(payload);
   if (feesAssigned.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { feesAssigned };
 };

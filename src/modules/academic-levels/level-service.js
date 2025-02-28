@@ -33,7 +33,7 @@ const processUpdateLevel = async (payload) => {
 const processGetLevels = async (schoolId) => {
   const academicLevels = await getAllLevels(schoolId);
   if (academicLevels.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { academicLevels };
 };
@@ -77,7 +77,7 @@ const formatResponse = (data, type) =>
 const processGetAcademicLevelsWithPeriods = async (schoolId) => {
   const data = await getAcademicLevelsWithPeriods(schoolId);
   if (!data || data.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
 
   const levelsWithPeriods = formatResponse(data, "periods");
@@ -95,7 +95,7 @@ const processDeleteLevel = async (payload) => {
 const processGetLevelsWithClasses = async (schoolId) => {
   const data = await getLevelsWithClasses(schoolId);
   if (!data || data.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
 
   const levelsWithClasses = formatResponse(data, "classes");
@@ -127,7 +127,7 @@ const processReorderPeriods = async (payload) => {
 const processGetPeriodsDates = async (payload) => {
   const periodsWithDates = await getPeriodsDates(payload);
   if (!Array.isArray(periodsWithDates) || periodsWithDates.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { periodsWithDates };
 };

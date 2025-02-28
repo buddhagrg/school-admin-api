@@ -5,7 +5,7 @@ const { addOrUpdateStaff, getStaffDetailById } = require("./staff-repository");
 const processGetStaff = async (payload) => {
   const staff = await getStaffDetailById(payload);
   if (!staff) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return staff;
 };

@@ -18,7 +18,7 @@ const {
 const processGetAllExamNames = async (schoolId) => {
   const exams = await getAllExamNames(schoolId);
   if (exams.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { exams };
 };
@@ -66,7 +66,7 @@ const processUpdateExamDetail = async (payload) => {
 const processGetExamRoutine = async (payload) => {
   const routines = await getExamRoutine(payload);
   if (routines.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { routines };
 };
@@ -74,7 +74,7 @@ const processGetExamRoutine = async (payload) => {
 const processGetMarks = async (payload) => {
   const marks = await getMarks(payload);
   if (marks.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { marks };
 };
@@ -98,7 +98,7 @@ const processUpdateMarks = async (payload) => {
 const processGetExamMarksheet = async (payload) => {
   const marksheets = await getExamMarksheet(payload);
   if (marksheets.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { marksheets };
 };
@@ -106,7 +106,7 @@ const processGetExamMarksheet = async (payload) => {
 const processGetExamDetail = async (payload) => {
   const examDetails = await getExamDetail(payload);
   if (examDetails.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { examDetails };
 };

@@ -12,7 +12,7 @@ const {
 const processGetAllSchools = async () => {
   const schools = await getAllSchools();
   if (schools.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { schools };
 };
@@ -20,7 +20,7 @@ const processGetAllSchools = async () => {
 const processGetSchool = async (schoolId) => {
   const school = await getSchool(schoolId);
   if (!school) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return school;
 };

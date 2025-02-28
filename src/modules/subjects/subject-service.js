@@ -37,7 +37,7 @@ const processDeleteSubject = async (payload) => {
 const processGetAllSubjects = async (payload) => {
   const subjects = await getAllSubjects(payload);
   if (subjects.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
 
   return { subjects };
