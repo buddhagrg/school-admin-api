@@ -1,21 +1,39 @@
 const express = require("express");
 const router = express.Router();
 const invoiceController = require("./invoice-controller");
+const { checkApiAccess } = require("../../middlewares");
 
-router.get("", invoiceController.handleGetAllInvoices);
-router.get("/:id", invoiceController.handleGetInvoiceById);
-router.post("", invoiceController.handleGenerateInvoice);
+router.get("", checkApiAccess, invoiceController.handleGetAllInvoices);
+router.get("/:id", checkApiAccess, invoiceController.handleGetInvoiceById);
+router.post("", checkApiAccess, invoiceController.handleGenerateInvoice);
 
-router.post("/:id/pay", invoiceController.handlePayInvoice);
-router.post("/:id/refund", invoiceController.handleRefundInvoice);
-router.post("/:id/dispute", invoiceController.handleDisputeInvoice);
-router.post("/:id/cancel", invoiceController.handleCancelInvoice);
+router.post("/:id/pay", checkApiAccess, invoiceController.handlePayInvoice);
+router.post(
+  "/:id/refund",
+  checkApiAccess,
+  invoiceController.handleRefundInvoice
+);
+router.post(
+  "/:id/dispute",
+  checkApiAccess,
+  invoiceController.handleDisputeInvoice
+);
+router.post(
+  "/:id/cancel",
+  checkApiAccess,
+  invoiceController.handleCancelInvoice
+);
 // router.post("/:id/discount");
 router.post(
   "/:id/dispute/resolve",
+  checkApiAccess,
   invoiceController.handleResolveDisputeInvoice
 );
 
-router.delete("/:id/items/:itemId", invoiceController.handleRemoveInvoiceItem);
+router.delete(
+  "/:id/items/:itemId",
+  checkApiAccess,
+  invoiceController.handleRemoveInvoiceItem
+);
 
 module.exports = { invoiceRoutes: router };

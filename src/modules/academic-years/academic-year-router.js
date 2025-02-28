@@ -1,9 +1,22 @@
 const router = require("express").Router();
+const { checkApiAccess } = require("../../middlewares");
 const academicYearController = require("./academic-year-controller");
 
-router.get("", academicYearController.handleGetAllAcademicYears);
-router.post("", academicYearController.handleAddAcademicYear);
-router.put("/:id", academicYearController.handleUpdatelAcademicYear);
-router.post("/:id/activate", academicYearController.handleActivateAcademicYear);
+router.get(
+  "",
+  checkApiAccess,
+  academicYearController.handleGetAllAcademicYears
+);
+router.post("", checkApiAccess, academicYearController.handleAddAcademicYear);
+router.put(
+  "/:id",
+  checkApiAccess,
+  academicYearController.handleUpdatelAcademicYear
+);
+router.post(
+  "/:id/activate",
+  checkApiAccess,
+  academicYearController.handleActivateAcademicYear
+);
 
 module.exports = { academicYearRoutes: router };

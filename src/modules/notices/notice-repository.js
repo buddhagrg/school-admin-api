@@ -152,11 +152,15 @@ const getNoticeRecipients = async (schoolId) => {
     const queries = [
       {
         query: `
-          SELECT
-          t1.id, t1.name, t2.id AS "roleId"
+          WITH data AS(
+            SELECT id AS "roleId"
+            FROM roles
+            WHERE school_id = $1 AND static_role_id = $2
+            LIMIT 1
+          )
+          SELECT t1.id, t1.name, t2."roleId"
           FROM departments t1
-          JOIN roles t2 ON t2.static_role_id = $1
-          WHERE t1.school_id = $2
+          RIGHT JOIN data t2 ON t1.school_id = $1
         `,
         staticRoleId: 3,
         roleName: "Teacher",
@@ -164,11 +168,15 @@ const getNoticeRecipients = async (schoolId) => {
       },
       {
         query: `
+        WITH data AS(
+          SELECT id AS "roleId"
+          FROM roles
+          WHERE school_id = $1 AND static_role_id = $2
+        )
         SELECT
-        t1.id, t1.name, t2.id AS "roleId"
+        t1.id, t1.name, t2."roleId"
         FROM classes t1
-        JOIN roles t2 ON t2.static_role_id = $1
-        WHERE t1.school_id = $2
+        RIGHT JOIN data t2 ON t1.school_id = $1
       `,
         staticRoleId: 4,
         roleName: "Student",
@@ -178,7 +186,7 @@ const getNoticeRecipients = async (schoolId) => {
 
     const staticRecipients = queries.map(async (item) => {
       const { query, staticRoleId, roleName, dependentName } = item;
-      const queryParams = [staticRoleId, schoolId];
+      const queryParams = [schoolId, staticRoleId];
       const { rows } = await processDBRequest({ query, queryParams });
       const resultantRows =
         rows.length > 0
@@ -195,14 +203,13 @@ const getNoticeRecipients = async (schoolId) => {
             name: roleName,
             primaryDependents: {
               name: dependentName,
-              list: resultantRows,
+              list: resultantRows.filter((r) => r.id),
             },
           }
         : [];
     });
 
     const staticResult = await Promise.all(staticRecipients);
-    const finalStaticResult = staticResult.filter((item) => item.id);
     const dynamicQuery = `
       SELECT id, name, id AS "roleId"
       FROM roles
@@ -214,7 +221,7 @@ const getNoticeRecipients = async (schoolId) => {
       queryParams: dynamicQueryParams,
     });
 
-    return [...finalStaticResult, ...rows];
+    return [...staticResult, ...rows];
   } catch (error) {
     throw error;
   }
