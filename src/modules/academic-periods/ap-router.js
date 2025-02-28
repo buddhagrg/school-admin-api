@@ -1,11 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const apController = require("./ap-controller");
+const { checkApiAccess } = require("../../middlewares");
 
-router.post("", apController.handleAddPeriod);
-router.put("/:id", apController.handleUpdatePeriod);
-router.delete("/:id", apController.handleDeletePeriod);
-router.get("", apController.handleGetAllPeriods);
-router.post("/dates", apController.handleDefinePeriodsDates);
+router.post("", checkApiAccess, apController.handleAddPeriod);
+router.put("/:id", checkApiAccess, apController.handleUpdatePeriod);
+router.delete("/:id", checkApiAccess, apController.handleDeletePeriod);
 
 module.exports = { academicPeriodRoutes: router };
