@@ -19,7 +19,7 @@ const processAddDeposit = async (payload) => {
 const processGetDeposit = async (payload) => {
   const deposit = await getDeposit(payload);
   if (!deposit) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return deposit;
 };
@@ -35,7 +35,7 @@ const processUpdateDeposit = async (payload) => {
 const processGetDeposits = async (schoolId) => {
   const deposits = await getDeposits(schoolId);
   if (deposits.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return deposits;
 };

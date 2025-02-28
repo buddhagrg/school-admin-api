@@ -13,7 +13,7 @@ const {
 const processGetNoticeRecipients = async (schoolId) => {
   const noticeRecipients = await getNoticeRecipients(schoolId);
   if (!Array.isArray(noticeRecipients) || noticeRecipients.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { noticeRecipients };
 };
@@ -21,7 +21,7 @@ const processGetNoticeRecipients = async (schoolId) => {
 const processGetNotices = async (userId) => {
   const notices = await getNotices(userId);
   if (notices.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { notices };
 };
@@ -29,7 +29,7 @@ const processGetNotices = async (userId) => {
 const processGetNotice = async (payload) => {
   const noticeDetail = await getNotice(payload);
   if (!noticeDetail) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return noticeDetail;
 };
@@ -55,7 +55,7 @@ const processNoticeStatus = async (payload) => {
     payload;
   const notice = await getNotice({ noticeId, schoolId });
   if (!notice) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
 
   const { authorId } = notice;
@@ -107,7 +107,7 @@ const checkStatus = (
 const processGetPendingNotices = async (schoolId) => {
   const notices = await getPendingNotices(schoolId);
   if (notices.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { notices };
 };

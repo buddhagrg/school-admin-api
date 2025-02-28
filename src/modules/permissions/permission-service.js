@@ -15,7 +15,7 @@ const {
 const processGetAllPermissions = async (staticRoleId) => {
   const data = await getAllPermissions(staticRoleId);
   if (!data || data.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
 
   const permissions = getAccessItemHierarchy(data);

@@ -18,7 +18,7 @@ const {
 const fetchAllClasses = async (schoolId) => {
   const classes = await getAllClasses(schoolId);
   if (!Array.isArray(classes) || classes.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { classes };
 };
@@ -90,7 +90,7 @@ const formatResponse = (data) =>
 const processGetClassesWithSections = async (schoolId) => {
   const data = await getClassesWithSections(schoolId);
   if (!Array.isArray(data) || data.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
 
   const classesWithSections = formatResponse(data);
@@ -124,7 +124,7 @@ const processUpdateSectionStatus = async (payload) => {
 const processGetAllClassTeachers = async (schoolId) => {
   const classTeachers = await getAllClassTeachers(schoolId);
   if (!Array.isArray(classTeachers) || classTeachers.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { classTeachers };
 };
@@ -140,7 +140,7 @@ const processAssignClassTeacher = async (schoolId) => {
 const processGetAllTeachersOfSchool = async (schoolId) => {
   const teachers = await getAllTeachersOfSchool(schoolId);
   if (!Array.isArray(teachers) || teachers.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { teachers };
 };

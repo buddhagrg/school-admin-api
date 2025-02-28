@@ -31,7 +31,7 @@ const processGetInvoiceById = async (payload) => {
 const processGetAllInvoices = async (payload) => {
   const invoices = await getAllInvoices(payload);
   if (invoices.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { invoices };
 };

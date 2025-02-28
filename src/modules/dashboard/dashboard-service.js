@@ -5,7 +5,7 @@ const fetchDashboardData = async (userId) => {
   const data = await getUserDashboardData(userId);
 
   if (!data) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
 
   return data;

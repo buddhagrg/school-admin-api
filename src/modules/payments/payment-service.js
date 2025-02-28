@@ -19,7 +19,7 @@ const processDoGeneralPayment = async (payload) => {
 const processGetAllPaymentMethods = async (schoolId) => {
   const paymentMethods = await getAllPaymentMethods(schoolId);
   if (paymentMethods.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { paymentMethods };
 };

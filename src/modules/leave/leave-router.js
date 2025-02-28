@@ -67,12 +67,12 @@ router.delete(
 );
 
 router.get(
-  "requests/pending",
+  "/requests/pending",
   checkApiAccess,
   leaveController.handleGetPendingLeaveRequests
 );
 router.patch(
-  "requests/pending/:id/status",
+  "/requests/pending/:id/status",
   checkApiAccess,
   leaveController.handleUpdatePendingLeaveRequestStatus
 );
