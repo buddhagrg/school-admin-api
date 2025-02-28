@@ -1,16 +1,31 @@
 const express = require("express");
 const router = express.Router();
 const attendanceController = require("./attendance-controller");
+const { checkApiAccess } = require("../../middlewares");
 
-router.post("", attendanceController.handleAddOrUpdateAttendance);
-router.get("/students", attendanceController.handleGetStudentsForAttendance);
+router.post(
+  "",
+  checkApiAccess,
+  attendanceController.handleAddOrUpdateAttendance
+);
+router.get(
+  "/students",
+  checkApiAccess,
+  attendanceController.handleGetStudentsForAttendance
+);
 router.get(
   "/students/record",
+  checkApiAccess,
   attendanceController.handleGetStudentsAttendanceRecord
 );
-router.get("/staff", attendanceController.handleGetStaffForAttendance);
+router.get(
+  "/staff",
+  checkApiAccess,
+  attendanceController.handleGetStaffForAttendance
+);
 router.get(
   "/staff/record",
+  checkApiAccess,
   attendanceController.handleGetStaffAttendanceRecord
 );
 

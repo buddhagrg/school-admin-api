@@ -1,9 +1,14 @@
 const router = require("express").Router();
+const { checkApiAccess } = require("../../middlewares");
 const fyController = require("./fy-controller");
 
-router.get("", fyController.handleGetAllFiscalYears);
-router.post("", fyController.handleAddFiscalYear);
-router.put("/:id", fyController.handleUpdateFiscalYear);
-router.post("/:id/activate", fyController.handleActivateFiscalYear);
+router.get("", checkApiAccess, fyController.handleGetAllFiscalYears);
+router.post("", checkApiAccess, fyController.handleAddFiscalYear);
+router.put("/:id", checkApiAccess, fyController.handleUpdateFiscalYear);
+router.post(
+  "/:id/activate",
+  checkApiAccess,
+  fyController.handleActivateFiscalYear
+);
 
 module.exports = { fiscalYearRoutes: router };

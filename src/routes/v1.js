@@ -5,7 +5,6 @@ const {
   authenticateToken,
   csrfProtection,
   checkApiAccess,
-  isUserAdminOrSuperAdmin,
 } = require("../middlewares");
 const { studentRoutes } = require("../modules/students/sudent-router.js");
 const { authRoutes } = require("../modules/auth/auth-router.js");
@@ -49,6 +48,9 @@ const {
 } = require("../modules/classes/class-controller.js");
 const { userRoutes } = require("../modules/users/users-router.js");
 
+router.use("/permissions", authenticateToken, csrfProtection, permissionRoutes);
+router.use("/schools", authenticateToken, csrfProtection, schoolRoutes);
+
 router.get(
   "/teachers",
   authenticateToken,
@@ -63,7 +65,6 @@ router.get(
   checkApiAccess,
   handleGetDashboardData
 );
-router.use("/permissions", authenticateToken, csrfProtection, permissionRoutes);
 router.use("/auth", authRoutes);
 router.use("/account", authenticateToken, csrfProtection, accountRoutes);
 router.use("/leaves", authenticateToken, csrfProtection, leaveRoutes);
@@ -73,19 +74,16 @@ router.use("/notices", authenticateToken, csrfProtection, noticeRoutes);
 router.use("/staff", authenticateToken, csrfProtection, staffRoutes);
 router.use("/departments", authenticateToken, csrfProtection, departmentRoutes);
 router.use("/roles", authenticateToken, csrfProtection, roleRoutes);
-router.use("/schools", authenticateToken, csrfProtection, schoolRoutes);
 router.use(
-  "/academic-years",
+  "/academic/years",
   authenticateToken,
   csrfProtection,
-  isUserAdminOrSuperAdmin([1, 2]),
   academicYearRoutes
 );
 router.use(
   "/fiscal-years",
   authenticateToken,
   csrfProtection,
-  isUserAdminOrSuperAdmin([1, 2]),
   fiscalYearRoutes
 );
 router.use("/attendances", authenticateToken, csrfProtection, attendanceRoutes);
@@ -100,14 +98,12 @@ router.use(
   "/academic/levels",
   authenticateToken,
   csrfProtection,
-  isUserAdminOrSuperAdmin([1, 2]),
   academicLevelRoutes
 );
 router.use(
   "/academic/periods",
   authenticateToken,
   csrfProtection,
-  isUserAdminOrSuperAdmin([1, 2]),
   academicPeriodRoutes
 );
 router.use("/users", authenticateToken, csrfProtection, userRoutes);
