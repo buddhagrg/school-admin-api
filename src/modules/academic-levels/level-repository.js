@@ -1,3 +1,4 @@
+const { db } = require("../../config");
 const processDBRequest = require("../../utils/process-db-request");
 
 const addLevel = async (payload) => {
@@ -104,14 +105,14 @@ const reorderPeriods = async (payload) => {
   const client = await db.connect();
   try {
     await client.query("BEGIN");
-
+    const periodsList = periods.map(({ id }) => id).join(", ");
     const negativeOrderQueryParams = [schoolId, academicLevelId];
     const negativeOrderQuery = `
       UPDATE academic_Periods
       SET sort_order = -sort_order
       WHERE school_id = $1
         AND academic_level_id = $2
-        AND id IN(${periods.map(({ id }) => id).join(", ")});
+        AND id IN(${periodsList});
     `;
     await processDBRequest({
       query: negativeOrderQuery,
@@ -124,14 +125,14 @@ const reorderPeriods = async (payload) => {
     SET sort_order = CASE
       ${periods
         .map(
-          ({ id, orderId }) => `
-          WHEN id = ${id} THEN ${orderId}
+          ({ id, sortOrder }) => `
+          WHEN id = ${id} THEN ${sortOrder}
         `
         )
         .join("")}
       ELSE sort_order
     END
-    WHERE school_id = $1 AND id IN (${periods.map(({ id }) => id).join(", ")})
+    WHERE school_id = $1 AND id IN (${periodsList})
   `;
     const queryParams = [schoolId];
     const { rowCount } = await processDBRequest({ query, queryParams, client });
@@ -149,12 +150,42 @@ const reorderPeriods = async (payload) => {
 const getPeriodsDates = async (payload) => {
   const { schoolId, academicLevelId } = payload;
   const query = `
-    SELECT * FROM academic_periods t1
+    SELECT
+      id,
+      name,
+      start_date AS "startDate",
+      end_date AS "endDate"
+    FROM academic_periods
     WHERE school_id = $1 AND academic_level_id = $2
   `;
   const queryParams = [schoolId, academicLevelId];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
+};
+
+const updatePeriodsDates = async (payload) => {
+  const { schoolId, periodsDates, academicLevelId } = payload;
+  const query = `
+    UPDATE academic_periods AS t1
+    SET
+      start_date = (t2.value ->> 'startDate')::DATE,
+      end_date = (t2.value ->> 'endDate')::DATE
+    FROM (
+        SELECT
+          (value ->> 'id')::INT AS id,
+          value
+        FROM
+          jsonb_array_elements($2::jsonb) AS t2(value)
+    ) AS t2
+    WHERE
+      t1.school_id = $1
+      AND t1.id = t2.id
+      AND t1.academic_level_id = $3;
+  `;
+  const queryParams = [schoolId, JSON.stringify(periodsDates), academicLevelId];
+
+  const { rowCount } = await processDBRequest({ query, queryParams });
+  return rowCount;
 };
 
 module.exports = {
@@ -168,4 +199,5 @@ module.exports = {
   deleteLevelFromClass,
   reorderPeriods,
   getPeriodsDates,
+  updatePeriodsDates,
 };

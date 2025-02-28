@@ -11,6 +11,7 @@ const {
   deleteLevelFromClass,
   reorderPeriods,
   getPeriodsDates,
+  updatePeriodsDates,
 } = require("./level-repository");
 
 const processAddLevel = async (payload) => {
@@ -124,11 +125,19 @@ const processReorderPeriods = async (payload) => {
 };
 
 const processGetPeriodsDates = async (payload) => {
-  const periodsDates = await getPeriodsDates(payload);
-  if (!Array.isArray(periodsDates) || periodsDates.length <= 0) {
+  const periodsWithDates = await getPeriodsDates(payload);
+  if (!Array.isArray(periodsWithDates) || periodsWithDates.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.RECORD_NOT_FOUND);
   }
-  return { periodsDates };
+  return { periodsWithDates };
+};
+
+const processUpdatePeriodsDates = async (payload) => {
+  const affectedRow = await updatePeriodsDates(payload);
+  if (affectedRow <= 0) {
+    throw new ApiError(500, "Unable to update academic period dates");
+  }
+  return { message: "Academic Period dates updated successfully" };
 };
 
 module.exports = {
@@ -142,4 +151,5 @@ module.exports = {
   processDeleteLevelFromClass,
   processReorderPeriods,
   processGetPeriodsDates,
+  processUpdatePeriodsDates,
 };

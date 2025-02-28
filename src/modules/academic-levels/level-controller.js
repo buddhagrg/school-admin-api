@@ -10,6 +10,7 @@ const {
   processDeleteLevelFromClass,
   processReorderPeriods,
   processGetPeriodsDates,
+  processUpdatePeriodsDates,
 } = require("./level-service");
 
 const handleAddLevel = asyncHandler(async (req, res) => {
@@ -84,7 +85,7 @@ const handleReorderPeriods = asyncHandler(async (req, res) => {
   const { periods } = req.body;
   const response = await processReorderPeriods({
     schoolId,
-    ...periods,
+    periods,
     academicLevelId,
   });
   res.json(response);
@@ -100,6 +101,18 @@ const handleGetPeriodsDates = asyncHandler(async (req, res) => {
   res.json(response);
 });
 
+const handleUpdatePeriodsDates = asyncHandler(async (req, res) => {
+  const { schoolId } = req.user;
+  const { id: academicLevelId } = req.params;
+  const { periodsDates } = req.body;
+  const response = await processUpdatePeriodsDates({
+    schoolId,
+    academicLevelId,
+    periodsDates,
+  });
+  res.json(response);
+});
+
 module.exports = {
   handleAddLevel,
   handleUpdateLevel,
@@ -111,4 +124,5 @@ module.exports = {
   handleDeleteLevelFromClass,
   handleReorderPeriods,
   handleGetPeriodsDates,
+  handleUpdatePeriodsDates,
 };
