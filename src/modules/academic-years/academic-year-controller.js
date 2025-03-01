@@ -3,6 +3,7 @@ const {
   processGetAllAcademicYears,
   processAddAcademicYear,
   processActivateAcademicYear,
+  processUpdateAcademicYear,
 } = require("./academic-year-service");
 
 const handleGetAllAcademicYears = asyncHandler(async (req, res) => {
@@ -22,7 +23,7 @@ const handleUpdatelAcademicYear = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id: academicYearId } = req.params;
   const payload = req.body;
-  const response = await processGetAllAcademicYears({
+  const response = await processUpdateAcademicYear({
     ...payload,
     schoolId,
     academicYearId,

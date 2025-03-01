@@ -13,7 +13,7 @@ router.put(
   checkApiAccess,
   academicYearController.handleUpdatelAcademicYear
 );
-router.post(
+router.patch(
   "/:id/activate",
   checkApiAccess,
   academicYearController.handleActivateAcademicYear
