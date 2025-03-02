@@ -10,6 +10,7 @@ const getUsers = async (payload) => {
       t2.name AS "role",
       t2.static_role_id AS "staticRoleId",
       t1.last_login AS "lastLogin",
+      t1.is_email_verified AS "isEmailVerified",
       t1.has_system_access AS "hasSystemAccess"
     FROM users t1
     JOIN roles t2 ON t2.id = t1.role_id
