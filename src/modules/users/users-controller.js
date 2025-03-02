@@ -14,13 +14,14 @@ const handleGetUsers = asyncHandler(async (req, res) => {
 
 const handleUpdateUserSystemAccess = asyncHandler(async (req, res) => {
   const { id: userId } = req.params;
-  const { id: reviewerId, schoolId } = req.user;
+  const { id: reviewerId, schoolId, staticRoleId } = req.user;
   const { hasSystemAccess } = req.body;
   const response = await processUpdateUserSystemAccess({
     userId,
     hasSystemAccess,
     reviewerId,
     schoolId,
+    staticRoleId,
   });
   res.json(response);
 });

@@ -14,8 +14,12 @@ const processGetUsers = async (payload) => {
   return { users };
 };
 
-const processUpdateUserSystemAccess = async (paylaod) => {
-  const affectedRow = await updateUserSystemAccess(paylaod);
+const processUpdateUserSystemAccess = async (payload) => {
+  if ([1, 2].includes(payload.staticRoleId)) {
+    throw new ApiError(401, ERROR_MESSAGES.NOT_ALLOWED_IN_DEMO);
+  }
+
+  const affectedRow = await updateUserSystemAccess(payload);
   if (affectedRow <= 0) {
     throw new ApiError(500, "Unable to update user system access");
   }
