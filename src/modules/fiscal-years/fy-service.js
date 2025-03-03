@@ -23,8 +23,8 @@ const processUpdateFiscalYear = async (payload) => {
   return { message: "Fiscal year updated successfully" };
 };
 
-const processGetAllFiscalYears = async (payload) => {
-  const fiscalYears = await getAllFiscalYears(payload);
+const processGetAllFiscalYears = async (schoolId) => {
+  const fiscalYears = await getAllFiscalYears(schoolId);
   if (fiscalYears.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
