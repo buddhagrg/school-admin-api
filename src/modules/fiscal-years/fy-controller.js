@@ -27,7 +27,7 @@ const handleUpdateFiscalYear = asyncHandler(async (req, res) => {
 
 const handleGetAllFiscalYears = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const response = await processGetAllFiscalYears({ ...payload, schoolId });
+  const response = await processGetAllFiscalYears(schoolId);
   res.json(response);
 });
 
