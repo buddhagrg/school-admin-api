@@ -1,8 +1,20 @@
 const { ERROR_MESSAGES } = require("../../constants");
 const { ApiError, sendAccountVerificationEmail } = require("../../utils");
-const { addOrUpdateStaff, getStaffDetailById } = require("./staff-repository");
+const {
+  addOrUpdateStaff,
+  getStaffDetailById,
+  getStaff,
+} = require("./staff-repository");
 
-const processGetStaff = async (payload) => {
+const processGetStaff = async (schoolId) => {
+  const staff = await getStaff(schoolId);
+  if (!staff || staff.length <= 0) {
+    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
+  }
+
+  return { staff };
+};
+const processGetStaffDetail = async (payload) => {
   const staff = await getStaffDetailById(payload);
   if (!staff) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
@@ -50,6 +62,7 @@ const processUpdateStaff = async (payload) => {
 
 module.exports = {
   processGetStaff,
+  processGetStaffDetail,
   processAddStaff,
   processUpdateStaff,
 };

@@ -1,5 +1,20 @@
 const processDBRequest = require("../../utils/process-db-request");
 
+const getStaff = async (schoolId) => {
+  const query = `
+    SELECT
+      t1.id,
+      t1.name
+    FROM users t1
+    JOIN roles t2 ON t2.id = t1.role_id
+    WHERE t1.school_id = $1
+      AND t2.static_role_id NOT IN (1,2,4,5)
+  `;
+  const queryParams = [schoolId];
+  const { rows } = await processDBRequest({ query, queryParams });
+  return rows;
+};
+
 const getStaffDetailById = async ({ id, schoolId }) => {
   const query = `
     SELECT
@@ -43,6 +58,7 @@ const addOrUpdateStaff = async (payload) => {
 };
 
 module.exports = {
+  getStaff,
   getStaffDetailById,
   addOrUpdateStaff,
 };

@@ -1,14 +1,21 @@
 const asyncHandler = require("express-async-handler");
 const {
   processUpdateStaff,
-  processGetStaff,
+  processGetStaffDetail,
   processAddStaff,
+  processGetStaff,
 } = require("./staff-service");
 
 const handleGetStaff = asyncHandler(async (req, res) => {
+  const { schoolId } = req.user;
+  const response = await processGetStaff(schoolId);
+  res.json(response);
+});
+
+const handleGetStaffDetail = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { schoolId } = req.user;
-  const response = await processGetStaff({ id, schoolId });
+  const response = await processGetStaffDetail({ id, schoolId });
   res.json(response);
 });
 
@@ -29,6 +36,7 @@ const handleUpdateStaff = asyncHandler(async (req, res) => {
 
 module.exports = {
   handleGetStaff,
+  handleGetStaffDetail,
   handleAddStaff,
   handleUpdateStaff,
 };
