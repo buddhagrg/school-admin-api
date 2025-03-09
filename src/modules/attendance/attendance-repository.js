@@ -9,7 +9,7 @@ const userAttendanceListQuery = `
     t4.description AS "attendanceStatus",
     t3.remarks
   FROM users t1
-  JOIN roles r ON r.id = t1.role_id
+  JOIN roles r ON r.id = t1.role_id AND r.static_role_id NOT IN (1,2)
   LEFT JOIN user_profiles t2 ON t2.user_id = t1.id
   LEFT JOIN attendances t3
     ON t3.user_id = t1.id
