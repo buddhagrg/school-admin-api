@@ -6,7 +6,7 @@ const { checkApiAccess } = require("../../middlewares");
 router.post(
   "",
   checkApiAccess,
-  attendanceController.handleAddOrUpdateAttendance
+  attendanceController.handleRecordAttendance
 );
 router.get(
   "/students",

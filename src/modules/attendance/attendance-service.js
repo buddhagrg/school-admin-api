@@ -4,7 +4,7 @@ const {
   getStudentsForAttendance,
   getStudentSubjectWiseAttendanceRecord,
   getStudentDailyAttendanceRecord,
-  addOrUpdateAttendance,
+  recordAttendance,
   getStaffForAttendance,
   getStaffDailyAttendanceRecord,
 } = require("./attendance-repository");
@@ -25,12 +25,12 @@ const processGetStaffForAttendance = async (payload) => {
   return { staff };
 };
 
-const processAddOrUpdateAttendance = async (payload) => {
-  const affectedRow = await addOrUpdateAttendance(payload);
+const processRecordAttendance = async (payload) => {
+  const affectedRow = await recordAttendance(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to manage student attendance");
+    throw new ApiError(500, "Unable to record user attendance");
   }
-  return { message: "Student attendance managed successfully" };
+  return { message: "User attendance recorded successfully" };
 };
 
 const processGetStudentsAttendanceRecord = async (payload) => {
@@ -56,7 +56,7 @@ const processGetStaffAttendanceRecord = async (payload) => {
 
 module.exports = {
   processGetStudentsForAttendance,
-  processAddOrUpdateAttendance,
+  processRecordAttendance,
   processGetStudentsAttendanceRecord,
   processGetStaffForAttendance,
   processGetStaffAttendanceRecord,

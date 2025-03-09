@@ -1,102 +1,92 @@
 const processDBRequest = require("../../utils/process-db-request");
+const { format } = require("date-fns");
 
 const userAttendanceListQuery = `
   SELECT
-    t1.id AS "userId",
-    t1.name AS "userName",
-    COALESCE(t4.code, 'AB') AS "attendanceStatus"
+    t1.id,
+    t1.name,
+    t4.code AS "attendanceStatusCode",
+    t4.description AS "attendanceStatus",
+    t3.remarks
   FROM users t1
+  JOIN roles r ON r.id = t1.role_id
   LEFT JOIN user_profiles t2 ON t2.user_id = t1.id
   LEFT JOIN attendances t3
     ON t3.user_id = t1.id
     AND t3.academic_year_id = (SELECT id FROM academic_years WHERE school_id = $1 AND is_active = true)
     AND t3.attendance_date = $2
-  LEFT JOIN attendance_status t4 ON t4.id = t3.attendance_status_id
+  LEFT JOIN attendance_status t4 ON t4.code = t3.attendance_status_code
 `;
 
 const getStudentsForAttendance = async (payload) => {
-  const { classId, sectionId, date, schoolId } = payload;
+  const now = format(new Date(), "yyyy-MM-dd");
+  const { classId, sectionId, name, schoolId } = payload;
+  const _sectionId = sectionId ? Number(sectionId) : null;
+  const _name = typeof name === "string" ? name : null;
   const query = `${userAttendanceListQuery}
-    JOIN roles t5 ON t5.id = t1.role_id
-    WHERE t5.static_role_id = 4
+    WHERE r.static_role_id = 4
       AND t1.school_id = $1
       AND t2.class_id = $3
-      AND ($4 IS NULL OR t2.section_id = $4)
+      AND ($4::int IS NULL OR t2.section_id = $4::int)
+      AND ($5::text IS NULL OR t1.name ILIKE $5::text || '%')
     ORDER BY t1.name
   `;
-  const queryParams = [schoolId, date, classId, sectionId];
+  const queryParams = [schoolId, now, classId, _sectionId, _name];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
 };
 
 const getStaffForAttendance = async (payload) => {
-  const { date, schoolId, roleId } = payload;
+  const now = format(new Date(), "yyyy-MM-dd");
+  const { schoolId, roleId, name } = payload;
+  const _roleId = roleId ? Number(roleId) : null;
+  const _name = typeof name === "string" ? name : null;
   const query = `${userAttendanceListQuery}
-    WHERE t1.school_id = $1
-      AND ($3 IS NULL OR t1.role_id = $3)
+    WHERE r.static_role_id != 4
+      AND t1.school_id = $1
+      AND ($3::int IS NULL OR t1.role_id = $3::int)
+      AND ($4::text IS NULL OR t1.name ILIKE $4::text || '%')
     ORDER BY t1.name
   `;
-  const queryParams = [schoolId, date, roleId];
+  const queryParams = [schoolId, now, _roleId, _name];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
 };
 
-const addOrUpdateAttendance = async (payload) => {
-  const {
-    date,
-    schoolId,
-    data,
-    classId,
-    sectionId,
-    subjectId,
-    attendanceRecorder,
-  } = payload;
-  const queryParams = [];
-  const insertPlaceholders = data
-    .map((item, index) => {
-      const offset = index * 8;
-      queryParams.push(
-        schoolId,
-        classId || null,
-        sectionId || null,
-        attendanceRecorder,
-        item.userId,
-        item.attendanceStatus,
-        date,
-        subjectId || null
-      );
-      return `(
-        $${offset + 1},
-        (SELECT id FROM academic_years WHERE school_id = $${
-          offset + 1
-        } AND is_active = TRUE),
-        $${offset + 2},
-        $${offset + 3},
-        $${offset + 4},
-        $${offset + 5},
-        $${offset + 6},
-        $${offset + 7},
-        $${offset + 8}
-    )`;
-    })
-    .join(",");
+const recordAttendance = async (payload) => {
+  const now = format(new Date(), "yyyy-MM-dd");
+  const { schoolId, attendances, attendanceRecorder } = payload;
 
   const query = `
   INSERT INTO attendances(
     school_id,
     academic_year_id,
-    class_id,
-    section_id,
-    attendance_recorder,
     user_id,
-    attendance_status_id,
+    attendance_status_code,
+    remarks,
     attendance_date,
-    subjectId
+    attendance_recorder
   )
-    VALUES ${insertPlaceholders}
-    ON CONFLICT(school_id, class_id, section_id, user_id, attendance_date, subjectId)
-    DO UPDATE SET attendance_status_id = EXCLUDED.attendance_status_id;
+    SELECT
+      $1,
+      (SELECT id FROM academic_years WHERE school_id = $1 AND is_active = true LIMIT 1),
+      (t->> 'id')::int,
+      (t->> 'status')::char(2),
+      (t->> 'remarks')::text,
+      $2,
+      $3
+    FROM jsonb_array_elements($4::jsonb) AS t  
+    ON CONFLICT(school_id, academic_year_id, user_id, attendance_date)
+    DO UPDATE SET
+      attendance_status_code = EXCLUDED.attendance_status_code,
+      remarks = EXCLUDED.remarks;
   `;
+  const queryParams = [
+    schoolId,
+    now,
+    attendanceRecorder,
+    JSON.stringify(attendances),
+  ];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };
@@ -120,7 +110,7 @@ const getStudentSubjectWiseAttendanceRecord = async (payload) => {
       JOIN subjects t2 ON t2.id = t1.subject_id
       JOIN users t3 ON t3.id = t1.user_id
       JOIN user_profiles t4 ON t4.user_id = t1.user_id
-      JOIN attendance_status t5 ON t5.id = t1.attendance_status_id
+      JOIN attendance_status t5 ON t5.code = t1.attendance_status_code
       JOIN roles t6 ON t6.id = t3.role_id
       WHERE t1.school_id = $1
         AND t6.static_role_id = 4
@@ -146,7 +136,7 @@ const getStudentSubjectWiseAttendanceRecord = async (payload) => {
     JOIN subjects t2 ON t2.id = t1.subject_id
     JOIN users t3 ON t3.id = t1.user_id
     JOIN user_profiles t4 ON t4.user_id = t1.user_id
-    JOIN attendance_status t5 ON t5.id = t1.attendance_status_id
+    JOIN attendance_status t5 ON t5.code = t1.attendance_status_code
     JOIN roles t6 ON t6.id = t3.role_id
     WHERE t1.school_id = $1
       AND t6.static_role_id = 4
@@ -192,36 +182,47 @@ const getStudentSubjectWiseAttendanceRecord = async (payload) => {
 
 const attendanceRecordQuery = `
   SELECT
-    t2.id AS "userId",
-    t2.name AS "userName",
-    t3.roll AS "userRoll",
+    t2.id,
+    t2.name,
     COUNT(DISTINCT t1.attendance_date) AS "totalOperatingDays",
     COUNT(CASE WHEN t4.code = 'PR' THEN 1 ELSE NULL END) AS "totalPresentDays"
   FROM attendances t1
   JOIN users t2 ON t2.id = t1.user_id
-  JOIN user_profiles t3 ON t3.user_id = t2.id
-  LEFT JOIN attendance_status t4 ON t4.id = t1.attendance_status_id
+  LEFT JOIN attendance_status t4 ON t4.code = t1.attendance_status_code
 `;
 
 const getStudentDailyAttendanceRecord = async (payload) => {
-  const { dateFrom, dateTo, schoolId, classId, sectionId, academicYearId } =
-    payload;
+  const {
+    dateFrom,
+    dateTo,
+    schoolId,
+    classId,
+    sectionId,
+    name,
+    academicYearId,
+  } = payload;
   const query = `${attendanceRecordQuery}
+    JOIN user_profiles t3 ON t3.user_id = t2.id
     JOIN roles t5 ON t5.id = t2.role_id
+    JOIN classes t6 ON t6.id = t3.class_id
+    JOIN sections t7 ON t7.id = t3.section_id
     WHERE t1.attendance_type = 'D'
       AND t5.static_role_id = 4
       AND t1.school_id = $1
-      AND t1.class_id = $2
-      AND ($3 IS NULL OR t1.section_id = $3)
-      AND t1.academic_year_id = $4
-      AND t1.attendance_date BETWEEN $5 AND $6
+      AND t1.academic_year_id = $2
+      AND ($3 IS NULL OR t1.class_id = $3)
+      AND ($4 IS NULL OR t1.section_id = $4)
+      AND ($5 IS NULL OR t2.name ILIKE '%' || $5 || '%')
+      AND ($6 IS NULL OR t1.attendance_date >= $6)
+      AND ($7 IS NULL OR t1.attendance_date <= $7)
     GROUP BY t2.id
   `;
   const queryParams = [
     schoolId,
+    academicYearId,
     classId,
     sectionId,
-    academicYearId,
+    name,
     dateFrom,
     dateTo,
   ];
@@ -230,20 +231,22 @@ const getStudentDailyAttendanceRecord = async (payload) => {
 };
 
 const getStaffDailyAttendanceRecord = async (payload) => {
-  const { dateFrom, dateTo, schoolId, classId, sectionId, academicYearId } =
-    payload;
+  const { dateFrom, dateTo, schoolId, roleId, name, academicYearId } = payload;
   const query = `${attendanceRecordQuery}
     WHERE t1.attendance_type = 'D'
-      AND ($1 IS NULL OR t2.role_id = $1)
+      AND t1.school_id = $1
       AND t1.academic_year_id = $2
-      AND t1.attendance_date BETWEEN $3 AND $4
+      AND ($3 IS NULL OR t2.role_id = $3)
+      AND ($4 IS NULL OR t2.name ILIKE '%' || $4 || '%')
+      AND ($5 IS NULL OR t1.attendance_date >= $5)
+      AND ($6 IS NULL OR t1.attendance_date <= $6)
     GROUP BY t2.id
   `;
   const queryParams = [
     schoolId,
-    classId,
-    sectionId,
     academicYearId,
+    roleId,
+    name,
     dateFrom,
     dateTo,
   ];
@@ -253,7 +256,7 @@ const getStaffDailyAttendanceRecord = async (payload) => {
 
 module.exports = {
   getStudentsForAttendance,
-  addOrUpdateAttendance,
+  recordAttendance,
   getStudentSubjectWiseAttendanceRecord,
   getStudentDailyAttendanceRecord,
   getStaffForAttendance,
