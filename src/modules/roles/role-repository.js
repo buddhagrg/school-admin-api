@@ -24,13 +24,14 @@ const getRoles = async (schoolId) => {
       t1.id,
       t1.name,
       COUNT(t2.id) AS "usersAssociated",
-      t1.is_active AS status
+      t1.is_active AS status,
+      t1.static_role_id AS "staticRoleId"
     FROM roles t1
     LEFT JOIN users t2 ON t2.role_id = t1.id
     WHERE t1.school_id = $1 AND t1.static_role_id != 1
     GROUP BY (t1.id, t1.name)
     ORDER BY t1.id, t1.name, t1.is_active
-  `;
+`;
   const queryParams = [schoolId];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
