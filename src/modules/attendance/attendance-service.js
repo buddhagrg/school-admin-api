@@ -7,6 +7,7 @@ const {
   recordAttendance,
   getStaffForAttendance,
   getStaffDailyAttendanceRecord,
+  updateAttendanceStatus,
 } = require("./attendance-repository");
 
 const processGetStudentsForAttendance = async (payload) => {
@@ -35,11 +36,12 @@ const processRecordAttendance = async (payload) => {
 
 const processGetStudentsAttendanceRecord = async (payload) => {
   let students = [];
-  if (payload.attendanceType === "S") {
-    students = await getStudentSubjectWiseAttendanceRecord(payload);
-  } else if (payload.attendanceType === "D") {
-    students = await getStudentDailyAttendanceRecord(payload);
-  }
+  students = await getStudentDailyAttendanceRecord(payload);
+  // if (payload.attendanceType === "S") {
+  //   students = await getStudentSubjectWiseAttendanceRecord(payload);
+  // } else if (payload.attendanceType === "D") {
+  //   students = await getStudentDailyAttendanceRecord(payload);
+  // }
   if (!students || students.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
@@ -54,10 +56,19 @@ const processGetStaffAttendanceRecord = async (payload) => {
   return { staff };
 };
 
+const processUpdateAttendanceStatus = async (payload) => {
+  const affectedRow = await updateAttendanceStatus(payload);
+  if (affectedRow <= 0) {
+    throw new ApiError(500, "Unable to update attendance status");
+  }
+  return { message: "Attendance status updated successfully" };
+};
+
 module.exports = {
   processGetStudentsForAttendance,
   processRecordAttendance,
   processGetStudentsAttendanceRecord,
   processGetStaffForAttendance,
   processGetStaffAttendanceRecord,
+  processUpdateAttendanceStatus,
 };
