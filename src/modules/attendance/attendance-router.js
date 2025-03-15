@@ -3,11 +3,7 @@ const router = express.Router();
 const attendanceController = require("./attendance-controller");
 const { checkApiAccess } = require("../../middlewares");
 
-router.post(
-  "",
-  checkApiAccess,
-  attendanceController.handleRecordAttendance
-);
+router.post("", checkApiAccess, attendanceController.handleRecordAttendance);
 router.get(
   "/students",
   checkApiAccess,
@@ -27,6 +23,11 @@ router.get(
   "/staff/record",
   checkApiAccess,
   attendanceController.handleGetStaffAttendanceRecord
+);
+router.patch(
+  "/:id",
+  checkApiAccess,
+  attendanceController.handleUpdateAttendanceStatus
 );
 
 module.exports = { attendanceRoutes: router };
