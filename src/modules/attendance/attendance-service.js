@@ -35,25 +35,25 @@ const processRecordAttendance = async (payload) => {
 };
 
 const processGetStudentsAttendanceRecord = async (payload) => {
-  let students = [];
-  students = await getStudentDailyAttendanceRecord(payload);
+  let data = [];
+  data = await getStudentDailyAttendanceRecord(payload);
   // if (payload.attendanceType === "S") {
-  //   students = await getStudentSubjectWiseAttendanceRecord(payload);
+  //   data = await getStudentSubjectWiseAttendanceRecord(payload);
   // } else if (payload.attendanceType === "D") {
-  //   students = await getStudentDailyAttendanceRecord(payload);
+  //   data = await getStudentDailyAttendanceRecord(payload);
   // }
-  if (!students || students.length <= 0) {
+  if (!data) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
-  return { students };
+  return data;
 };
 
 const processGetStaffAttendanceRecord = async (payload) => {
-  const staff = await getStaffDailyAttendanceRecord(payload);
-  if (!staff || staff.length <= 0) {
+  const data = await getStaffDailyAttendanceRecord(payload);
+  if (!data) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
-  return { staff };
+  return data;
 };
 
 const processUpdateAttendanceStatus = async (payload) => {
