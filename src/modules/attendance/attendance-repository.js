@@ -56,7 +56,6 @@ const getStaffForAttendance = async (payload) => {
 const recordAttendance = async (payload) => {
   const now = new Date();
   const { schoolId, attendances, attendanceRecorder, attendanceDate } = payload;
-  console.log(payload);
   const _attendanceDate = attendanceDate ? parseISO(attendanceDate) : null;
 
   const query = `
@@ -93,7 +92,6 @@ const recordAttendance = async (payload) => {
     attendanceRecorder,
     JSON.stringify(attendances),
   ];
-  console.log(queryParams);
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };
