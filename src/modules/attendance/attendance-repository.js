@@ -28,7 +28,7 @@ const getStudentsForAttendance = async (payload) => {
       AND t1.school_id = $1
       AND t2.class_id = $3
       AND ($4::int IS NULL OR t2.section_id = $4::int)
-      AND ($5::text IS NULL OR t1.name ILIKE $5::text || '%')
+      AND ($5::text IS NULL OR t1.name ILIKE '%' || $5::text || '%')
     ORDER BY t1.name
   `;
   const queryParams = [schoolId, _attendanceDate, classId, _sectionId, _name];
@@ -45,7 +45,7 @@ const getStaffForAttendance = async (payload) => {
     WHERE r.static_role_id != 4
       AND t1.school_id = $1
       AND ($3::int IS NULL OR t1.role_id = $3::int)
-      AND ($4::text IS NULL OR t1.name ILIKE $4::text || '%')
+      AND ($4::text IS NULL OR t1.name ILIKE '%' || $4::text || '%')
     ORDER BY t1.name
   `;
   const queryParams = [schoolId, _attendanceDate, _roleId, _name];
