@@ -1,6 +1,40 @@
 const processDBRequest = require("../../utils/process-db-request");
 const { parseISO } = require("date-fns");
 
+const attendanceRecordCountQuery = `
+  SELECT
+    t1.user_id,
+    COUNT(DISTINCT t1.attendance_date) AS total_operating_days,
+    SUM(CASE WHEN t1.attendance_status_code = 'PR' THEN 1 ELSE 0 END) AS total_present_days,
+    SUM(CASE WHEN t1.attendance_status_code = 'AB' THEN 1 ELSE 0 END) AS total_absent_days,
+    SUM(CASE WHEN t1.attendance_status_code = 'EL' THEN 1 ELSE 0 END) AS total_early_leave_days,
+    SUM(CASE WHEN t1.attendance_status_code = 'LP' THEN 1 ELSE 0 END) AS total_late_present_days
+`;
+
+const attendanceRecordDataQuery = `
+  SELECT
+    t1.id,
+    t1.user_id as "userId",
+    t2.name,
+    t1.attendance_date AS "attendanceDate",
+    t1.attendance_status_code AS "attendanceStatusCode",
+    t3.description AS "attendanceStatus",
+    t1.remarks,
+    t1.updated_date AS "lastUpdatedDate"
+`;
+
+const attendanceRecordViewResponseObject = `
+  SELECT
+  JSON_BUILD_OBJECT(
+    'attendances', COALESCE((SELECT JSON_AGG(ROW_TO_JSON(attendance_data)) FROM attendance_data), '[]'::json),
+    'totalOperatingDays', (SELECT COALESCE(SUM(total_operating_days), 0) FROM attendance_day_count),
+    'totalPresentDays', (SELECT COALESCE(SUM(total_present_days), 0) FROM attendance_day_count),
+    'totalAbsentDays', (SELECT COALESCE(SUM(total_absent_days), 0) FROM attendance_day_count),
+    'totalEarlyLeaveDays', (SELECT COALESCE(SUM(total_early_leave_days), 0) FROM attendance_day_count),
+    'totalLatePresentDays', (SELECT COALESCE(SUM(total_late_present_days), 0) FROM attendance_day_count)
+  ) AS response
+`;
+
 const userAttendanceListQuery = `
   SELECT
     t1.id AS "userId",
@@ -185,22 +219,41 @@ const getStudentSubjectWiseAttendanceRecord = async (payload) => {
   return rows;
 };
 
-const attendanceRecordQuery = `
-  SELECT
-    t1.id,
-    t1.user_id as "userId",
-    t2.name,
-    t1.attendance_date AS "attendanceDate",
-    t1.attendance_status_code AS "attendanceStatusCode",
-    t3.description AS "attendanceStatus",
-    t1.remarks,
-    t1.updated_date AS "lastUpdatedDate",
-    COUNT(DISTINCT t1.attendance_date) AS "totalOperatingDays",
-    COUNT(CASE WHEN t3.code = 'PR' THEN 1 ELSE NULL END) AS "totalPresentDays"
-  FROM attendances t1
-  JOIN users t2 ON t2.id = t1.user_id
-  LEFT JOIN attendance_status t3 ON t3.code = t1.attendance_status_code
-`;
+const getStudentsAttendanceRecordQuery = () => {
+  const condition = `
+    FROM attendances t1
+    JOIN users t2 ON t2.id = t1.user_id
+    LEFT JOIN attendance_status t3 ON t3.code = t1.attendance_status_code
+    JOIN user_profiles t4 ON t4.user_id = t1.user_id
+    JOIN roles t5 ON t5.id = t2.role_id
+    JOIN classes t6 ON t6.id = t4.class_id
+    LEFT JOIN sections t7 ON t7.id = t4.section_id
+    WHERE t1.attendance_type = 'D'
+      AND t5.static_role_id = 4
+      AND t1.school_id = $1
+      AND t1.academic_year_id = $2
+      AND ($3::int IS NULL OR t4.class_id = $3::int)
+      AND ($4::int IS NULL OR t4.section_id = $4::int)
+      AND ($5::text IS NULL OR t2.name ILIKE '%' || $5::text || '%')
+      AND (
+        $7::date IS NULL AND t1.attendance_date = $6::date
+        OR ($7::date IS NOT NULL AND t1.attendance_date BETWEEN $6::date AND $7::date) 
+      )
+  `;
+
+  return `
+  WITH attendance_day_count AS(
+    ${attendanceRecordCountQuery}
+    ${condition}
+    GROUP BY t1.user_id
+  ),
+  attendance_data AS(
+    ${attendanceRecordDataQuery}
+    ${condition}
+  )
+  ${attendanceRecordViewResponseObject}
+ `;
+};
 
 const getStudentDailyAttendanceRecord = async (payload) => {
   const {
@@ -218,24 +271,7 @@ const getStudentDailyAttendanceRecord = async (payload) => {
   const _name = typeof name === "string" ? name : null;
   const _dateFrom = dateFrom ? parseISO(dateFrom) : null;
   const _dateTo = dateTo ? parseISO(dateTo) : null;
-  const query = `${attendanceRecordQuery}
-    JOIN user_profiles t4 ON t4.user_id = t1.user_id
-    JOIN roles t5 ON t5.id = t2.role_id
-    JOIN classes t6 ON t6.id = t4.class_id
-    LEFT JOIN sections t7 ON t7.id = t4.section_id
-    WHERE t1.attendance_type = 'D'
-      AND t5.static_role_id = 4
-      AND t1.school_id = $1
-      AND t1.academic_year_id = $2
-      AND ($3::int IS NULL OR t4.class_id = $3::int)
-      AND ($4::int IS NULL OR t4.section_id = $4::int)
-      AND ($5::text IS NULL OR t2.name ILIKE '%' || $5::text || '%')
-      AND (
-        $7::date IS NULL AND t1.attendance_date = $6::date
-        OR ($7::date IS NOT NULL AND t1.attendance_date BETWEEN $6::date AND $7::date) 
-      )
-    GROUP BY t1.id, t1.user_id, t2.name, t1.attendance_status_code, t3.description, t1.attendance_date
-  `;
+  const query = getStudentsAttendanceRecordQuery();
   const queryParams = [
     schoolId,
     _academicYearId,
@@ -246,17 +282,14 @@ const getStudentDailyAttendanceRecord = async (payload) => {
     _dateTo,
   ];
   const { rows } = await processDBRequest({ query, queryParams });
-  return rows;
+  return rows[0].response;
 };
 
-const getStaffDailyAttendanceRecord = async (payload) => {
-  const { dateFrom, dateTo, schoolId, roleId, name, academicYearId } = payload;
-  const _academicYearId = academicYearId ? Number(academicYearId) : null;
-  const _name = typeof name === "string" ? name : null;
-  const _dateFrom = dateFrom ? parseISO(dateFrom) : null;
-  const _dateTo = dateTo ? parseISO(dateTo) : null;
-  const _roleId = roleId ? Number(roleId) : null;
-  const query = `${attendanceRecordQuery}
+const getStaffAttendanceRecordQuery = () => {
+  const condition = `
+    FROM attendances t1
+    JOIN users t2 ON t2.id = t1.user_id
+    LEFT JOIN attendance_status t3 ON t3.code = t1.attendance_status_code
     JOIN roles t4 ON t4.id = t2.role_id
     WHERE t1.attendance_type = 'D'
       AND t1.school_id = $1
@@ -267,9 +300,32 @@ const getStaffDailyAttendanceRecord = async (payload) => {
       AND (
         $6::date IS NULL AND t1.attendance_date = $5::date
         OR ($6::date IS NOT NULL AND t1.attendance_date BETWEEN $5::date AND $6::date) 
-      )
-    GROUP BY t1.id, t1.user_id, t2.name, t1.attendance_status_code, t3.description, t1.attendance_date
+    )
   `;
+
+  return `
+  WITH attendance_day_count AS(
+    ${attendanceRecordCountQuery}
+    ${condition}
+    GROUP BY t1.user_id
+  ),
+  attendance_data AS(
+    ${attendanceRecordDataQuery}
+    ${condition}
+  )
+  ${attendanceRecordViewResponseObject}
+ `;
+};
+
+const getStaffDailyAttendanceRecord = async (payload) => {
+  const { dateFrom, dateTo, schoolId, roleId, name, academicYearId } = payload;
+  const _academicYearId = academicYearId ? Number(academicYearId) : null;
+  const _name = typeof name === "string" ? name : null;
+  const _dateFrom = dateFrom ? parseISO(dateFrom) : null;
+  const _dateTo = dateTo ? parseISO(dateTo) : null;
+  const _roleId = roleId ? Number(roleId) : null;
+
+  const query = getStaffAttendanceRecordQuery();
   const queryParams = [
     schoolId,
     _academicYearId,
@@ -279,7 +335,7 @@ const getStaffDailyAttendanceRecord = async (payload) => {
     _dateTo,
   ];
   const { rows } = await processDBRequest({ query, queryParams });
-  return rows;
+  return rows[0].response;
 };
 
 const updateAttendanceStatus = async (payload) => {
