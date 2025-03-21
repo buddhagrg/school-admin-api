@@ -14,6 +14,11 @@ router.get(
   checkApiAccess,
   leaveController.handleGetMyLeavePolicy
 );
+router.get(
+  "/policies/users/:id",
+  checkApiAccess,
+  leaveController.handleGetUserWithLeavePolicies
+);
 router.put(
   "/policies/:id",
   checkApiAccess,
@@ -54,6 +59,11 @@ router.post(
   "/requests",
   checkApiAccess,
   leaveController.handleAddNewLeaveRequest
+);
+router.post(
+  "/requests/:id",
+  checkApiAccess,
+  leaveController.handleApplyUserLeaveRequest
 );
 router.put(
   "/requests/:id",

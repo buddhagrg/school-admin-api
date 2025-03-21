@@ -24,7 +24,7 @@ const getStudentAccountDetail = async ({ userId, schoolId, roleId }) => {
       t2.dob,
       t2.gender,
       t2.roll,
-      t2.admission_date AS "admissionDate",
+      t2.join_date AS "joinDate",
       t2.current_address AS "currentAddress",
       t2.permanent_address AS "permanentAddress",
       t2.father_name AS "fatherName",

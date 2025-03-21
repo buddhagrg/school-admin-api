@@ -20,7 +20,7 @@ const getPendingNotices = async (schoolId) => {
       t4.name AS "reviewerName",
       t1.reviewed_date AS "reviewedDate",
       t3.alias AS "status",
-      t1.status AS "statusId",
+      t1.notice_status_code AS "statusId",
       CASE
         WHEN t1.recipient_type = 'SP' THEN
           CASE
@@ -40,12 +40,12 @@ const getPendingNotices = async (schoolId) => {
       END AS "whoHasAccess"
     FROM notices t1
     LEFT JOIN users t2 ON t1.author_id = t2.id
-    LEFT JOIN notice_status t3 ON t1.status = t3.id
+    LEFT JOIN notice_status t3 ON t3.code = t1.notice_status_code
     LEFT JOIN users t4 ON t1.reviewer_id = t4.id
     LEFT JOIN roles t5 ON t5.id = t1.recipient_role_id
     LEFT JOIN departments t6 ON t6.id = t1.recipient_first_field
     LEFT JOIN classes t7 ON t7.id = t1.recipient_first_field
-    WHERE t1.status IN (2, 3) AND t1.school_id = $1
+    WHERE t1.notice_status_code IN ('APPROVED', 'CANCELLED') AND t1.school_id = $1
   `;
   const queryParams = [schoolId];
   const { rows } = await processDBRequest({ query, queryParams });
@@ -58,7 +58,7 @@ const getNotice = async ({ noticeId, schoolId }) => {
       t1.id,
       t1.title,
       t1.description,
-      t1.status,
+      t1.notice_status_code AS status,
       t1.author_id AS "authorId",
       t1.created_date AS "createdDate",
       t1.updated_date AS "updatedDate",
@@ -67,7 +67,7 @@ const getNotice = async ({ noticeId, schoolId }) => {
       t1.recipient_first_field AS "firstField",
       t2.name AS author
     FROM notices t1
-    LEFT JOIN users t2 ON t1.author_id = t2.id
+    LEFT JOIN users t2 ON t2.id = t1.author_id
     WHERE t1.id = $1 AND t1.school_id = $2
   `;
   const queryParams = [noticeId, schoolId];

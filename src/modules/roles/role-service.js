@@ -53,17 +53,8 @@ const processAssignPermissionsForRole = async (payload) => {
   return { message: "Permissions assigned for given role successfully" };
 };
 
-const processGetRolePermissions = async ({ roleId, schoolId }) => {
-  const staticRoleId = await getStaticRoleIdById(roleId);
-  if (!staticRoleId) {
-    throw new ApiError(404, "Role does not exist");
-  }
-
-  const permissions = await getRolePermissions({
-    roleId,
-    staticRoleId,
-    schoolId,
-  });
+const processGetRolePermissions = async (payload) => {
+  const permissions = await getRolePermissions(payload);
   if (permissions.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }

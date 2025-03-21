@@ -100,21 +100,17 @@ const getStaticRoleIdById = async (roleId) => {
   return rows[0].static_role_id;
 };
 
-const getRolePermissions = async ({ roleId, staticRoleId, schoolId }) => {
-  const isUserAdmin = staticRoleId === 2;
-
-  const query = isUserAdmin
-    ? `SELECT id, name FROM permissions WHERE direct_allowed_role_id = ANY($1)`
-    : `
-      SELECT
-        t2.id,
-        t2.name
-      FROM role_permissions t1
-      JOIN permissions t2 ON t2.id = t1.permission_id
-      WHERE t1.role_id = $1 AND t1.school_id = $2
-      AND t2.direct_allowed_role_id IN ('2', '12')
-    `;
-  const queryParams = isUserAdmin ? [[2, 12]] : [roleId, schoolId];
+const getRolePermissions = async (payload) => {
+  const { roleId, schoolId } = payload;
+  const query = `
+    SELECT
+      t2.id,
+      t2.name
+    FROM role_permissions t1
+    JOIN permissions t2 ON t2.id = t1.permission_id
+    WHERE t1.role_id = $1 AND t1.school_id = $2
+  `;
+  const queryParams = [roleId, schoolId];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
 };

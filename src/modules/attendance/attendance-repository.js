@@ -5,10 +5,11 @@ const attendanceRecordCountQuery = `
   SELECT
     t1.user_id,
     COUNT(DISTINCT t1.attendance_date) AS total_operating_days,
-    SUM(CASE WHEN t1.attendance_status_code = 'PR' THEN 1 ELSE 0 END) AS total_present_days,
-    SUM(CASE WHEN t1.attendance_status_code = 'AB' THEN 1 ELSE 0 END) AS total_absent_days,
-    SUM(CASE WHEN t1.attendance_status_code = 'EL' THEN 1 ELSE 0 END) AS total_early_leave_days,
-    SUM(CASE WHEN t1.attendance_status_code = 'LP' THEN 1 ELSE 0 END) AS total_late_present_days
+    SUM(CASE WHEN t1.attendance_status_code = 'PRESENT' THEN 1 ELSE 0 END) AS total_present_days,
+    SUM(CASE WHEN t1.attendance_status_code = 'ABSENT' THEN 1 ELSE 0 END) AS total_absent_days,
+    SUM(CASE WHEN t1.attendance_status_code = 'EARLY_LEAVE' THEN 1 ELSE 0 END) AS total_early_leave_days,
+    SUM(CASE WHEN t1.attendance_status_code = 'LATE_PRESENT' THEN 1 ELSE 0 END) AS total_late_present_days,
+    SUM(CASE WHEN t1.attendance_status_code = 'ON_LEAVE' THEN 1 ELSE 0 END) AS total_on_leave_days
 `;
 
 const attendanceRecordDataQuery = `
@@ -31,7 +32,8 @@ const attendanceRecordViewResponseObject = `
     'totalPresentDays', (SELECT COALESCE(SUM(total_present_days), 0) FROM attendance_day_count),
     'totalAbsentDays', (SELECT COALESCE(SUM(total_absent_days), 0) FROM attendance_day_count),
     'totalEarlyLeaveDays', (SELECT COALESCE(SUM(total_early_leave_days), 0) FROM attendance_day_count),
-    'totalLatePresentDays', (SELECT COALESCE(SUM(total_late_present_days), 0) FROM attendance_day_count)
+    'totalLatePresentDays', (SELECT COALESCE(SUM(total_late_present_days), 0) FROM attendance_day_count),
+    'totalLeaveDays', (SELECT COALESCE(SUM(total_on_leave_days), 0) FROM attendance_day_count)
   ) AS response
 `;
 
@@ -88,7 +90,6 @@ const getStaffForAttendance = async (payload) => {
 };
 
 const recordAttendance = async (payload) => {
-  const now = new Date();
   const { schoolId, attendances, attendanceRecorder, attendanceDate } = payload;
   const _attendanceDate = attendanceDate ? parseISO(attendanceDate) : null;
 
@@ -100,19 +101,25 @@ const recordAttendance = async (payload) => {
     attendance_status_code,
     remarks,
     attendance_date,
-    updated_date,
     attendance_recorder
   )
     SELECT
       $1,
       (SELECT id FROM academic_years WHERE school_id = $1 AND is_active = true LIMIT 1),
       (t->> 'userId')::int,
-      (t->> 'status')::char(2),
+      (t->> 'status')::VARCHAR(20),
       (t->> 'remarks')::text,
       $2,
-      $3,
-      $4
-    FROM jsonb_array_elements($5::jsonb) AS t  
+      $3
+    FROM jsonb_array_elements($4::jsonb) AS t
+    WHERE NOT EXISTS(
+      SELECT 1
+      FROM user_leaves t1
+      WHERE t1.school_id = $1
+        AND t1.user_id = (t->>'userId')::int
+        AND $2 BETWEEN t1.from_date AND t1.to_date
+        AND t1.leave_status_code != 'APPROVED' 
+    )
     ON CONFLICT(school_id, academic_year_id, user_id, attendance_date)
     DO UPDATE SET
       attendance_status_code = EXCLUDED.attendance_status_code,
@@ -122,7 +129,6 @@ const recordAttendance = async (payload) => {
   const queryParams = [
     schoolId,
     _attendanceDate,
-    now,
     attendanceRecorder,
     JSON.stringify(attendances),
   ];
@@ -141,7 +147,7 @@ const getStudentSubjectWiseAttendanceRecord = async (payload) => {
         COUNT(DISTINCT t1.attendance_date) AS periods_taught,
         COALESCE(
           COUNT(
-            CASE WHEN t1.attendance_type = 'S' AND t5.code = 'PR'
+            CASE WHEN t1.attendance_type = 'S' AND t5.code = 'PRESENT'
               THEN 1
             END
           ),0) AS periods_present
@@ -166,7 +172,7 @@ const getStudentSubjectWiseAttendanceRecord = async (payload) => {
       COUNT(DISTINCT t1.id) AS periods_taught,
       COALESCE(
         SUM(
-          CASE WHEN t1.attendance_type = 'S' AND t5.code = 'PR'
+          CASE WHEN t1.attendance_type = 'S' AND t5.code = 'PRESENT'
             THEN 1
           ELSE 0
           END
@@ -226,8 +232,6 @@ const getStudentsAttendanceRecordQuery = () => {
     LEFT JOIN attendance_status t3 ON t3.code = t1.attendance_status_code
     JOIN user_profiles t4 ON t4.user_id = t1.user_id
     JOIN roles t5 ON t5.id = t2.role_id
-    JOIN classes t6 ON t6.id = t4.class_id
-    LEFT JOIN sections t7 ON t7.id = t4.section_id
     WHERE t1.attendance_type = 'D'
       AND t5.static_role_id = 4
       AND t1.school_id = $1
