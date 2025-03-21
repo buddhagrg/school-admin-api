@@ -29,7 +29,7 @@ const findStudentDetail = async ({ id, schoolId }) => {
       p.relation_of_guardian as "relationOfGuardian",
       p.current_address AS "currentAddress",
       p.permanent_address AS "permanentAddress",
-      p.admission_date AS "admissionDate",
+      p.join_date AS "joinDate",
       r.name as "reporterName",
       s.name as "schoolName"
     FROM users u
@@ -63,15 +63,15 @@ const getStudentDueFees = async (payload) => {
       )
     ) AS items
   FROM invoices t1
-  JOIN invoice_status t2 ON t2.code = t1.status
+  JOIN invoice_status t2 ON t2.code = t1.invoice_status_code
   JOIN invoice_items t3 ON t3.invoice_id = t1.id
   JOIN student_fees t4 ON t4.id = t3.student_fee_id
   JOIN fees_structures t5 ON t5.id = t4.fee_structure_id
   JOIN fees t6 ON t6.id = t5.fee_id
-  WHERE school_id = $1
-    AND user_id = $3
-    AND academic_year_id = $2
-    AND status IN ('PARTIALLY_PAID', 'ISSUED')
+  WHERE t1.school_id = $1
+    AND t1.user_id = $3
+    AND t1.academic_year_id = $2
+    AND t1.invoice_status_code IN ('PARTIALLY_PAID', 'ISSUED')
   `;
   const queryParams = [schoolId, studentId, academicyearId];
   const { rows } = await processDBRequest({ query, queryParams });

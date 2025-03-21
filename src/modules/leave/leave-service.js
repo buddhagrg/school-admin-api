@@ -1,3 +1,4 @@
+const { db } = require("../../config");
 const { ERROR_MESSAGES } = require("../../constants");
 const { ApiError } = require("../../utils");
 const {
@@ -17,6 +18,10 @@ const {
   updatePendingLeaveRequestStatus,
   findLeaveRequestReviewer,
   getMyLeavePolicy,
+  getUserWithLeavePolicies,
+  insertUserLeave,
+  insertUserAttendance,
+  deleteAttendanceRecord,
 } = require("./leave-repository");
 
 const processAddNewLeavePolicy = async (payload) => {
@@ -44,19 +49,19 @@ const processGetLeavePolicies = async (schoolId) => {
 };
 
 const processGetMyLeavePolicy = async (payload) => {
-  const myLeavePolicies = await getMyLeavePolicy(payload);
-  if (!Array.isArray(myLeavePolicies) || myLeavePolicies.length <= 0) {
+  const leavePolicies = await getMyLeavePolicy(payload);
+  if (!Array.isArray(leavePolicies) || leavePolicies.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
-  return { myLeavePolicies };
+  return { leavePolicies };
 };
 
 const processGetPolicyUsers = async (payload) => {
-  const leavePolicyUsers = await getPolicyUsers(payload);
-  if (!Array.isArray(leavePolicyUsers) || leavePolicyUsers.length <= 0) {
+  const users = await getPolicyUsers(payload);
+  if (!Array.isArray(users) || users.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
-  return { leavePolicyUsers };
+  return { users };
 };
 
 const processLinkPolicyUsers = async (payload) => {
@@ -84,14 +89,11 @@ const processUpdateLeavePolicyStatus = async (payload) => {
 };
 
 const processGetPolicyEligibleUsers = async (schoolId) => {
-  const leavePolicyEligibleUsers = await getPolicyEligibleUsers(schoolId);
-  if (
-    !Array.isArray(leavePolicyEligibleUsers) ||
-    leavePolicyEligibleUsers.length <= 0
-  ) {
+  const users = await getPolicyEligibleUsers(schoolId);
+  if (!Array.isArray(users) || users.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
-  return { leavePolicyEligibleUsers };
+  return { users };
 };
 
 const processAddNewLeaveRequest = async (payload) => {
@@ -103,11 +105,30 @@ const processAddNewLeaveRequest = async (payload) => {
 };
 
 const processUpdateLeaveRequest = async (payload) => {
-  const affectedRow = await updateLeaveRequest(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to update leave request");
+  const client = await db.connect();
+  try {
+    await client.query("BEGIN");
+    await deleteAttendanceRecord({
+      payload: {
+        id: payload.id,
+        schoolId: payload.schoolId,
+      },
+      client,
+    });
+
+    const affectedRow = await updateLeaveRequest(payload);
+    if (affectedRow <= 0) {
+      throw new ApiError(500, "Unable to update leave request");
+    }
+
+    await client.query("COMMIT");
+    return { message: "Leave request updated successfully" };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
   }
-  return { message: "Leave request updated successfully" };
 };
 
 const processGetUserLeaveHistory = async (payload) => {
@@ -119,11 +140,28 @@ const processGetUserLeaveHistory = async (payload) => {
 };
 
 const processDeleteLeaveRequest = async (payload) => {
-  const affectedRow = await deleteLeaveRequest(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to delete leave request");
+  const client = await db.connect();
+  try {
+    await client.query("BEGIN");
+
+    await deleteAttendanceRecord({
+      payload,
+      client,
+    });
+
+    const leaveDeleteCount = await deleteLeaveRequest({ payload, client });
+    if (leaveDeleteCount <= 0) {
+      throw new ApiError(500, "Unable to delete leave data");
+    }
+
+    await client.query("COMMIT");
+    return { message: "Leave deleted successfully" };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
   }
-  return { message: "Leave reuquest deleted successfully" };
 };
 
 const processGetPendingLeaveRequests = async (schoolId) => {
@@ -151,17 +189,78 @@ const processUpdatePendingLeaveRequestStatus = async ({
     throw new ApiError(403, "Forbidden. Authorised reviewer only.");
   }
 
-  const affectedRow = await updatePendingLeaveRequestStatus({
-    reviewerUserId,
-    requestId,
-    status,
-    schoolId,
-  });
-  if (affectedRow <= 0) {
-    throw new ApiError(500, "Operation failed");
-  }
+  const client = await db.connect();
+  try {
+    await client.query("BEGIN");
 
-  return { message: "Success" };
+    const data = await updatePendingLeaveRequestStatus({
+      payload: {
+        reviewerUserId,
+        requestId,
+        status,
+        schoolId,
+      },
+      client,
+    });
+    if (!data) {
+      throw new ApiError(500, "Unable to update leave status");
+    }
+
+    if (status === "APPROVED") {
+      const attendancePayload = {
+        note: data.note,
+        userId: data.user_id,
+        schoolId,
+        approverId: reviewerUserId,
+        userLeaveId: requestId,
+        from: data.from_date,
+        to: data.to_date,
+      };
+      await insertUserAttendance({ payload: attendancePayload, client });
+    }
+
+    await client.query("COMMIT");
+    return { message: "Success" };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
+const processGetUserWithLeavePolicies = async (payload) => {
+  const result = await getUserWithLeavePolicies(payload);
+  if (
+    !result ||
+    Object.keys(result.user).length === 0 ||
+    result.leavePolicies.length === 0
+  ) {
+    throw new ApiError(
+      404,
+      `${ERROR_MESSAGES.DATA_NOT_FOUND} for user id: ${payload.userId}`
+    );
+  }
+  return result;
+};
+
+const processApplyUserLeaveRequest = async (payload) => {
+  const client = await db.connect();
+  try {
+    await client.query("BEGIN");
+    const userLeaveId = await insertUserLeave({ payload, client });
+    await insertUserAttendance({
+      payload: { ...payload, userLeaveId },
+      client,
+    });
+    await client.query("COMMIT");
+    return { message: "Leave request applied for user successfully" };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw new ApiError(500, "Unable to apply leave request for user");
+  } finally {
+    client.release();
+  }
 };
 
 module.exports = {
@@ -180,4 +279,6 @@ module.exports = {
   processGetPendingLeaveRequests,
   processUpdatePendingLeaveRequestStatus,
   processGetMyLeavePolicy,
+  processGetUserWithLeavePolicies,
+  processApplyUserLeaveRequest,
 };
