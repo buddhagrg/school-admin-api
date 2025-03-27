@@ -11,7 +11,6 @@ const {
   updateSectionStatus,
   getAllClassTeachers,
   assignClassTeacher,
-  getAllTeachersOfSchool,
   deleteClassTeacher,
 } = require("./class-repository");
 
@@ -137,14 +136,6 @@ const processAssignClassTeacher = async (schoolId) => {
   return { message: "Class Teacher assigned successfully" };
 };
 
-const processGetAllTeachersOfSchool = async (schoolId) => {
-  const teachers = await getAllTeachersOfSchool(schoolId);
-  if (!Array.isArray(teachers) || teachers.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return { teachers };
-};
-
 const processDeleteClassTeacher = async (payload) => {
   const affectedRow = await deleteClassTeacher(payload);
   if (affectedRow <= 0) {
@@ -164,6 +155,5 @@ module.exports = {
   processUpdateSectionStatus,
   processGetAllClassTeachers,
   processAssignClassTeacher,
-  processGetAllTeachersOfSchool,
   processDeleteClassTeacher,
 };
