@@ -112,18 +112,6 @@ const updateSectionStatus = async (payload) => {
   return rowCount;
 };
 
-const getAllTeachersOfSchool = async (schoolId) => {
-  const query = `
-    SELECT t1.id, t1.name
-    FROM users t1
-    JOIN roles t2 ON t2.id = t1.role_id AND t2.static_role_id = 3
-    WHERE t1.school_id = $1 AND t1.has_system_access = TRUE
-  `;
-  const queryParams = [schoolId];
-  const { rows } = await processDBRequest({ query, queryParams });
-  return rows;
-};
-
 const getAllClassTeachers = async (schoolId) => {
   const query = `
     SELECT
@@ -174,6 +162,5 @@ module.exports = {
   updateSectionStatus,
   getAllClassTeachers,
   assignClassTeacher,
-  getAllTeachersOfSchool,
   deleteClassTeacher,
 };

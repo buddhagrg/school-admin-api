@@ -1,11 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const {
-  authenticateToken,
-  csrfProtection,
-  checkApiAccess,
-} = require("../middlewares");
+const { authenticateToken, csrfProtection } = require("../middlewares");
 const { studentRoutes } = require("../modules/students/sudent-router.js");
 const { authRoutes } = require("../modules/auth/auth-router.js");
 const { leaveRoutes } = require("../modules/leave/leave-router.js");
@@ -16,9 +12,6 @@ const { accountRoutes } = require("../modules/account/account-router.js");
 const {
   departmentRoutes,
 } = require("../modules/departments/department-router.js");
-const {
-  handleGetDashboardData,
-} = require("../modules/dashboard/dashboard-controller.js");
 const {
   permissionRoutes,
 } = require("../modules/permissions/permission-router.js");
@@ -43,28 +36,13 @@ const { paymentRoutes } = require("../modules/payments/payment-router.js");
 const {
   academicPeriodRoutes,
 } = require("../modules/academic-periods/ap-router.js");
-const {
-  handleGetAllTeachersOfSchool,
-} = require("../modules/classes/class-controller.js");
 const { userRoutes } = require("../modules/users/users-router.js");
+const { miscRoutes } = require("../modules/misc/misc.route.js");
 
+router.use("", miscRoutes);
 router.use("/permissions", authenticateToken, csrfProtection, permissionRoutes);
 router.use("/schools", authenticateToken, csrfProtection, schoolRoutes);
 
-router.get(
-  "/teachers",
-  authenticateToken,
-  csrfProtection,
-  checkApiAccess,
-  handleGetAllTeachersOfSchool
-);
-router.get(
-  "/dashboard",
-  authenticateToken,
-  csrfProtection,
-  checkApiAccess,
-  handleGetDashboardData
-);
 router.use("/auth", authRoutes);
 router.use("/account", authenticateToken, csrfProtection, accountRoutes);
 router.use("/leaves", authenticateToken, csrfProtection, leaveRoutes);

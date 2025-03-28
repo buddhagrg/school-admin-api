@@ -10,7 +10,6 @@ const {
   processUpdateSectionStatus,
   processGetAllClassTeachers,
   processAssignClassTeacher,
-  processGetAllTeachersOfSchool,
   processDeleteClassTeacher,
 } = require("./class-service");
 
@@ -105,12 +104,6 @@ const handleAssignClassTeacher = asyncHandler(async (req, res) => {
   res.json(response);
 });
 
-const handleGetAllTeachersOfSchool = asyncHandler(async (req, res) => {
-  const { schoolId } = req.user;
-  const response = await processGetAllTeachersOfSchool(schoolId);
-  res.json(response);
-});
-
 const handleDeleteClassTeacher = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id } = req.params;
@@ -129,6 +122,5 @@ module.exports = {
   handleUpdateSectionStatus,
   handleGetAllClassTeachers,
   handleAssignClassTeacher,
-  handleGetAllTeachersOfSchool,
   handleDeleteClassTeacher,
 };
