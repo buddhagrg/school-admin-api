@@ -9,7 +9,7 @@ const sendPasswordSetupEmail = async ({ userId, userEmail }) => {
     env.PASSWORD_SETUP_TOKEN_SECRET,
     env.PASSWORD_SETUP_TOKEN_TIME_IN_MS
   );
-  const link = `${env.UI_URL}/auth/setup-password/${pwdToken}`;
+  const link = `${env.UI_URL}/setup-password/${pwdToken}`;
   const mailOptions = {
     from: env.MAIL_FROM_USER,
     to: userEmail,
