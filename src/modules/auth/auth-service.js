@@ -117,7 +117,7 @@ const login = async (username, passwordFromUser) => {
       menus: hierarchialMenus,
       uis,
       apis,
-      appBase: staticRoleId === 1 ? "/admin" : "/app",
+      appBase: staticRoleId === 1 ? "/admin" : "",
     };
 
     return { accessToken, refreshToken, csrfToken, accountBasic };
