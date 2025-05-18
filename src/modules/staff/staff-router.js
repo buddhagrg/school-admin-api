@@ -10,4 +10,3 @@ router.get('/:id', checkApiAccess, staffController.handleGetStaffDetail);
 router.put('/:id', checkApiAccess, staffController.handleUpdateStaff);
 
 export { router as staffRoutes };
-
