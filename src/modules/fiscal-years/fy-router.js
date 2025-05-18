@@ -1,14 +1,12 @@
-const router = require("express").Router();
-const { checkApiAccess } = require("../../middlewares");
-const fyController = require("./fy-controller");
+import express from 'express';
+import { checkApiAccess } from '../../middlewares/index.js';
+import * as fyController from './fy-controller.js';
 
-router.get("", checkApiAccess, fyController.handleGetAllFiscalYears);
-router.post("", checkApiAccess, fyController.handleAddFiscalYear);
-router.put("/:id", checkApiAccess, fyController.handleUpdateFiscalYear);
-router.patch(
-  "/:id/activate",
-  checkApiAccess,
-  fyController.handleActivateFiscalYear
-);
+const router = express.Router();
 
-module.exports = { fiscalYearRoutes: router };
+router.get('', checkApiAccess, fyController.handleGetAllFiscalYears);
+router.post('', checkApiAccess, fyController.handleAddFiscalYear);
+router.put('/:id', checkApiAccess, fyController.handleUpdateFiscalYear);
+router.patch('/:id/activate', checkApiAccess, fyController.handleActivateFiscalYear);
+
+export { router as fiscalYearRoutes };

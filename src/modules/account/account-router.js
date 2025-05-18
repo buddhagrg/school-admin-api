@@ -1,8 +1,8 @@
-const express = require("express");
+import express from 'express';
+import * as accountController from './account-controller.js';
+
 const router = express.Router();
-const accountController = require("./account-controller");
 
-router.post("/change-password", accountController.handlePasswordChange);
-router.get("/me", accountController.handleGetAccountDetail);
-
-module.exports = { accountRoutes: router };
+router.post('/change-password', accountController.handlePasswordChange);
+router.get('/me', accountController.handleGetAccountDetail);
+export { router as accountRoutes };

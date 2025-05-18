@@ -1,6 +1,6 @@
-const processDBRequest = require("../../utils/process-db-request");
+import { processDBRequest } from '../../utils/process-db-request.js';
 
-const addDeposit = async (payload) => {
+export const addDeposit = async (payload) => {
   const { schoolId, userId, amount, reason } = payload;
   const query = `
     INSERT INTO deposits(school_id, user_id, amount, reason)
@@ -11,7 +11,7 @@ const addDeposit = async (payload) => {
   return rowCount;
 };
 
-const getDeposit = async (payload) => {
+export const getDeposit = async (payload) => {
   const { id, schoolId } = payload;
   const query = `
     SELECT
@@ -27,7 +27,7 @@ const getDeposit = async (payload) => {
   return rows[0];
 };
 
-const getDeposits = async (schoolId) => {
+export const getDeposits = async (schoolId) => {
   const query = `
     SELECT
         t2.name AS "userName",
@@ -42,7 +42,7 @@ const getDeposits = async (schoolId) => {
   return rows;
 };
 
-const updateDeposit = async (payload) => {
+export const updateDeposit = async (payload) => {
   const { schoolId, id, amount, reason } = payload;
   const query = `
     UPDATE deposits
@@ -54,30 +54,16 @@ const updateDeposit = async (payload) => {
   return rowCount;
 };
 
-const refundDeposit = async (payload) => {
+export const refundDeposit = async (payload) => {
   const { schoolId, id, reason } = payload;
   const depositRefundAmt = 0;
-  const depositRefundStatus = "REFUNDED";
+  const depositRefundStatus = 'REFUNDED';
   const query = `
     UPDATE deposits
     SET amount = $1, reason = $2, status = $3
     WHERE school_id = $4 AND id = $5
   `;
-  const queryParams = [
-    depositRefundAmt,
-    reason,
-    depositRefundStatus,
-    schoolId,
-    id,
-  ];
+  const queryParams = [depositRefundAmt, reason, depositRefundStatus, schoolId, id];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
-};
-
-module.exports = {
-  addDeposit,
-  getDeposit,
-  getDeposits,
-  updateDeposit,
-  refundDeposit,
 };

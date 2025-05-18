@@ -1,6 +1,6 @@
-const processDBRequest = require("../../utils/process-db-request");
+import { processDBRequest } from '../../utils/process-db-request.js';
 
-const addSubject = async (payload) => {
+export const addSubject = async (payload) => {
   const { schoolId, name, classId, sectionId } = payload;
   const query = `INSERT INTO subjects(school_id, name, class_id, section_id) VALUES($1, $2, $3, $4)`;
   const queryParams = [schoolId, name, classId || null, sectionId || null];
@@ -8,7 +8,7 @@ const addSubject = async (payload) => {
   return rowCount;
 };
 
-const updateSubject = async (payload) => {
+export const updateSubject = async (payload) => {
   const { schoolId, id, name } = payload;
   const query = `UPDATE subjects SET name = $1 WHERE id = $2 AND school_id = $3`;
   const queryParams = [name, id, schoolId];
@@ -16,15 +16,15 @@ const updateSubject = async (payload) => {
   return rowCount;
 };
 
-const deleteSubject = async (payload) => {
+export const deleteSubject = async (payload) => {
   const { id, schoolId } = payload;
-  const query = "DELETE FROM subjects WHERE id = $1 AND school_id = $2";
+  const query = 'DELETE FROM subjects WHERE id = $1 AND school_id = $2';
   const queryParams = [id, schoolId];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };
 
-const getAllSubjects = async (payload) => {
+export const getAllSubjects = async (payload) => {
   const { schoolId, classId, sectionId } = payload;
   const query = `
     SELECT 
@@ -39,5 +39,3 @@ const getAllSubjects = async (payload) => {
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
 };
-
-module.exports = { addSubject, updateSubject, deleteSubject, getAllSubjects };

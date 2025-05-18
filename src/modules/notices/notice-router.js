@@ -1,26 +1,15 @@
-const express = require("express");
+import express from 'express';
+import * as noticeController from './notice-controller.js';
+import { checkApiAccess } from '../../middlewares/index.js';
+
 const router = express.Router();
-const noticeController = require("./notice-controller");
-const { checkApiAccess } = require("../../middlewares");
 
-router.get(
-  "/recipients",
-  checkApiAccess,
-  noticeController.handleGetNoticeRecipients
-);
-router.patch("/:id/status", checkApiAccess, noticeController.handleNoticeStatus);
-router.get(
-  "/pending",
-  checkApiAccess,
-  noticeController.handleGetPendingNotices
-);
-router.get(
-  "/:id",
-  checkApiAccess,
-  noticeController.handleGetNotice
-);
-router.get("", checkApiAccess, noticeController.handleGetNotices);
-router.post("", checkApiAccess, noticeController.handleAddNotice);
-router.put("/:id", checkApiAccess, noticeController.handleUpdateNotice);
+router.get('/recipients', checkApiAccess, noticeController.handleGetNoticeRecipients);
+router.patch('/:id/review', checkApiAccess, noticeController.handleReviewNoticeStatus);
+router.patch('/:id/publish', checkApiAccess, noticeController.handlePublishNotice);
+router.get('', checkApiAccess, noticeController.handleGetNotices);
+router.post('', checkApiAccess, noticeController.handleAddNotice);
+router.put('/:id', checkApiAccess, noticeController.handleUpdateNotice);
+router.delete('/:id', checkApiAccess, noticeController.handleDeleteNotice);
 
-module.exports = { noticeRoutes: router };
+export { router as noticeRoutes };

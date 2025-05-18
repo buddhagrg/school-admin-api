@@ -1,6 +1,6 @@
-const { ERROR_MESSAGES } = require("../../constants");
-const { ApiError } = require("../../utils/api-error");
-const {
+import { ERROR_MESSAGES } from '../../constants/index.js';
+import { ApiError } from '../../utils/index.js';
+import {
   addFee,
   updateFee,
   assignFeeToStudent,
@@ -8,26 +8,26 @@ const {
   deleteFeeAssignedToStudent,
   getAllFees,
   getAllFeeStructures,
-  addOrUpdateFeeStructures,
-} = require("./fee-repository");
+  addOrUpdateFeeStructures
+} from './fee-repository.js';
 
-const processAddFee = async (payload) => {
+export const processAddFee = async (payload) => {
   const affectedRow = await addFee(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to add fee");
+    throw new ApiError(500, 'Unable to add fee');
   }
-  return { message: "Fee added successfully" };
+  return { message: 'Fee added successfully' };
 };
 
-const processUpdateFee = async (payload) => {
+export const processUpdateFee = async (payload) => {
   const affectedRow = await updateFee(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to update fee");
+    throw new ApiError(500, 'Unable to update fee');
   }
-  return { message: "Fee updated successfully" };
+  return { message: 'Fee updated successfully' };
 };
 
-const processGetAllFees = async (schoolId) => {
+export const processGetAllFees = async (schoolId) => {
   const fees = await getAllFees(schoolId);
   if (!fees || fees.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
@@ -35,15 +35,15 @@ const processGetAllFees = async (schoolId) => {
   return { fees };
 };
 
-const processAddOrUpdateFeeStructures = async (payload) => {
+export const processAddOrUpdateFeeStructures = async (payload) => {
   const affectedRow = await addOrUpdateFeeStructures(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to modify fee structures");
+    throw new ApiError(500, 'Unable to modify fee structures');
   }
-  return { message: "Fee structures modified successfully" };
+  return { message: 'Fee structures modified successfully' };
 };
 
-const processGetAllFeeStructures = async (payload) => {
+export const processGetAllFeeStructures = async (payload) => {
   const feeStructures = await getAllFeeStructures(payload);
   if (feeStructures.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
@@ -51,7 +51,7 @@ const processGetAllFeeStructures = async (payload) => {
   return { feeStructures };
 };
 
-const processAssignFeeToStudent = async (payload) => {
+export const processAssignFeeToStudent = async (payload) => {
   const result = await assignFeeToStudent(payload);
   if (!result || !result.status) {
     throw new ApiError(500, result.message);
@@ -59,7 +59,7 @@ const processAssignFeeToStudent = async (payload) => {
   return { message: result.message };
 };
 
-const processGetFeesAssignedToStudent = async (payload) => {
+export const processGetFeesAssignedToStudent = async (payload) => {
   const feesAssigned = await getFeesAssignedToStudent(payload);
   if (feesAssigned.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
@@ -67,21 +67,10 @@ const processGetFeesAssignedToStudent = async (payload) => {
   return { feesAssigned };
 };
 
-const processDeleteFeeAssignedToStudent = async (payload) => {
+export const processDeleteFeeAssignedToStudent = async (payload) => {
   const affectedRow = await deleteFeeAssignedToStudent(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to delete fee assigned to student");
+    throw new ApiError(500, 'Unable to delete fee assigned to student');
   }
-  return { message: "Fee assigned to student deleted successfully" };
-};
-
-module.exports = {
-  processAddFee,
-  processUpdateFee,
-  processGetAllFees,
-  processAddOrUpdateFeeStructures,
-  processGetAllFeeStructures,
-  processAssignFeeToStudent,
-  processGetFeesAssignedToStudent,
-  processDeleteFeeAssignedToStudent,
+  return { message: 'Fee assigned to student deleted successfully' };
 };

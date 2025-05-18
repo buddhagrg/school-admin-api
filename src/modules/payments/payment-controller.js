@@ -1,65 +1,57 @@
-const asyncHandler = require("express-async-handler");
-const {
+import asyncHandler from 'express-async-handler';
+import {
   processDoGeneralPayment,
   processGetAllPaymentMethods,
   processAddPaymentMethod,
   processUpdatePaymentMethod,
-  processDeactivatePaymentMethod,
-} = require("./payment-service");
+  processDeactivatePaymentMethod
+} from './payment-service.js';
 
-const handleDoGeneralPayment = asyncHandler(async (req, res) => {
+export const handleDoGeneralPayment = asyncHandler(async (req, res) => {
   const { schoolId, id: initiator } = req.user;
   const payload = req.body;
   const response = await processDoGeneralPayment({
     ...payload,
     schoolId,
-    initiator,
+    initiator
   });
   res.json(response);
 });
 
-const handleGetAllPaymentMethods = asyncHandler(async (req, res) => {
+export const handleGetAllPaymentMethods = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const response = await processGetAllPaymentMethods(schoolId);
   res.json(response);
 });
 
-const handleAddPaymentMethod = asyncHandler(async (req, res) => {
+export const handleAddPaymentMethod = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const payload = req.body;
   const response = await processAddPaymentMethod({
     ...payload,
-    schoolId,
+    schoolId
   });
   res.json(response);
 });
 
-const handleUpdatePaymentMethod = asyncHandler(async (req, res) => {
+export const handleUpdatePaymentMethod = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id: paymentMethodId } = req.params;
   const payload = req.body;
   const response = await processUpdatePaymentMethod({
     ...payload,
     schoolId,
-    paymentMethodId,
+    paymentMethodId
   });
   res.json(response);
 });
 
-const handleDeactivatePaymentMethod = asyncHandler(async (req, res) => {
+export const handleDeactivatePaymentMethod = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id: paymentMethodId } = req.params;
   const response = await processDeactivatePaymentMethod({
     schoolId,
-    paymentMethodId,
+    paymentMethodId
   });
   res.json(response);
 });
-
-module.exports = {
-  handleDoGeneralPayment,
-  handleGetAllPaymentMethods,
-  handleAddPaymentMethod,
-  handleUpdatePaymentMethod,
-  handleDeactivatePaymentMethod,
-};

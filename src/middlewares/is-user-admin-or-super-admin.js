@@ -1,11 +1,9 @@
-const { ApiError } = require("../utils");
+import { ApiError } from '../utils/index.js';
 
-const isUserAdminOrSuperAdmin = (allowedRoles) => (req, res, next) => {
-  const { staticRoleId } = req.user;
-  if (!allowedRoles.includes(staticRoleId)) {
-    throw new ApiError(403, "You do not have permission to this resource");
+export const isUserAdminOrSuperAdmin = (allowedRoles) => (req, res, next) => {
+  const { staticRole } = req.user;
+  if (!allowedRoles.includes(staticRole)) {
+    throw new ApiError(403, 'You do not have permission to this resource');
   }
   next();
 };
-
-module.exports = { isUserAdminOrSuperAdmin };

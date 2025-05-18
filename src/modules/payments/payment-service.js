@@ -1,22 +1,22 @@
-const { ERROR_MESSAGES } = require("../../constants");
-const { ApiError } = require("../../utils/api-error");
-const {
+import { ERROR_MESSAGES } from '../../constants/index.js';
+import { ApiError } from '../../utils/index.js';
+import {
   doGeneralPayment,
   getAllPaymentMethods,
   addPaymentMethod,
   updatePaymentMethod,
-  deactivatePaymentMethod,
-} = require("./payment-repository");
+  deactivatePaymentMethod
+} from './payment-repository.js';
 
-const processDoGeneralPayment = async (payload) => {
+export const processDoGeneralPayment = async (payload) => {
   const affectedRow = await doGeneralPayment(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to do payment");
+    throw new ApiError(500, 'Unable to do payment');
   }
-  return { message: "Payment successfull" };
+  return { message: 'Payment successfull' };
 };
 
-const processGetAllPaymentMethods = async (schoolId) => {
+export const processGetAllPaymentMethods = async (schoolId) => {
   const paymentMethods = await getAllPaymentMethods(schoolId);
   if (paymentMethods.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
@@ -24,33 +24,26 @@ const processGetAllPaymentMethods = async (schoolId) => {
   return { paymentMethods };
 };
 
-const processAddPaymentMethod = async (payload) => {
+export const processAddPaymentMethod = async (payload) => {
   const affectedRow = await addPaymentMethod(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to add payment method");
+    throw new ApiError(500, 'Unable to add payment method');
   }
-  return { message: "Payment methods added successfully" };
+  return { message: 'Payment methods added successfully' };
 };
 
-const processUpdatePaymentMethod = async (payload) => {
+export const processUpdatePaymentMethod = async (payload) => {
   const affectedRow = await updatePaymentMethod(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to update payment method");
+    throw new ApiError(500, 'Unable to update payment method');
   }
-  return { message: "Payment methods updated successfully" };
+  return { message: 'Payment methods updated successfully' };
 };
 
-const processDeactivatePaymentMethod = async (payload) => {
+export const processDeactivatePaymentMethod = async (payload) => {
   const affectedRow = await deactivatePaymentMethod(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to deactivate payment method");
+    throw new ApiError(500, 'Unable to deactivate payment method');
   }
-  return { message: "Payment methods deactivated successfully" };
-};
-module.exports = {
-  processDoGeneralPayment,
-  processGetAllPaymentMethods,
-  processAddPaymentMethod,
-  processUpdatePaymentMethod,
-  processDeactivatePaymentMethod,
+  return { message: 'Payment methods deactivated successfully' };
 };

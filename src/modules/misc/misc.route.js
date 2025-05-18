@@ -1,26 +1,23 @@
-const express = require("express");
-const router = express.Router();
-const miscController = require("./misc.controller");
-const {
-  authenticateToken,
-  csrfProtection,
-  checkApiAccess,
-} = require("../../middlewares");
+import express from 'express';
+import * as miscController from './misc.controller.js';
+import { authenticateToken, csrfProtection, checkApiAccess } from '../../middlewares/index.js';
 
-router.post("/contact-us", miscController.handleContactUs);
+const router = express.Router();
+
+router.post('/contact-us', miscController.handleContactUs);
 router.get(
-  "/teachers",
+  '/teachers',
   authenticateToken,
   csrfProtection,
   checkApiAccess,
   miscController.handleGetAllTeachersOfSchool
 );
 router.get(
-  "/dashboard",
+  '/dashboard',
   authenticateToken,
   csrfProtection,
   checkApiAccess,
   miscController.handleGetDashboardData
 );
 
-module.exports = { miscRoutes: router };
+export { router as miscRoutes };

@@ -1,22 +1,11 @@
-const router = require("express").Router();
-const { checkApiAccess } = require("../../middlewares");
-const academicYearController = require("./academic-year-controller");
+import express from 'express';
+import { checkApiAccess } from '../../middlewares/index.js';
+import * as academicYearController from './academic-year-controller.js';
 
-router.get(
-  "",
-  checkApiAccess,
-  academicYearController.handleGetAllAcademicYears
-);
-router.post("", checkApiAccess, academicYearController.handleAddAcademicYear);
-router.put(
-  "/:id",
-  checkApiAccess,
-  academicYearController.handleUpdatelAcademicYear
-);
-router.patch(
-  "/:id/activate",
-  checkApiAccess,
-  academicYearController.handleActivateAcademicYear
-);
+const router = express.Router();
 
-module.exports = { academicYearRoutes: router };
+router.get('', checkApiAccess, academicYearController.handleGetAllAcademicYears);
+router.post('', checkApiAccess, academicYearController.handleAddAcademicYear);
+router.put('/:id', checkApiAccess, academicYearController.handleUpdatelAcademicYear);
+
+export { router as academicYearRoutes };

@@ -1,28 +1,35 @@
-const express = require("express");
-const router = express.Router();
-const schoolController = require("./school-controller");
-const { isUserAdminOrSuperAdmin } = require("../../middlewares");
+import express from 'express';
+import * as schoolController from './school-controller.js';
+import { isUserAdminOrSuperAdmin } from '../../middlewares/index.js';
 
-router.post("", isUserAdminOrSuperAdmin([1]), schoolController.handleAddSchool);
+const router = express.Router();
+
+router.get(
+  '/my',
+  isUserAdminOrSuperAdmin(['SYSTEM_ADMIN', 'ADMIN']),
+  schoolController.handleGetMySchool
+);
 router.put(
-  "/:id",
-  isUserAdminOrSuperAdmin([1, 2]),
+  '/my',
+  isUserAdminOrSuperAdmin(['SYSTEM_ADMIN', 'ADMIN']),
+  schoolController.handleUpdateMySchool
+);
+router.post('', isUserAdminOrSuperAdmin(['SYSTEM_ADMIN']), schoolController.handleAddSchool);
+router.put(
+  '/:id',
+  isUserAdminOrSuperAdmin(['SYSTEM_ADMIN', 'ADMIN']),
   schoolController.handleUpdateSchool
 );
+router.get('', isUserAdminOrSuperAdmin(['SYSTEM_ADMIN']), schoolController.handleGetAllSchools);
 router.get(
-  "",
-  isUserAdminOrSuperAdmin([1]),
-  schoolController.handleGetAllSchools
-);
-router.get(
-  "/:id",
-  isUserAdminOrSuperAdmin([1, 2]),
+  '/:id',
+  isUserAdminOrSuperAdmin(['SYSTEM_ADMIN', 'ADMIN']),
   schoolController.handleGetSchool
 );
 router.delete(
-  "/:id",
-  isUserAdminOrSuperAdmin([1]),
+  '/:id',
+  isUserAdminOrSuperAdmin(['SYSTEM_ADMIN']),
   schoolController.handleDeleteSchool
 );
 
-module.exports = { schoolRoutes: router };
+export { router as schoolRoutes };

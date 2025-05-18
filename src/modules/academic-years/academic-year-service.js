@@ -1,13 +1,12 @@
-const { ERROR_MESSAGES } = require("../../constants");
-const { ApiError } = require("../../utils");
-const {
+import { ERROR_MESSAGES } from '../../constants/index.js';
+import { ApiError } from '../../utils/index.js';
+import {
   getAllAcademicYears,
   addAcademicYear,
-  updateAcademicYear,
-  activateAcademicYear,
-} = require("./academic-year-repository");
+  updateAcademicYear
+} from './academic-year-repository.js';
 
-const processGetAllAcademicYears = async (schoolId) => {
+export const processGetAllAcademicYears = async (schoolId) => {
   const academicYears = await getAllAcademicYears(schoolId);
   if (academicYears.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
@@ -15,34 +14,18 @@ const processGetAllAcademicYears = async (schoolId) => {
   return { academicYears };
 };
 
-const processAddAcademicYear = async (payload) => {
+export const processAddAcademicYear = async (payload) => {
   const affectedRow = await addAcademicYear(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to add academic year");
+    throw new ApiError(500, 'Unable to add academic year');
   }
-  return { message: "Academic year added successfully" };
+  return { message: 'Academic year added successfully' };
 };
 
-const processUpdateAcademicYear = async (payload) => {
+export const processUpdateAcademicYear = async (payload) => {
   const affectedRow = await updateAcademicYear(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to update academic year");
+    throw new ApiError(500, 'Unable to update academic year');
   }
-  return { message: "Academic year updated successfully" };
-};
-
-const processActivateAcademicYear = async (payload) => {
-  const affectedRow = await activateAcademicYear(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to activate academic year");
-  }
-
-  return { message: "Academic year activated successfully" };
-};
-
-module.exports = {
-  processGetAllAcademicYears,
-  processAddAcademicYear,
-  processUpdateAcademicYear,
-  processActivateAcademicYear,
+  return { message: 'Academic year updated successfully' };
 };

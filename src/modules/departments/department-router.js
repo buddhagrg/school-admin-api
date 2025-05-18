@@ -1,24 +1,12 @@
-const express = require("express");
+import express from 'express';
+import * as departmentController from './department-controller.js';
+import { checkApiAccess } from '../../middlewares/index.js';
+
 const router = express.Router();
-const departmentController = require("./department-controller");
-const { checkApiAccess } = require("../../middlewares");
 
-router.get("", checkApiAccess, departmentController.handleGetAllDepartments);
-router.post("", checkApiAccess, departmentController.handleAddNewDepartment);
-router.get(
-  "/:id",
-  checkApiAccess,
-  departmentController.handleGetDepartmentById
-);
-router.put(
-  "/:id",
-  checkApiAccess,
-  departmentController.handleUpdateDepartmentById
-);
-router.delete(
-  "/:id",
-  checkApiAccess,
-  departmentController.handleDeleteDepartmentById
-);
+router.get('', checkApiAccess, departmentController.handleGetAllDepartments);
+router.post('', checkApiAccess, departmentController.handleAddNewDepartment);
+router.put('/:id', checkApiAccess, departmentController.handleUpdateDepartmentById);
+router.delete('/:id', checkApiAccess, departmentController.handleDeleteDepartmentById);
 
-module.exports = { departmentRoutes: router };
+export { router as departmentRoutes };

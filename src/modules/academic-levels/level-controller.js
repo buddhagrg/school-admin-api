@@ -1,128 +1,102 @@
-const asyncHandler = require("express-async-handler");
-const {
+import asyncHandler from 'express-async-handler';
+import {
   processAddLevel,
   processUpdateLevel,
   processGetLevels,
-  processAddClassToLevel,
-  processGetAcademicLevelsWithPeriods,
   processDeleteLevel,
-  processGetLevelsWithClasses,
-  processDeleteLevelFromClass,
   processReorderPeriods,
-  processGetPeriodsDates,
-  processUpdatePeriodsDates,
-} = require("./level-service");
+  processGetPeriodsOfLevel,
+  processAddPeriod,
+  processUpdatePeriod,
+  processDeletePeriod
+} from './level-service.js';
 
-const handleAddLevel = asyncHandler(async (req, res) => {
+export const handleAddLevel = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const payload = req.body;
   const response = await processAddLevel({ ...payload, schoolId });
   res.json(response);
 });
 
-const handleUpdateLevel = asyncHandler(async (req, res) => {
+export const handleUpdateLevel = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id: academicLevelId } = req.params;
   const payload = req.body;
   const response = await processUpdateLevel({
     ...payload,
     schoolId,
-    academicLevelId,
+    academicLevelId
   });
   res.json(response);
 });
 
-const handleGetLevels = asyncHandler(async (req, res) => {
+export const handleGetLevels = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const response = await processGetLevels(schoolId);
   res.json(response);
 });
 
-const handleAddClassToLevel = asyncHandler(async (req, res) => {
-  const { schoolId } = req.user;
-  const { classId } = req.body;
-  const { id: academicLevelId } = req.params;
-  const response = await processAddClassToLevel({
-    schoolId,
-    classId,
-    academicLevelId,
-  });
-  res.json(response);
-});
-
-const handleGetAcademicLevelsWithPeriods = asyncHandler(async (req, res) => {
-  const { schoolId } = req.user;
-  const response = await processGetAcademicLevelsWithPeriods(schoolId);
-  res.json(response);
-});
-
-const handleDeleteLevel = asyncHandler(async (req, res) => {
+export const handleDeleteLevel = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id: academicLevelId } = req.params;
   const response = await processDeleteLevel({ schoolId, academicLevelId });
   res.json(response);
 });
 
-const handleGetLevelsWithClasses = asyncHandler(async (req, res) => {
-  const { schoolId } = req.user;
-  const response = await processGetLevelsWithClasses(schoolId);
-  res.json(response);
-});
-
-const handleDeleteLevelFromClass = asyncHandler(async (req, res) => {
-  const { schoolId } = req.user;
-  const { id: classId } = req.params;
-  const response = await processDeleteLevelFromClass({
-    schoolId,
-    classId,
-  });
-  res.json(response);
-});
-
-const handleReorderPeriods = asyncHandler(async (req, res) => {
+export const handleReorderPeriods = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id: academicLevelId } = req.params;
   const { periods } = req.body;
   const response = await processReorderPeriods({
     schoolId,
     periods,
-    academicLevelId,
+    academicLevelId
   });
   res.json(response);
 });
 
-const handleGetPeriodsDates = asyncHandler(async (req, res) => {
+export const handleGetPeriodsOfLevel = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id: academicLevelId } = req.params;
-  const response = await processGetPeriodsDates({
+  const response = await processGetPeriodsOfLevel({
     schoolId,
-    academicLevelId,
+    academicLevelId
   });
   res.json(response);
 });
 
-const handleUpdatePeriodsDates = asyncHandler(async (req, res) => {
+export const handleAddPeriod = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id: academicLevelId } = req.params;
-  const { periodsDates } = req.body;
-  const response = await processUpdatePeriodsDates({
+  const payload = req.body;
+  const response = await processAddPeriod({
+    ...payload,
     schoolId,
-    academicLevelId,
-    periodsDates,
+    academicLevelId
   });
   res.json(response);
 });
 
-module.exports = {
-  handleAddLevel,
-  handleUpdateLevel,
-  handleGetLevels,
-  handleAddClassToLevel,
-  handleGetAcademicLevelsWithPeriods,
-  handleDeleteLevel,
-  handleGetLevelsWithClasses,
-  handleDeleteLevelFromClass,
-  handleReorderPeriods,
-  handleGetPeriodsDates,
-  handleUpdatePeriodsDates,
-};
+export const handleUpdatePeriod = asyncHandler(async (req, res) => {
+  const { schoolId } = req.user;
+  const payload = req.body;
+  const { id: academicLevelId, periodId: academicPeriodId } = req.params;
+  const response = await processUpdatePeriod({
+    ...payload,
+    schoolId,
+    academicLevelId,
+    academicPeriodId
+  });
+  res.json(response);
+});
+
+export const handleDeletePeriod = asyncHandler(async (req, res) => {
+  const { schoolId } = req.user;
+  const { periodId: academicPeriodId, id: academicLevelId } = req.params;
+  const response = await processDeletePeriod({
+    schoolId,
+    academicPeriodId,
+    academicLevelId
+  });
+  res.json(response);
+});

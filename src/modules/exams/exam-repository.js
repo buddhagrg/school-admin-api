@@ -1,16 +1,16 @@
-const { processDBRequest } = require("../../utils/process-db-request");
+import { processDBRequest } from '../../utils/process-db-request.js';
 
-const typeBySubject = "S";
-const typeByName = "N";
+const typeBySubject = 'S';
+const typeByName = 'N';
 
-const getAllExamNames = async (schoolId) => {
+export const getAllExamNames = async (schoolId) => {
   const query = `SELECT * FROM exams WHERE type = $1 AND school_id = $2`;
   const queryParams = [typeByName, schoolId];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
 };
 
-const addExamName = async (payload) => {
+export const addExamName = async (payload) => {
   const { schoolId, name } = payload;
   const query = `
     INSERT INTO exams(school_id, academic_year_id, name, type)
@@ -27,7 +27,7 @@ const addExamName = async (payload) => {
   return rowCount;
 };
 
-const updateExamName = async (payload) => {
+export const updateExamName = async (payload) => {
   const { schoolId, examId, name } = payload;
   const query = `
     UPDATE exams
@@ -39,7 +39,7 @@ const updateExamName = async (payload) => {
   return rowCount;
 };
 
-const deleteExamName = async (payload) => {
+export const deleteExamName = async (payload) => {
   const { schoolId, examId } = payload;
   const query = `DELETE FROM exams WHERE id = $1 AND school_id = $2`;
   const queryParams = [examId, schoolId];
@@ -47,15 +47,14 @@ const deleteExamName = async (payload) => {
   return rowCount;
 };
 
-const addExamDetail = async (payload) => {
+export const addExamDetail = async (payload) => {
   const query = `SELECT * FROM add_update_exam_detail($1)`;
   const queryParams = [payload];
-
   const { rows } = await processDBRequest({ query, queryParams });
   return rows[0];
 };
 
-const getExamDetail = async (payload) => {
+export const getExamDetail = async (payload) => {
   const { schoolId, examId, classId, sectionId } = payload;
   const query = `
     SELECT * FROM exams
@@ -70,15 +69,14 @@ const getExamDetail = async (payload) => {
   return rows[0];
 };
 
-const updateExamDetail = async (payload) => {
+export const updateExamDetail = async (payload) => {
   const query = `SELECT * FROM add_update_exam_detail($1)`;
   const queryParams = [payload];
-
   const { rows } = await processDBRequest({ query, queryParams });
   return rows[0];
 };
 
-const getExamRoutine = async (payload) => {
+export const getExamRoutine = async (payload) => {
   const { schoolId, examId, classId, sectionId } = payload;
   const query = `
     SELECT
@@ -106,7 +104,7 @@ const getExamRoutine = async (payload) => {
   return rows;
 };
 
-const getMarks = async (payload) => {
+export const getMarks = async (payload) => {
   const staticStudentRoleId = 4;
   const { schoolId, classId, sectionId, examId } = payload;
   const query = `
@@ -124,38 +122,31 @@ const getMarks = async (payload) => {
       AND t2.parent_exam_id = $2
     LEFT JOIN subjects t3 ON t3.id = t2.subject_id
     JOIN roles t4 ON t4.id = t1.role_id
-    WHERE t4.static_role_id = $3
+    WHERE t4.static_role = $3
       AND t1.school_id = $4
       AND t1.class_id = $5
       AND ($6 IS NULL OR t1.section_id = $6)
   `;
-  const queryParams = [
-    typeBySubject,
-    examId,
-    staticStudentRoleId,
-    schoolId,
-    classId,
-    sectionId,
-  ];
+  const queryParams = [typeBySubject, examId, staticStudentRoleId, schoolId, classId, sectionId];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
 };
 
-const addMarks = async (payload) => {
+export const addMarks = async (payload) => {
   const query = `SELECT * FROM add_update_mark_detail($1)`;
   const queryParams = [payload];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows[0];
 };
 
-const updateMarks = async (payload) => {
+export const updateMarks = async (payload) => {
   const query = `SELECT * FROM add_update_mark_detail($1)`;
   const queryParams = [payload];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows[0];
 };
 
-const getExamMarksheet = async (payload) => {
+export const getExamMarksheet = async (payload) => {
   const { schoolId, classId, sectionId, examId, userId } = payload;
   const query = `
   SELECT
@@ -184,19 +175,4 @@ const getExamMarksheet = async (payload) => {
   const queryParams = [schoolId, userId, classId, sectionId, examId];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
-};
-
-module.exports = {
-  getAllExamNames,
-  addExamName,
-  updateExamName,
-  deleteExamName,
-  getExamRoutine,
-  addExamDetail,
-  addMarks,
-  getExamMarksheet,
-  getExamDetail,
-  updateExamDetail,
-  updateMarks,
-  getMarks,
 };

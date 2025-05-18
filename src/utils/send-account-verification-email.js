@@ -1,22 +1,20 @@
-const { env } = require("../config");
-const { generateToken } = require("./jwt-handle");
-const { sendMail } = require("./send-email");
-const { emailVerificationTemplate } = require("../templates");
+import { env } from '../config/index.js';
+import { generateToken } from './jwt-handle.js';
+import { sendMail } from './send-email.js';
+import { emailVerificationTemplate } from '../templates/index.js';
 
-const sendAccountVerificationEmail = async ({ userId, userEmail }) => {
+export const sendAccountVerificationEmail = async ({ userId, userEmail }) => {
   const pwdToken = generateToken(
     { id: userId },
     env.EMAIL_VERIFICATION_TOKEN_SECRET,
     env.EMAIL_VERIFICATION_TOKEN_TIME_IN_MS
   );
-  const link = `${env.API_URL}/api/v1/auth/verify-email/${pwdToken}`;
+  const link = `${env.API_URL}/v1/auth/verify-email/${pwdToken}`;
   const mailOptions = {
     from: env.MAIL_FROM_USER,
     to: userEmail,
-    subject: "Verify account",
-    html: emailVerificationTemplate(link),
+    subject: 'Verify account',
+    html: emailVerificationTemplate(link)
   };
   await sendMail(mailOptions);
 };
-
-module.exports = { sendAccountVerificationEmail };

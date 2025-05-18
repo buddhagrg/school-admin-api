@@ -1,25 +1,16 @@
-const { checkIfSchoolExists } = require("../shared/repository");
-const {
-  generateSixDigitRandomNumber,
-} = require("./generate-six-digit-random-number");
+import { checkIfSchoolExists } from '../shared/repository/index.js';
+import { ApiError } from './api-error.js';
+import { generateSixDigitRandomNumber } from './generate-six-digit-random-number.js';
 
-const getSchoolId = async (client, attempts = 0) => {
+export const getSchoolId = async (client, attempts = 0) => {
   const MAX_RETRIES = 5;
-
   if (attempts >= MAX_RETRIES) {
-    throw new ApiError(
-      403,
-      "Exceeded maximum retries for generating a unique school ID."
-    );
+    throw new ApiError(403, 'Exceeded maximum retries for generating a unique school ID.');
   }
-
   const schoolId = generateSixDigitRandomNumber();
   const exists = await checkIfSchoolExists({ schoolId, client });
   if (!exists) {
     return schoolId;
   }
-
   return getSchoolId(client, attempts++);
 };
-
-module.exports = { getSchoolId };

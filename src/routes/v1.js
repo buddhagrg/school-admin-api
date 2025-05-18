@@ -1,89 +1,55 @@
-const express = require("express");
+import express from 'express';
+import { authenticateToken, csrfProtection } from '../middlewares/index.js';
+import { studentRoutes } from '../modules/students/sudent-router.js';
+import { authRoutes } from '../modules/auth/auth-router.js';
+import { leaveRoutes } from '../modules/leave/leave-router.js';
+import { classRoutes } from '../modules/classes/class-router.js';
+import { noticeRoutes } from '../modules/notices/notice-router.js';
+import { staffRoutes } from '../modules/staff/staff-router.js';
+import { accountRoutes } from '../modules/account/account-router.js';
+import { departmentRoutes } from '../modules/departments/department-router.js';
+import { permissionRoutes } from '../modules/permissions/permission-router.js';
+import { attendanceRoutes } from '../modules/attendance/attendance-router.js';
+import { subjectRoutes } from '../modules/subjects/subject-router.js';
+import { examRoutes } from '../modules/exams/exam-router.js';
+import { invoiceRoutes } from '../modules/invoices/invoice-router.js';
+import { depositRoutes } from '../modules/deposit/deposit-router.js';
+import { feeRoutes } from '../modules/fees/fee-router.js';
+import { schoolRoutes } from '../modules/schools/school-router.js';
+import { academicLevelRoutes } from '../modules/academic-levels/level-router.js';
+import { academicYearRoutes } from '../modules/academic-years/academic-year-router.js';
+import { fiscalYearRoutes } from '../modules/fiscal-years/fy-router.js';
+import { roleRoutes } from '../modules/roles/role-router.js';
+import { paymentRoutes } from '../modules/payments/payment-router.js';
+import { miscRoutes } from '../modules/misc/misc.route.js';
+import { demoRoutes } from '../modules/demo/demo-router.js';
+import { classTeacherRoute } from '../modules/class-teachers/class-teachers.route.js';
+
 const router = express.Router();
 
-const { authenticateToken, csrfProtection } = require("../middlewares");
-const { studentRoutes } = require("../modules/students/sudent-router.js");
-const { authRoutes } = require("../modules/auth/auth-router.js");
-const { leaveRoutes } = require("../modules/leave/leave-router.js");
-const { classRoutes } = require("../modules/classes/class-router.js");
-const { noticeRoutes } = require("../modules/notices/notice-router.js");
-const { staffRoutes } = require("../modules/staff/staff-router.js");
-const { accountRoutes } = require("../modules/account/account-router.js");
-const {
-  departmentRoutes,
-} = require("../modules/departments/department-router.js");
-const {
-  permissionRoutes,
-} = require("../modules/permissions/permission-router.js");
-const {
-  attendanceRoutes,
-} = require("../modules/attendance/attendance-router.js");
-const { subjectRoutes } = require("../modules/subjects/subject-router.js");
-const { examRoutes } = require("../modules/exams/exam-router.js");
-const { invoiceRoutes } = require("../modules/invoices/invoice-router.js");
-const { depositRoutes } = require("../modules/deposit/deposit-router.js");
-const { feeRoutes } = require("../modules/fees/fee-router.js");
-const { schoolRoutes } = require("../modules/schools/school-router.js");
-const {
-  academicLevelRoutes,
-} = require("../modules/academic-levels/level-router.js");
-const {
-  academicYearRoutes,
-} = require("../modules/academic-years/academic-year-router.js");
-const { fiscalYearRoutes } = require("../modules/fiscal-years/fy-router.js");
-const { roleRoutes } = require("../modules/roles/role-router.js");
-const { paymentRoutes } = require("../modules/payments/payment-router.js");
-const {
-  academicPeriodRoutes,
-} = require("../modules/academic-periods/ap-router.js");
-const { userRoutes } = require("../modules/users/users-router.js");
-const { miscRoutes } = require("../modules/misc/misc.route.js");
+router.use('', miscRoutes);
+router.use('/permissions', authenticateToken, csrfProtection, permissionRoutes);
+router.use('/schools', authenticateToken, csrfProtection, schoolRoutes);
+router.use('/auth', authRoutes);
+router.use('/account', authenticateToken, csrfProtection, accountRoutes);
+router.use('/leaves', authenticateToken, csrfProtection, leaveRoutes);
+router.use('/classes', authenticateToken, csrfProtection, classRoutes);
+router.use('/class-teachers', authenticateToken, csrfProtection, classTeacherRoute);
+router.use('/students', authenticateToken, csrfProtection, studentRoutes);
+router.use('/notices', authenticateToken, csrfProtection, noticeRoutes);
+router.use('/staff', authenticateToken, csrfProtection, staffRoutes);
+router.use('/departments', authenticateToken, csrfProtection, departmentRoutes);
+router.use('/roles', authenticateToken, csrfProtection, roleRoutes);
+router.use('/academic/years', authenticateToken, csrfProtection, academicYearRoutes);
+router.use('/fiscal-years', authenticateToken, csrfProtection, fiscalYearRoutes);
+router.use('/attendances', authenticateToken, csrfProtection, attendanceRoutes);
+router.use('/subjects', authenticateToken, csrfProtection, subjectRoutes);
+router.use('/exams', authenticateToken, csrfProtection, examRoutes);
+router.use('/invoices', authenticateToken, csrfProtection, invoiceRoutes);
+router.use('/deposits', authenticateToken, csrfProtection, depositRoutes);
+router.use('/fees', authenticateToken, csrfProtection, feeRoutes);
+router.use('/payments', authenticateToken, csrfProtection, paymentRoutes);
+router.use('/academic/levels', authenticateToken, csrfProtection, academicLevelRoutes);
+router.use('/demo-requests', demoRoutes);
 
-router.use("", miscRoutes);
-router.use("/permissions", authenticateToken, csrfProtection, permissionRoutes);
-router.use("/schools", authenticateToken, csrfProtection, schoolRoutes);
-
-router.use("/auth", authRoutes);
-router.use("/account", authenticateToken, csrfProtection, accountRoutes);
-router.use("/leaves", authenticateToken, csrfProtection, leaveRoutes);
-router.use("/classes", authenticateToken, csrfProtection, classRoutes);
-router.use("/students", authenticateToken, csrfProtection, studentRoutes);
-router.use("/notices", authenticateToken, csrfProtection, noticeRoutes);
-router.use("/staff", authenticateToken, csrfProtection, staffRoutes);
-router.use("/departments", authenticateToken, csrfProtection, departmentRoutes);
-router.use("/roles", authenticateToken, csrfProtection, roleRoutes);
-router.use(
-  "/academic/years",
-  authenticateToken,
-  csrfProtection,
-  academicYearRoutes
-);
-router.use(
-  "/fiscal-years",
-  authenticateToken,
-  csrfProtection,
-  fiscalYearRoutes
-);
-router.use("/attendances", authenticateToken, csrfProtection, attendanceRoutes);
-router.use("/subjects", authenticateToken, csrfProtection, subjectRoutes);
-router.use("/exams", authenticateToken, csrfProtection, examRoutes);
-router.use("/invoices", authenticateToken, csrfProtection, invoiceRoutes);
-router.use("/deposits", authenticateToken, csrfProtection, depositRoutes);
-router.use("/fees", authenticateToken, csrfProtection, feeRoutes);
-router.use("/payments", authenticateToken, csrfProtection, paymentRoutes);
-
-router.use(
-  "/academic/levels",
-  authenticateToken,
-  csrfProtection,
-  academicLevelRoutes
-);
-router.use(
-  "/academic/periods",
-  authenticateToken,
-  csrfProtection,
-  academicPeriodRoutes
-);
-router.use("/users", authenticateToken, csrfProtection, userRoutes);
-
-module.exports = { v1Routes: router };
+export { router as v1Routes };

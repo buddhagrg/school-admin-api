@@ -1,16 +1,16 @@
-const { ERROR_MESSAGES } = require("../../constants");
-const { ApiError } = require("../../utils");
-const {
-  getNotice,
+import { ERROR_MESSAGES } from '../../constants/index.js';
+import { ApiError } from '../../utils/index.js';
+import {
   addNotice,
   updateNotice,
-  updateNoticeStatus,
   getNotices,
   getNoticeRecipients,
-  getPendingNotices,
-} = require("./notice-repository");
+  deleteNotice,
+  reviewNoticeStatus,
+  publishNotice
+} from './notice-repository.js';
 
-const processGetNoticeRecipients = async (schoolId) => {
+export const processGetNoticeRecipients = async (schoolId) => {
   const noticeRecipients = await getNoticeRecipients(schoolId);
   if (!Array.isArray(noticeRecipients) || noticeRecipients.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
@@ -18,7 +18,7 @@ const processGetNoticeRecipients = async (schoolId) => {
   return { noticeRecipients };
 };
 
-const processGetNotices = async (userId) => {
+export const processGetNotices = async (userId) => {
   const notices = await getNotices(userId);
   if (notices.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
@@ -26,98 +26,42 @@ const processGetNotices = async (userId) => {
   return { notices };
 };
 
-const processGetNotice = async (payload) => {
-  const noticeDetail = await getNotice(payload);
-  if (!noticeDetail) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return noticeDetail;
-};
-
-const processAddNotice = async (payload) => {
+export const processAddNotice = async (payload) => {
   const affectedRow = await addNotice(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to add new notice");
+    throw new ApiError(500, 'Unable to add new notice');
   }
-  return { message: "Notice added successfully" };
+  return { message: 'Notice added successfully' };
 };
 
-const processUpdateNotice = async (payload) => {
+export const processUpdateNotice = async (payload) => {
   const affectedRow = await updateNotice(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to update notice");
+    throw new ApiError(500, 'Unable to update notice');
   }
-  return { message: "Notice updated successfully" };
+  return { message: 'Notice updated successfully' };
 };
 
-const processNoticeStatus = async (payload) => {
-  const { noticeId, status, currentUserId, currentUserRoleId, schoolId } =
-    payload;
-  const notice = await getNotice({ noticeId, schoolId });
-  if (!notice) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-
-  const { authorId } = notice;
-  const userCanManageStatus = checkStatus(
-    currentUserRoleId,
-    currentUserId,
-    authorId,
-    status
-  );
-  if (!userCanManageStatus) {
-    throw new ApiError(
-      403,
-      "Forbidden. You do not have permission to access to this resource."
-    );
-  }
-
-  const affectedRow = await updateNoticeStatus({
-    noticeId,
-    status,
-    currentUserId,
-  });
+export const processReviewNoticeStatus = async (payload) => {
+  const affectedRow = await reviewNoticeStatus(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to review notice");
+    throw new ApiError(500, 'Unable to review notice status');
   }
-  return { message: "Success" };
+  return { message: 'Notice status reviewed successfully' };
 };
 
-const checkStatus = (
-  currentUserRoleId,
-  currentUserId,
-  authorId,
-  status
-) => {
-  if (currentUserRoleId === 2) {
-    return true;
-  } else if (authorId === currentUserId) {
-    switch (status) {
-      case 1:
-      case 2:
-      case 3:
-        return true;
-      default:
-        return false;
-    }
+export const processDeleteNotice = async (payload) => {
+  const affectedRow = await deleteNotice(payload);
+  if (affectedRow <= 0) {
+    throw new ApiError(500, 'Unable to delete notice');
   }
-  return false;
+  return { message: 'Notice deleted successfully' };
 };
 
-const processGetPendingNotices = async (schoolId) => {
-  const notices = await getPendingNotices(schoolId);
-  if (notices.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
+export const processPublishNotice = async (payload) => {
+  const affectedRow = await publishNotice(payload);
+  if (affectedRow <= 0) {
+    throw new ApiError(500, 'Unable to publish notice');
   }
-  return { notices };
-};
-
-module.exports = {
-  processGetNoticeRecipients,
-  processGetNotices,
-  processGetNotice,
-  processAddNotice,
-  processUpdateNotice,
-  processNoticeStatus,
-  processGetPendingNotices,
+  return { message: 'Notice published successfully' };
 };

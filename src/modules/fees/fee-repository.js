@@ -1,13 +1,13 @@
-const processDBRequest = require("../../utils/process-db-request");
+import { processDBRequest } from '../../utils/process-db-request.js';
 
-const getAllFees = async (schoolId) => {
+export const getAllFees = async (schoolId) => {
   const query = `SELECT * FROM fees WHERE school_id = $1`;
   const queryParams = [schoolId];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
 };
 
-const addFee = async (payload) => {
+export const addFee = async (payload) => {
   const { schoolId, name, groupId } = payload;
   const query = `
     INSERT INTO fees(school_id, name, group_id)
@@ -18,7 +18,7 @@ const addFee = async (payload) => {
   return rowCount;
 };
 
-const updateFee = async (payload) => {
+export const updateFee = async (payload) => {
   const { schoolId, name, groupId, feeId } = payload;
   const query = `
     UPDATE fees
@@ -30,19 +30,13 @@ const updateFee = async (payload) => {
   return rowCount;
 };
 
-const addOrUpdateFeeStructures = async (payload) => {
+export const addOrUpdateFeeStructures = async (payload) => {
   const { schoolId, classId, feeDetails } = payload;
   const queryParams = [];
   const insertValues = feeDetails
     .map((item, index) => {
       const offset = 6 * index;
-      queryParams.push(
-        schoolId,
-        item.feeId,
-        item.feeAmount,
-        classId,
-        item.isActive
-      );
+      queryParams.push(schoolId, item.feeId, item.feeAmount, classId, item.isActive);
       return `(
       $${offset + 1},
       $${offset + 1},
@@ -50,8 +44,7 @@ const addOrUpdateFeeStructures = async (payload) => {
       $${offset + 1}
     )`;
     })
-    .join(",");
-
+    .join(',');
   const query = `
     INSERT INTO fee_structures(
       school_id,
@@ -70,7 +63,7 @@ const addOrUpdateFeeStructures = async (payload) => {
   return rowCount;
 };
 
-const getAllFeeStructures = async (payload) => {
+export const getAllFeeStructures = async (payload) => {
   const { schoolId, classId, sectionId } = payload;
   const query = `
     SELECT
@@ -86,7 +79,7 @@ const getAllFeeStructures = async (payload) => {
   return rows;
 };
 
-const getFeesAssignedToStudent = async (payload) => {
+export const getFeesAssignedToStudent = async (payload) => {
   const { schoolId, studentId } = payload;
   const query = `
     SELECT
@@ -119,14 +112,14 @@ const getFeesAssignedToStudent = async (payload) => {
   return rows;
 };
 
-const assignFeeToStudent = async (payload) => {
+export const assignFeeToStudent = async (payload) => {
   const query = `SELECT * FROM assign_student_fees($1)`;
   const queryParams = [payload];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows[0];
 };
 
-const deleteFeeAssignedToStudent = async (payload) => {
+export const deleteFeeAssignedToStudent = async (payload) => {
   const { schoolId, feeDetails } = payload;
   const feeIds = feeDetails.map(({ feeId }) => feeId);
   const studentIds = feeDetails.map(({ studentId }) => studentId);
@@ -142,15 +135,4 @@ const deleteFeeAssignedToStudent = async (payload) => {
   const queryParams = [schoolId, studentIds, feeIds];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
-};
-
-module.exports = {
-  getAllFees,
-  addFee,
-  updateFee,
-  addOrUpdateFeeStructures,
-  getAllFeeStructures,
-  getFeesAssignedToStudent,
-  assignFeeToStudent,
-  deleteFeeAssignedToStudent,
 };

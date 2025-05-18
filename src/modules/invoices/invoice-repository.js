@@ -1,13 +1,13 @@
-const processDBRequest = require("../../utils/process-db-request");
+import { processDBRequest } from '../../utils/process-db-request.js';
 
-const generateInvoice = async (payload) => {
+export const generateInvoice = async (payload) => {
   const query = `SELECT * FROM generate_invoices($1)`;
   const queryParams = [payload];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows[0];
 };
 
-const getInvoiceById = async (payload) => {
+export const getInvoiceById = async (payload) => {
   const { schoolId, invoiceId } = payload;
   const query = `
     SELECT
@@ -19,7 +19,7 @@ const getInvoiceById = async (payload) => {
       t6.name AS "sectionName",
       t4.roll,
       t1.due_date AS "dueDate",
-      t8.code_alias AS "status",
+      t8.name AS status,
       t1.amount,
       t1.discount_amt AS "discountAmt",
       t1.outstanding_amt AS "outstandingAmt",
@@ -51,7 +51,7 @@ const getInvoiceById = async (payload) => {
   return rows[0];
 };
 
-const getAllInvoices = async (payload) => {
+export const getAllInvoices = async (payload) => {
   const { schoolId, invoiceNumber, status } = payload;
   const query = `
   SELECT
@@ -60,7 +60,7 @@ const getAllInvoices = async (payload) => {
     t5.name AS "className",
     t6.name AS "sectionName",
     t1.invoice_number AS "invoiceNumber",
-    t2.code_alias AS status,
+    t2.name AS status,
     t1.description,
     t1.due_date AS "dueDate",
     t1.outstanding_amount AS "outstandingAmount",
@@ -76,35 +76,34 @@ const getAllInvoices = async (payload) => {
   `;
   let queryParams = [schoolId];
   if (invoiceNumber) {
-    query += ` AND t1.invoice_number = $2`;
+    query += ` AND t1.invoice_number = $${queryParams.length + 1}`;
     queryParams.push(invoiceNumber);
   }
   if (status) {
-    query += ` AND t1.invoice_status_code = $3`;
+    query += ` AND t1.invoice_status_code = $${queryParams.length + 1}`;
     queryParams.push(status);
   }
-
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
 };
 
-const payInvoice = async (payload) => {
+export const payInvoice = async (payload) => {
   const query = `SELECT * FROM pay_invoice($1)`;
   const queryParams = [payload];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows[0];
 };
 
-const refundInvoice = async (payload) => {
+export const refundInvoice = async (payload) => {
   const query = `SELECT * FROM refund_invoice($1)`;
   const queryParams = [payload];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows[0];
 };
 
-const disputeInvoice = async (payload) => {
+export const disputeInvoice = async (payload) => {
   const { schoolId, invoiceId } = payload;
-  const disputedStatus = "DISPUTED";
+  const disputedStatus = 'DISPUTED';
   const query = `
     UPDATE invoices
     SET status = $1
@@ -117,7 +116,7 @@ const disputeInvoice = async (payload) => {
   return rowCount;
 };
 
-const resolveDisputeInvoice = async (payload) => {
+export const resolveDisputeInvoice = async (payload) => {
   const { schoolId, invoiceId, newInvoiceStatus } = payload;
   const query = `
     UPDATE invoices
@@ -131,9 +130,9 @@ const resolveDisputeInvoice = async (payload) => {
   return rowCount;
 };
 
-const cancelInvoice = async (payload) => {
+export const cancelInvoice = async (payload) => {
   const { schoolId, invoiceId } = payload;
-  const cancelledStatus = "CANCELLED";
+  const cancelledStatus = 'CANCELLED';
   const query = `
     UPDATE invoices
     SET status = $1
@@ -146,7 +145,7 @@ const cancelInvoice = async (payload) => {
   return rowCount;
 };
 
-const removeInvoiceItem = async (payload) => {
+export const removeInvoiceItem = async (payload) => {
   const { schoolId, invoiceId, invoiceItemId } = payload;
   const query = `
   DELETE FROM
@@ -161,16 +160,4 @@ const removeInvoiceItem = async (payload) => {
   const queryParams = [invoiceItemId, schoolId, invoiceId];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
-};
-
-module.exports = {
-  generateInvoice,
-  getInvoiceById,
-  getAllInvoices,
-  payInvoice,
-  refundInvoice,
-  disputeInvoice,
-  cancelInvoice,
-  resolveDisputeInvoice,
-  removeInvoiceItem,
 };

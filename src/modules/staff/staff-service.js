@@ -1,62 +1,63 @@
-const { ERROR_MESSAGES } = require("../../constants");
-const { ApiError, sendAccountVerificationEmail } = require("../../utils");
-const {
+import { ERROR_MESSAGES } from '../../constants/index.js';
+import { ApiError, sendAccountVerificationEmail } from '../../utils/index.js';
+import {
   addOrUpdateStaff,
-  getStaffDetailById,
-  getStaff,
-} = require("./staff-repository");
+  getStaffDetailForView,
+  getAllStaff,
+  getStaffDetailForEdit,
+  updateStaffSystemStatus
+} from './staff-repository.js';
 
-const processGetStaff = async (schoolId) => {
-  const staff = await getStaff(schoolId);
+export const processGetAllStaff = async (schoolId) => {
+  const staff = await getAllStaff(schoolId);
   if (!staff || staff.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
-
   return { staff };
 };
-const processGetStaffDetail = async (payload) => {
-  const staff = await getStaffDetailById(payload);
+
+export const processGetStaffDetail = async (payload) => {
+  const { mode } = payload;
+  let staff = null;
+  if (mode === 'view') {
+    staff = await getStaffDetailForView(payload);
+  } else if (mode === 'edit') {
+    staff = await getStaffDetailForEdit(payload);
+  }
   if (!staff) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return staff;
 };
 
-const processAddStaff = async (payload) => {
-  const ADD_STAFF_SUCCESS = "Staff added successfully.";
-  const ADD_STAFF_AND_EMAIL_SEND_SUCCESS =
-    "Staff added and verification email sent successfully.";
-  const ADD_STAFF_AND_BUT_EMAIL_SEND_FAIL =
-    "Staff added, but failed to send verification email.";
+export const processAddStaff = async (payload) => {
+  const ADD_STAFF_SUCCESS = 'Staff added successfully.';
+  const ADD_STAFF_AND_EMAIL_SEND_SUCCESS = 'Staff added and verification email sent successfully.';
+  const ADD_STAFF_AND_BUT_EMAIL_SEND_FAIL = 'Staff added, but failed to send verification email.';
   try {
     const result = await addOrUpdateStaff(payload);
     if (!result.status) {
       throw new ApiError(500, result.message);
     }
-
     if (!payload.hasSystemAccess) {
       return { message: ADD_STAFF_SUCCESS };
     }
-
     try {
       await sendAccountVerificationEmail({
         userId: result.userId,
-        userEmail: payload.email,
+        userEmail: payload.email
       });
       return { message: ADD_STAFF_AND_EMAIL_SEND_SUCCESS };
     } catch (error) {
       return { message: ADD_STAFF_AND_BUT_EMAIL_SEND_FAIL };
     }
   } catch (error) {
-    throw new ApiError(500, "Unable to add staff");
+    console.log(error);
+    throw new ApiError(500, 'Unable to add staff');
   }
 };
 
-const processUpdateStaff = async (payload) => {
-  if ([1, 2].includes(payload.staticRoleId)) {
-    throw new ApiError(401, ERROR_MESSAGES.NOT_ALLOWED_IN_DEMO);
-  }
-
+export const processUpdateStaff = async (payload) => {
   const result = await addOrUpdateStaff(payload);
   if (!result.status) {
     throw new ApiError(500, result.message);
@@ -64,9 +65,10 @@ const processUpdateStaff = async (payload) => {
   return { message: result.message };
 };
 
-module.exports = {
-  processGetStaff,
-  processGetStaffDetail,
-  processAddStaff,
-  processUpdateStaff,
+export const processUpdateStaffSystemStatus = async (payload) => {
+  const affectedRow = await updateStaffSystemStatus(payload);
+  if (affectedRow <= 0) {
+    throw new ApiError(500, 'Unable to update system access status');
+  }
+  return { message: 'Syste access status updated successfully' };
 };

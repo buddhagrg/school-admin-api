@@ -1,8 +1,6 @@
-const { randomInt } = require("node:crypto");
+import { randomInt } from 'node:crypto';
 
-const generateSixDigitRandomNumber = () => {
-  const n = randomInt(100000, 1000000);
+export const generateSixDigitRandomNumber = () => {
+  const n = randomInt(100000, 999999);
   return n;
 };
-
-module.exports = { generateSixDigitRandomNumber };

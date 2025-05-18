@@ -1,15 +1,11 @@
-const { Resend } = require("resend");
-const { env } = require("../config");
-const { ApiError } = require("./api-error");
+import { Resend } from 'resend';
+import { env } from '../config/index.js';
+import { ApiError } from './api-error.js';
 
-const resend = new Resend(env.RESEND_API_KEY);
-const sendMail = async (mailOptions) => {
+export const sendMail = async (mailOptions) => {
+  const resend = new Resend(env.RESEND_API_KEY);
   const { error } = await resend.emails.send(mailOptions);
   if (error) {
-    throw new ApiError(500, "Unable to send email");
+    throw new ApiError(500, 'Unable to send email');
   }
-};
-
-module.exports = {
-  sendMail,
 };

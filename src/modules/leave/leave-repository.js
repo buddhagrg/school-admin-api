@@ -1,26 +1,51 @@
-const processDBRequest = require("../../utils/process-db-request");
+import { processDBRequest } from '../../utils/process-db-request.js';
 
-const addNewLeavePolicy = async (payload) => {
-  const { name, schoolId } = payload;
-  const query = "INSERT INTO leave_policies (name, school_id) VALUES ($1, $2)";
-  const queryParams = [name, schoolId];
+const leaveRequestCommonQuery = `
+  SELECT
+    t1.id,
+    t2.name as policy,
+    t1.leave_policy_id AS "policyId",
+    t1.from_date AS "fromDate",
+    t1.to_date AS "toDate",
+    t1.note,
+    t1.leave_status_code AS "statusId",
+    t3.name AS status,
+    t1.submitted_date AS "submittedDate",
+    t1.updated_date AS "updatedDate",
+    t1.reviewed_date AS "reviewedDate",
+    t4.name AS reviewer,
+    t5.name AS user,
+    t1.reviewer_note AS "reviewerNote",
+    EXTRACT(DAY FROM age(t1.to_date +  INTERVAL '1 day', t1.from_date)) AS duration
+  FROM user_leaves t1
+  JOIN leave_policies t2 ON t1.leave_policy_id = t2.id
+  JOIN leave_status t3 ON t3.code = t1.leave_status_code
+  LEFT JOIN users t4 ON t1.reviewer_id = t4.id
+  JOIN users t5 ON t1.user_id = t5.id
+  WHERE t1.school_id = $1
+`;
+
+export const addNewLeavePolicy = async (payload) => {
+  const { name, schoolId, isActive } = payload;
+  const query = 'INSERT INTO leave_policies (name, school_id, is_active) VALUES ($1, $2, $3)';
+  const queryParams = [name, schoolId, isActive];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };
 
-const updateLeavePolicy = async (payload) => {
-  const { name, id, schoolId } = payload;
+export const updateLeavePolicy = async (payload) => {
+  const { name, id, schoolId, isActive } = payload;
   const query = `
     UPDATE leave_policies
-    SET name = $1
-    WHERE id = $2 AND school_id = $3
+    SET name = $1, is_active = $2
+    WHERE id = $3 AND school_id = $4
   `;
-  const queryParams = [name, id, schoolId];
+  const queryParams = [name, isActive, id, schoolId];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };
 
-const getLeavePolicies = async (schoolId) => {
+export const getLeavePolicies = async (schoolId) => {
   const query = `
     SELECT
       t1.id,
@@ -37,7 +62,7 @@ const getLeavePolicies = async (schoolId) => {
   return rows;
 };
 
-const getMyLeavePolicy = async (payload) => {
+export const getMyLeavePolicy = async (payload) => {
   const { id, schoolId } = payload;
   const query = `
     SELECT
@@ -48,7 +73,7 @@ const getMyLeavePolicy = async (payload) => {
             (t3.to_date - t3.from_date) + 1
         ELSE 0
         END
-      ), 0) AS "totalDaysUsed"
+      ), 0) AS "daysUsed"
     FROM user_leave_policy t1
     JOIN leave_policies t2 ON t1.leave_policy_id = t2.id
     LEFT JOIN user_leaves t3 ON t3.leave_policy_id = t1.leave_policy_id
@@ -60,7 +85,7 @@ const getMyLeavePolicy = async (payload) => {
   return rows;
 };
 
-const getPolicyUsers = async (payload) => {
+export const getPolicyUsers = async (payload) => {
   const { id, schoolId } = payload;
   const query = `
     SELECT
@@ -85,9 +110,9 @@ const getPolicyUsers = async (payload) => {
   return rows;
 };
 
-const linkPolicyUsers = async (payload) => {
+export const linkPolicyUsers = async (payload) => {
   const { policyId, users, schoolId } = payload;
-  const _users = users.split(",").map((user) => Number(user.trim()));
+  const _users = users.split(',').map((user) => Number(user.trim()));
   const query = `
     INSERT INTO user_leave_policy(user_id, leave_policy_id, school_id)
     SELECT UNNEST($1::int[]), $2::int, $3
@@ -98,7 +123,7 @@ const linkPolicyUsers = async (payload) => {
   return rowCount;
 };
 
-const updateLeavePolicyStatus = async (payload) => {
+export const updateLeavePolicyStatus = async (payload) => {
   const { status, policyId, schoolId } = payload;
   const query = `UPDATE leave_policies SET is_active = $1::boolean WHERE id = $2 AND school_id = $3`;
   const queryParams = [status, policyId, schoolId];
@@ -106,7 +131,7 @@ const updateLeavePolicyStatus = async (payload) => {
   return rowCount;
 };
 
-const unlinkPolicyUser = async (payload) => {
+export const unlinkPolicyUser = async (payload) => {
   const { userId, id, schoolId } = payload;
   const query = `
   DELETE FROM user_leave_policy
@@ -118,22 +143,22 @@ const unlinkPolicyUser = async (payload) => {
   return rowCount;
 };
 
-const getPolicyEligibleUsers = async (schoolId) => {
+export const getPolicyEligibleUsers = async (schoolId) => {
   const query = `
   SELECT t1.id, t1.name
   FROM users t1
   JOIN roles t2 ON t2.id = t1.role_id
   WHERE t1.school_id = $1
-    AND t2.static_role_id NOT IN(1, 2, 5)
+    AND t2.static_role NOT IN('ADMIN')
   `;
   const queryParams = [schoolId];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
 };
 
-const addNewLeaveRequest = async (payload) => {
+export const addNewLeaveRequest = async (payload) => {
   const now = new Date();
-  const leaveRequestStatus = "REVIEW_REQUEST";
+  const leaveRequestStatus = 'PENDING';
   const { policyId, from, to, note, userId, schoolId } = payload;
   const query = `
     INSERT INTO user_leaves
@@ -148,23 +173,13 @@ const addNewLeaveRequest = async (payload) => {
         AND leave_policy_id = $3
     )
   `;
-  const queryParams = [
-    schoolId,
-    userId,
-    policyId,
-    from,
-    to,
-    note,
-    now,
-    leaveRequestStatus,
-  ];
+  const queryParams = [schoolId, userId, policyId, from, to, note, now, leaveRequestStatus];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };
 
-const updateLeaveRequest = async (payload) => {
-  const { id, policyId, from, to, note, schoolId } = payload;
-  const LEAVE_STATUS_ON_REVIEW = "REVIEW_REQUEST";
+export const updateLeaveRequest = async (payload) => {
+  const { id, policyId, fromDate, toDate, note, schoolId } = payload;
   const now = new Date();
   const query = `
     UPDATE user_leaves
@@ -173,58 +188,41 @@ const updateLeaveRequest = async (payload) => {
       from_date = $2,
       to_date = $3,
       note = $4,
-      updated_date = $5,
-      leave_status_code = $6
-    WHERE id = $7
-      AND school_id = $8
-      AND from_date > now();
+      updated_date = $5
+    WHERE
+      leave_status_code = 'PENDING'
+      AND id = $6
+      AND school_id = $7
+      AND ($2::date BETWEEN CURRENT_DATE AND (CURRENT_DATE + INTERVAL '2 months')::date);
   `;
-  const queryParams = [
-    policyId,
-    from,
-    to,
-    note,
-    now,
-    LEAVE_STATUS_ON_REVIEW,
-    id,
-    schoolId,
-  ];
+  const queryParams = [policyId, fromDate, toDate, note, now, id, schoolId];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };
 
-const getUserLeaveHistory = async (payload) => {
-  const { id, schoolId } = payload;
-  const query = `
-    SELECT
-      t1.id,
-      t2.name as policy,
-      t1.leave_policy_id AS "policyId",
-      t1.from_date AS "from",
-      t1.to_date AS "to",
-      t1.note,
-      t1.leave_status_code AS "statusId",
-      t3.name AS status,
-      t1.submitted_date AS "submitted",
-      t1.updated_date AS "updated",
-      t1.approved_date AS "approved",
-      t4.name AS approver,
-      t5.name AS user,
-      EXTRACT(DAY FROM age(t1.to_date +  INTERVAL '1 day', t1.from_date)) AS days
-    FROM user_leaves t1
-    JOIN leave_policies t2 ON t1.leave_policy_id = t2.id
-    JOIN leave_status t3 ON t3.code = t1.leave_status_code
-    LEFT JOIN users t4 ON t1.approver_id = t4.id
-    JOIN users t5 ON t1.user_id = t5.id
-    WHERE t1.user_id = $1 and t1.school_id = $2
-    ORDER BY submitted_date DESC
-  `;
-  const queryParams = [id, schoolId];
+export const getUserLeaveHistory = async (payload) => {
+  const { userId, schoolId, policyId, statusId, fromDate, toDate } = payload;
+  let query = leaveRequestCommonQuery;
+  query += ` AND t1.user_id = $2
+    AND (
+      t1.from_date BETWEEN $3 AND $4
+      OR t1.to_date BETWEEN $3 AND $4
+    )`;
+  let queryParams = [schoolId, userId, fromDate, toDate];
+  if (policyId) {
+    query += ` AND t1.leave_policy_id = $${queryParams.length + 1}`;
+    queryParams.push(policyId);
+  }
+  if (statusId) {
+    query += ` AND t1.leave_status_code = $${queryParams.length + 1}`;
+    queryParams.push(statusId);
+  }
+  query += ` ORDER BY t1.from_date`;
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
 };
 
-const deleteLeaveRequest = async ({ payload, client }) => {
+export const deleteLeaveRequest = async ({ payload, client }) => {
   const { id, schoolId } = payload;
   const query = `
     DELETE FROM user_leaves
@@ -237,7 +235,7 @@ const deleteLeaveRequest = async ({ payload, client }) => {
   return rowCount;
 };
 
-const deleteAttendanceRecord = async ({ payload, client }) => {
+export const deleteAttendanceRecord = async ({ payload, client }) => {
   const { schoolId, id } = payload;
   const query = `
     DELETE FROM attendances
@@ -249,60 +247,36 @@ const deleteAttendanceRecord = async ({ payload, client }) => {
   await processDBRequest({ query, queryParams, client });
 };
 
-const getPendingLeaveRequests = async (schoolId) => {
-  const LEAVE_STATUS_ON_REVIEW = "REVIEW_REQUEST";
-  const query = `
-    SELECT
-      t1.id,
-      t2.name as policy,
-      t1.leave_policy_id AS "policyId",
-      t1.from_date AS "from",
-      t1.to_date AS "to",
-      t1.note,
-      t1.submitted_date AS "submitted",
-      t1.updated_date AS "updated",
-      t3.name AS user,
-      EXTRACT(DAY FROM age(t1.to_date + INTERVAL '1 day', t1.from_date)) AS days
-    FROM user_leaves t1
-    JOIN leave_policies t2 ON t2.id = t1.leave_policy_id
-    JOIN users t3 ON t3.id = t1.user_id
-    WHERE t1.leave_status_code = $1 AND t1.school_id = $2
-    ORDER BY submitted_date DESC
+export const getPendingLeaveRequests = async (schoolId) => {
+  let query = leaveRequestCommonQuery;
+  query += `
+    AND t1.leave_status_code = 'PENDING'
+    ORDER BY t1.from_date
   `;
-  const queryParams = [LEAVE_STATUS_ON_REVIEW, schoolId];
+  const queryParams = [schoolId];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
 };
 
-const updatePendingLeaveRequestStatus = async ({ payload, client }) => {
-  const { reviewerUserId, requestId, status, schoolId } = payload;
+export const updatePendingLeaveRequestStatus = async ({ payload, client }) => {
+  const { reviewerUserId, requestId, status, schoolId, rejectionReason } = payload;
   const now = new Date();
   const query = `
     UPDATE user_leaves
     SET
       leave_status_code = $1,
-      approved_date = $2,
-      approver_id = $3
-    WHERE id = $4 AND school_id = $5
+      reviewed_date = $2,
+      reviewer_id = $3,
+      reviewer_note = $4
+    WHERE leave_status_code = 'PENDING' AND id = $5 AND school_id = $6
     RETURNING *
   `;
-  const queryParams = [status, now, reviewerUserId, requestId, schoolId];
+  const queryParams = [status, now, reviewerUserId, rejectionReason, requestId, schoolId];
   const { rows } = await processDBRequest({ query, queryParams, client });
   return rows[0];
 };
 
-const findLeaveRequestReviewer = async (requestId) => {
-  const query = `
-    SELECT u.reporter_id
-    FROM users u
-    JOIN user_leaves ul ON u.id = ul.user_id
-    WHERE ul.id = $1
-  `;
-  const { rows } = await processDBRequest({ query, queryParams: [requestId] });
-  return rows[0];
-};
-
-const getUserWithLeavePolicies = async (payload) => {
+export const getUserWithLeavePolicies = async (payload) => {
   const { schoolId, userId } = payload;
   const query = `
   With leave_policies AS(
@@ -357,13 +331,13 @@ const getUserWithLeavePolicies = async (payload) => {
   return rows[0];
 };
 
-const insertUserLeave = async ({ payload, client }) => {
-  const { schoolId, userId, note, from, to, approverId, policyId } = payload;
+export const insertUserLeave = async ({ payload, client }) => {
+  const { schoolId, userId, note, from, to, reviewerId, policyId } = payload;
   const now = new Date();
-  const leaveRequestStatus = "APPROVED";
+  const leaveRequestStatus = 'APPROVED';
   const query = `
     INSERT INTO user_leaves
-    (school_id, user_id, leave_policy_id, from_date, to_date, note, submitted_date, approved_date, leave_status_code, approver_id, academic_year_id)
+    (school_id, user_id, leave_policy_id, from_date, to_date, note, submitted_date, reviewed_date, leave_status_code, reviewer_id, academic_year_id)
     SELECT
       $1, $2, $3, $4, $5, $6, $7, $7, $8, $9,
       (SELECT id FROM academic_years WHERE school_id = $1 AND is_active = true)
@@ -393,15 +367,15 @@ const insertUserLeave = async ({ payload, client }) => {
     note,
     now,
     leaveRequestStatus,
-    approverId,
+    reviewerId
   ];
   const { rows } = await processDBRequest({ query, queryParams, client });
   return rows[0].id;
 };
 
-const insertUserAttendance = async ({ payload, client }) => {
-  const { schoolId, userId, note, from, to, approverId, userLeaveId } = payload;
-  const attendanceStatus = "ON_LEAVE";
+export const insertUserAttendance = async ({ payload, client }) => {
+  const { schoolId, userId, note, from, to, reviewerId, userLeaveId } = payload;
+  const attendanceStatus = 'ON_LEAVE';
   const query = `
     INSERT INTO attendances
     (school_id, academic_year_id, user_id, user_leave_id, attendance_status_code, remarks, attendance_recorder, attendance_date)
@@ -418,38 +392,6 @@ const insertUserAttendance = async ({ payload, client }) => {
       updated_date = now(),
       user_leave_id = EXCLUDED.user_leave_id;
   `;
-  const queryParams = [
-    schoolId,
-    userId,
-    userLeaveId,
-    attendanceStatus,
-    note,
-    approverId,
-    from,
-    to,
-  ];
+  const queryParams = [schoolId, userId, userLeaveId, attendanceStatus, note, reviewerId, from, to];
   await processDBRequest({ query, queryParams, client });
-};
-
-module.exports = {
-  addNewLeavePolicy,
-  updateLeavePolicy,
-  getLeavePolicies,
-  getPolicyUsers,
-  linkPolicyUsers,
-  updateLeavePolicyStatus,
-  unlinkPolicyUser,
-  getPolicyEligibleUsers,
-  addNewLeaveRequest,
-  updateLeaveRequest,
-  getUserLeaveHistory,
-  deleteLeaveRequest,
-  getPendingLeaveRequests,
-  updatePendingLeaveRequestStatus,
-  findLeaveRequestReviewer,
-  getMyLeavePolicy,
-  getUserWithLeavePolicies,
-  insertUserLeave,
-  insertUserAttendance,
-  deleteAttendanceRecord,
 };

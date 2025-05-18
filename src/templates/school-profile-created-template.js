@@ -1,4 +1,4 @@
-const schoolProfileCreatedTemplate = (schoolId, schoolName) => {
+export const schoolProfileCreatedTemplate = (schoolId, schoolName) => {
   return `
         <html>
             <body>
@@ -12,5 +12,3 @@ const schoolProfileCreatedTemplate = (schoolId, schoolName) => {
         </html>
     `;
 };
-
-module.exports = { schoolProfileCreatedTemplate };

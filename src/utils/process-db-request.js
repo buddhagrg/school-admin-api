@@ -1,11 +1,10 @@
-const { db } = require("../config");
-const { ERROR_MESSAGES } = require("../constants");
-const { ApiError } = require("./api-error");
+import { db } from '../config/index.js';
+import { ERROR_MESSAGES } from '../constants/index.js';
+import { ApiError } from './api-error.js';
 
-const processDBRequest = async ({ query, queryParams, client }) => {
+export const processDBRequest = async ({ query, queryParams, client }) => {
   let txnClient = client;
   const isInternalClient = !client;
-
   if (isInternalClient) {
     txnClient = await db.connect();
   }
@@ -13,7 +12,7 @@ const processDBRequest = async ({ query, queryParams, client }) => {
     const result = await txnClient.query(query, queryParams);
     return result;
   } catch (error) {
-    console.log(error)
+    console.log(error);
     throw new ApiError(500, ERROR_MESSAGES.DATABASE_ERROR);
   } finally {
     if (isInternalClient) {
@@ -21,5 +20,3 @@ const processDBRequest = async ({ query, queryParams, client }) => {
     }
   }
 };
-
-module.exports = processDBRequest;
