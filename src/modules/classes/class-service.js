@@ -1,159 +1,78 @@
-const { ERROR_MESSAGES } = require("../../constants");
-const { ApiError } = require("../../utils");
-const {
-  getAllClasses,
+import { ERROR_MESSAGES } from '../../constants/index.js';
+import { ApiError } from '../../utils/index.js';
+import {
   addNewClass,
   updateClassDetailById,
-  updateClassStatus,
   getClassesWithSections,
   addSection,
-  updateSection,
-  updateSectionStatus,
-  getAllClassTeachers,
-  assignClassTeacher,
-  deleteClassTeacher,
-} = require("./class-repository");
+  updateSection
+} from './class-repository.js';
 
-const fetchAllClasses = async (schoolId) => {
-  const classes = await getAllClasses(schoolId);
-  if (!Array.isArray(classes) || classes.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return { classes };
-};
-
-const addClass = async (payload) => {
+export const addClass = async (payload) => {
   const affectedRow = await addNewClass(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to add new class");
+    throw new ApiError(500, 'Unable to add new class');
   }
-  return { message: "Class added successfully" };
+  return { message: 'Class added successfully' };
 };
 
-const updateClassDetail = async (payload) => {
+export const updateClassDetail = async (payload) => {
   const affectedRow = await updateClassDetailById(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to update class detail");
+    throw new ApiError(500, 'Unable to update class detail');
   }
-  return { message: "Class detail updated successfully" };
-};
-
-const processUpdateClassStatus = async (payload) => {
-  const affectedRow = await updateClassStatus(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to update class status");
-  }
-  return { message: "Class status updated successfully" };
+  return { message: 'Class detail updated successfully' };
 };
 
 const formatResponse = (data) =>
   Object.values(
     data.reduce((classData, item) => {
-      const {
-        id,
-        sectionId,
-        sectionName,
-        sectionSortOrder,
-        sectionStatus,
-        ...rest
-      } = item;
-
+      const { id, sectionId, sectionName, sectionSortOrder, sectionStatus, ...rest } = item;
       if (!classData[id]) {
         classData[id] = {
           id,
           ...rest,
-          sections: [],
+          sections: []
         };
       }
-
       if (sectionId && sectionName) {
         classData[id].sections.push({
           id: sectionId,
           name: sectionName,
           sectionSortOrder,
-          isActive: sectionStatus,
+          isActive: sectionStatus
         });
       }
-
       return classData;
     }, {})
   )
     .sort((a, b) => a.sortOrder - b.sortOrder)
     .map((classItem) => {
-      classItem.sections.sort(
-        (a, b) => a.sectionSortOrder - b.sectionSortOrder
-      );
+      classItem.sections.sort((a, b) => a.sectionSortOrder - b.sectionSortOrder);
       return classItem;
     });
 
-const processGetClassesWithSections = async (schoolId) => {
-  const data = await getClassesWithSections(schoolId);
+export const processGetClassesWithSections = async (payload) => {
+  const data = await getClassesWithSections(payload);
   if (!Array.isArray(data) || data.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
-
   const classesWithSections = formatResponse(data);
   return { classesWithSections };
 };
 
-const processAddSection = async (payload) => {
+export const processAddSection = async (payload) => {
   const affectedRow = await addSection(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to add new section");
+    throw new ApiError(500, 'Unable to add new section');
   }
-  return { message: "Section added successfully" };
+  return { message: 'Section added successfully' };
 };
 
-const processUpdateSection = async (payload) => {
+export const processUpdateSection = async (payload) => {
   const affectedRow = await updateSection(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to update section");
+    throw new ApiError(500, 'Unable to update section');
   }
-  return { message: "Section updated successfully" };
-};
-
-const processUpdateSectionStatus = async (payload) => {
-  const affectedRow = await updateSectionStatus(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to update section status");
-  }
-  return { message: "Section status updated successfully" };
-};
-
-const processGetAllClassTeachers = async (schoolId) => {
-  const classTeachers = await getAllClassTeachers(schoolId);
-  if (!Array.isArray(classTeachers) || classTeachers.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return { classTeachers };
-};
-
-const processAssignClassTeacher = async (schoolId) => {
-  const affectedRow = await assignClassTeacher(schoolId);
-  if (affectedRow <= 0) {
-    throw new ApiError(404, "Unable to assign class teacher");
-  }
-  return { message: "Class Teacher assigned successfully" };
-};
-
-const processDeleteClassTeacher = async (payload) => {
-  const affectedRow = await deleteClassTeacher(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(404, "Unable to delete class teacher");
-  }
-  return { message: "Class Teacher deleted successfully" };
-};
-
-module.exports = {
-  fetchAllClasses,
-  addClass,
-  updateClassDetail,
-  processUpdateClassStatus,
-  processGetClassesWithSections,
-  processAddSection,
-  processUpdateSection,
-  processUpdateSectionStatus,
-  processGetAllClassTeachers,
-  processAssignClassTeacher,
-  processDeleteClassTeacher,
+  return { message: 'Section updated successfully' };
 };

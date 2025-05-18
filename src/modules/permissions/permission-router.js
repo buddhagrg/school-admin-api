@@ -1,29 +1,21 @@
-const express = require("express");
+import express from 'express';
+import * as permissionController from './permission-controller.js';
+import { isUserAdminOrSuperAdmin } from '../../middlewares/index.js';
+
 const router = express.Router();
-const permissionController = require("./permission-controller");
-const { isUserAdminOrSuperAdmin } = require("../../middlewares");
 
 // router.get("/my", permissionController.handleGetMyPermissions);
-
 router.get(
-  "",
-  isUserAdminOrSuperAdmin([1, 2]),
+  '',
+  isUserAdminOrSuperAdmin(['SYSTEM_ADMIN', 'ADMIN']),
   permissionController.handleGetAllPermissions
 );
-router.post(
-  "",
-  isUserAdminOrSuperAdmin([1]),
-  permissionController.handleAddPermission
-);
-router.put(
-  "/:id",
-  isUserAdminOrSuperAdmin([1]),
-  permissionController.handleUpdatePermission
-);
+router.post('', isUserAdminOrSuperAdmin(['ADMIN']), permissionController.handleAddPermission);
+router.put('/:id', isUserAdminOrSuperAdmin(['ADMIN']), permissionController.handleUpdatePermission);
 router.delete(
-  "/:id",
-  isUserAdminOrSuperAdmin([1]),
+  '/:id',
+  isUserAdminOrSuperAdmin(['ADMIN']),
   permissionController.handleDeletePermission
 );
 
-module.exports = { permissionRoutes: router };
+export { router as permissionRoutes };

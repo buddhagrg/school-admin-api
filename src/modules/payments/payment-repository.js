@@ -1,6 +1,6 @@
-const processDBRequest = require("../../utils/process-db-request");
+import { processDBRequest } from '../../utils/process-db-request.js';
 
-const doGeneralPayment = async (payload) => {
+export const doGeneralPayment = async (payload) => {
   const { schoolId, initiator, amount, feeStructureId, paymentMethod } = payload;
   const query = `
     INSERT INTO transactions(school_id, academic_year_id, fiscal_year_id, initiator, type, status, amount, payment_method, fee_structure_id)
@@ -16,24 +16,24 @@ const doGeneralPayment = async (payload) => {
   const queryParams = [
     schoolId,
     initiator,
-    "CREDIT",
-    "SUCCESS",
+    'CREDIT',
+    'SUCCESS',
     amount,
     paymentMethod,
-    feeStructureId,
+    feeStructureId
   ];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };
 
-const getAllPaymentMethods = async (schoolId) => {
+export const getAllPaymentMethods = async (schoolId) => {
   const query = `SELECT * FROM payment_methods WHERE school_id = $1`;
   const queryParams = [schoolId];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
 };
 
-const addPaymentMethod = async (payload) => {
+export const addPaymentMethod = async (payload) => {
   const { schoolId, name, description } = payload;
   const query = `
         INSERT INTO payment_methods(school_id, name, description)
@@ -44,7 +44,7 @@ const addPaymentMethod = async (payload) => {
   return rowCount;
 };
 
-const updatePaymentMethod = async (payload) => {
+export const updatePaymentMethod = async (payload) => {
   const { schoolId, paymentMethodId, name, description } = payload;
   const now = new Date();
   const query = `
@@ -57,7 +57,7 @@ const updatePaymentMethod = async (payload) => {
   return rowCount;
 };
 
-const deactivatePaymentMethod = async (payload) => {
+export const deactivatePaymentMethod = async (payload) => {
   const { schoolId, paymentMethodId } = payload;
   const query = `
     UPDATE payment_methods
@@ -67,12 +67,4 @@ const deactivatePaymentMethod = async (payload) => {
   const queryParams = [schoolId, paymentMethodId];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
-};
-
-module.exports = {
-  doGeneralPayment,
-  getAllPaymentMethods,
-  addPaymentMethod,
-  updatePaymentMethod,
-  deactivatePaymentMethod,
 };

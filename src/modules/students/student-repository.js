@@ -1,55 +1,124 @@
-const processDBRequest = require("../../utils/process-db-request");
+import { processDBRequest } from '../../utils/process-db-request.js';
 
-const addOrUpdateStudent = async (payload) => {
-  const query = "SELECT * FROM student_add_update($1)";
+export const getStudents = async (payload) => {
+  const { schoolId, name, sectionId, classId } = payload;
+  let query = `
+    SELECT
+      t1.id,
+      t1.user_code AS "studentId",
+      t1.name,
+      t4.name AS class,
+      t5.name AS section,
+      t6.name AS gender,
+      t1.has_system_access AS "hasSystemAccess"
+    FROM users t1
+    JOIN roles t2 ON t2.id = t1.role_id AND t2.static_role = 'STUDENT'
+    JOIN user_profiles t3 ON t3.user_id = t1.id
+    JOIN classes t4 ON t4.id = t3.class_id
+    LEFT JOIN sections t5 ON t5.id = t3.section_id
+    JOIN genders t6 ON t6.code = t3.gender
+    WHERE t1.school_id = $1
+  `;
+  let queryParams = [schoolId];
+  if (name) {
+    query += ` AND t1.name = $${queryParams.length + 1}`;
+    queryParams.push(name);
+  }
+  if (classId) {
+    query += ` AND t3.class_id = $${queryParams.length + 1}`;
+    queryParams.push(classId);
+  }
+  if (sectionId) {
+    query += ` AND t3.section_id = $${queryParams.length + 1}`;
+    queryParams.push(sectionId);
+  }
+  query += ` ORDER BY t1.name`;
+  const { rows } = await processDBRequest({ query, queryParams });
+  return rows;
+};
+
+export const addOrUpdateStudent = async (payload) => {
+  const query = 'SELECT * FROM student_add_update($1)';
   const queryParams = [payload];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows[0];
 };
 
-const findStudentDetail = async ({ id, schoolId }) => {
+export const getStudentDetailForEdit = async (payload) => {
+  const { userId, schoolId } = payload;
   const query = `
     SELECT
-      u.id,
-      u.name,
-      u.email,
-      u.has_system_access AS "hasSystemAccess",
-      p.phone,
-      p.gender,
-      p.dob,
-      c.name AS class,
-      sec.name AS section,
-      p.roll,
-      p.father_name AS "fatherName",
-      p.father_phone AS "fatherPhone",
-      p.mother_name AS "motherName",
-      p.mother_phone AS "motherPhone",
-      p.guardian_name AS "guardianName",
-      p.guardian_phone AS "guardianPhone",
-      p.relation_of_guardian as "relationOfGuardian",
-      p.current_address AS "currentAddress",
-      p.permanent_address AS "permanentAddress",
-      p.join_date AS "joinDate",
-      r.name as "reporterName",
-      s.name as "schoolName"
-    FROM users u
-    LEFT JOIN user_profiles p ON u.id = p.user_id
-    LEFT JOIN users r ON u.reporter_id = r.id
-    LEFT JOIN schools s ON u.school_id = s.school_id
-    LEFT JOIN classes c ON c.id = p.class_id
-    LEFT JOIN sections sec ON sec.id = p.section_id
-    WHERE u.id = $1 AND u.school_id = $2`;
-  const queryParams = [id, schoolId];
+      t1.id,
+      t1.name,
+      t1.email,
+      t1.has_system_access AS "hasSystemAccess",
+      t2.phone,
+      t2.gender,
+      t2.dob,
+      t2.class_id AS "classId",
+      t2.section_id AS "sectionId",
+      t2.roll,
+      t2.guardian_name AS "guardianName",
+      t2.guardian_phone AS "guardianPhone",
+      t2.guardian_email AS "guardianEmail",
+      NULL AS "guardianRelationship",
+      t2.current_address AS "currentAddress",
+      t2.permanent_address AS "permanentAddress",
+      t2.join_date AS "admissionDate",
+      t2.blood_group AS "bloodGroup"
+    FROM users t1
+    JOIN user_profiles t2 ON t2.user_id = t1.id
+    WHERE t1.school_id = $1 AND t1.id = $2`;
+  const queryParams = [schoolId, userId];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows[0];
 };
 
-const getStudentDueFees = async (payload) => {
+export const getStudentDetailForView = async (payload) => {
+  const { userId, schoolId } = payload;
+  const query = `
+    SELECT
+      t1.id,
+      t1.user_code AS "studentId",
+      t1.name,
+      t1.email,
+      t1.last_login AS "lastLogin",
+      t1.password_last_changed_date AS "passwordLastChangedDate",
+      t1.recent_device_info AS "recentDeviceInfo",
+      t1.is_email_verified AS "isEmailVerified",
+      t1.has_system_access AS "hasSystemAccess",
+      t3.name AS gender,
+      t2.join_date AS "admissionDate",
+      t2.dob,
+      t2.phone,
+      t4.name AS class,
+      t5.name AS section,
+      t2.roll,
+      t2.guardian_name AS "guardianName",
+      t2.guardian_phone AS "guardianPhone",
+      t2.guardian_email AS "guardianEmail",
+      t2.guardian_relationship AS "guardianRelationship",
+      t2.current_address AS "currentAddress",
+      t2.permanent_address AS "permanentAddress",
+      t2.blood_group AS "bloodGroup"
+    FROM users t1
+    JOIN user_profiles t2 ON t2.user_id = t1.id
+    JOIN genders t3 ON t3.code = t2.gender
+    JOIN classes t4 ON t4.id = t2.class_id
+    LEFT JOIN sections t5 ON t5.id = t2.section_id
+    WHERE t1.school_id = $1 AND t1.id = $2
+  `;
+  const queryParams = [schoolId, userId];
+  const { rows } = await processDBRequest({ query, queryParams });
+  return rows[0];
+};
+
+export const getStudentDueFees = async (payload) => {
   const { schoolId, studentId, academicyearId } = payload;
   const query = `
   SELECT
     t1.*,
-    t2.description AS "statusDescription",
+    t2.name AS "statusDescription",
     JSON_AGG(
       JSON_BUILD_OBJECT(
         'name', t6.name,
@@ -76,10 +145,4 @@ const getStudentDueFees = async (payload) => {
   const queryParams = [schoolId, studentId, academicyearId];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
-};
-
-module.exports = {
-  addOrUpdateStudent,
-  findStudentDetail,
-  getStudentDueFees,
 };

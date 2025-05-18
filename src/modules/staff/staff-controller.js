@@ -1,42 +1,36 @@
-const asyncHandler = require("express-async-handler");
-const {
+import asyncHandler from 'express-async-handler';
+import {
   processUpdateStaff,
   processGetStaffDetail,
   processAddStaff,
-  processGetStaff,
-} = require("./staff-service");
+  processGetAllStaff
+} from './staff-service.js';
 
-const handleGetStaff = asyncHandler(async (req, res) => {
+export const handleGetAllStaff = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
-  const response = await processGetStaff(schoolId);
+  const response = await processGetAllStaff(schoolId);
   res.json(response);
 });
 
-const handleGetStaffDetail = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+export const handleGetStaffDetail = asyncHandler(async (req, res) => {
+  const { id: userId } = req.params;
+  const { mode } = req.query;
   const { schoolId } = req.user;
-  const response = await processGetStaffDetail({ id, schoolId });
+  const response = await processGetStaffDetail({ userId, schoolId, mode });
   res.json(response);
 });
 
-const handleAddStaff = asyncHandler(async (req, res) => {
+export const handleAddStaff = asyncHandler(async (req, res) => {
   const payload = req.body;
   const { schoolId } = req.user;
   const response = await processAddStaff({ ...payload, schoolId });
   res.json(response);
 });
 
-const handleUpdateStaff = asyncHandler(async (req, res) => {
+export const handleUpdateStaff = asyncHandler(async (req, res) => {
   const { id: userId } = req.params;
   const payload = req.body;
   const { schoolId } = req.user;
   const response = await processUpdateStaff({ ...payload, userId, schoolId });
   res.json(response);
 });
-
-module.exports = {
-  handleGetStaff,
-  handleGetStaffDetail,
-  handleAddStaff,
-  handleUpdateStaff,
-};

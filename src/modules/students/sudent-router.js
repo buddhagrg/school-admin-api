@@ -1,15 +1,13 @@
-const express = require("express");
+import express from 'express';
+import * as studentController from './student-controller.js';
+import { checkApiAccess } from '../../middlewares/index.js';
+
 const router = express.Router();
-const studentController = require("./student-controller");
-const { checkApiAccess } = require("../../middlewares");
 
-router.post("", checkApiAccess, studentController.handleAddStudent);
-router.get("/:id", checkApiAccess, studentController.handleGetStudentDetail);
-router.put("/:id", checkApiAccess, studentController.handleUpdateStudent);
-router.get(
-  "/:id/fees/due",
-  checkApiAccess,
-  studentController.handleGetStudentDueFees
-);
+router.get('', checkApiAccess, studentController.handleGetStudents);
+router.post('', checkApiAccess, studentController.handleAddStudent);
+router.get('/:id', checkApiAccess, studentController.handleGetStudentDetail);
+router.put('/:id', checkApiAccess, studentController.handleUpdateStudent);
+router.get('/:id/fees/due', checkApiAccess, studentController.handleGetStudentDueFees);
 
-module.exports = { studentRoutes: router };
+export { router as studentRoutes };

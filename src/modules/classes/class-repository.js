@@ -1,59 +1,44 @@
-const processDBRequest = require("../../utils/process-db-request");
+import { processDBRequest } from '../../utils/process-db-request.js';
 
-const getAllClasses = async (schoolId) => {
-  const query = `SELECT id, name FROM classes WHERE school_id = $1 AND is_active = TRUE`;
-  const queryParams = [schoolId];
-  const { rows } = await processDBRequest({ query, queryParams });
-  return rows;
-};
-
-const addNewClass = async (payload) => {
-  const { name, schoolId, academicLevelId } = payload;
+export const addNewClass = async (payload) => {
+  const { name, schoolId, academicLevelId, status } = payload;
   const query = `
-    INSERT INTO classes (school_id, academic_level_id, name, sort_order)
+    INSERT INTO classes (school_id, academic_level_id, name, is_active, sort_order)
     VALUES (
       $1,
       $2,
       $3,
+      $4,
       (COALESCE((
         SELECT MAX(sort_order) FROM classes
         WHERE school_id = $1 AND academic_level_id = $2)
       , 0) + 1)
     )`;
-  const queryParams = [schoolId, academicLevelId, name];
+  const queryParams = [schoolId, academicLevelId, name, status];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };
 
-const updateClassDetailById = async (payload) => {
-  const { id, name, schoolId } = payload;
+export const updateClassDetailById = async (payload) => {
+  const { id, name, schoolId, status } = payload;
   const query = `
     UPDATE classes
-    SET name = $1
-    WHERE school_id = $2 AND id = $3
+    SET name = $1, is_active = $2
+    WHERE school_id = $3 AND id = $4
   `;
-  const queryParams = [name, schoolId, id];
+  const queryParams = [name, status, schoolId, id];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };
 
-const updateClassStatus = async (payload) => {
-  const { schoolId, id, status } = payload;
-  const query = `
-    UPDATE classes
-    SET is_active = $3::boolean
-    WHERE school_id = $1 AND id = $2`;
-  const queryParams = [schoolId, id, status];
-  const { rowCount } = await processDBRequest({ query, queryParams });
-  return rowCount;
-};
-
-const getClassesWithSections = async (schoolId) => {
-  const query = `
+export const getClassesWithSections = async (payload) => {
+  const { schoolId, academicLevelId } = payload;
+  let query = `
     SELECT
       t1.id,
       t1.name,
       t1.is_active AS "isActive",
+      t1.academic_level_id AS "academicLevelId",
       t3.name AS "academicLevelName",
       t1.sort_order AS "sortOrder",
       t2.id AS "sectionId",
@@ -65,102 +50,49 @@ const getClassesWithSections = async (schoolId) => {
     LEFT JOIN academic_levels t3 ON t3.id = t1.academic_level_id
     WHERE t1.school_id = $1
   `;
-  const queryParams = [schoolId];
+  let queryParams = [schoolId];
+  if (academicLevelId) {
+    query += ` AND t1.academic_level_id = $${queryParams.length + 1}`;
+    queryParams.push(academicLevelId);
+  }
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
 };
 
-const addSection = async (payload) => {
-  const { name, schoolId, classId } = payload;
+export const addSection = async (payload) => {
+  const { name, schoolId, classId, status } = payload;
   const query = `
-    INSERT INTO sections(school_id, class_id, name, sort_order)
+    INSERT INTO sections(school_id, class_id, name, is_active, sort_order)
     VALUES(
       $1,
       $2,
       $3,
+      $4,
       (COALESCE((
         SELECT MAX(sort_order) FROM sections
         WHERE school_id = $1 AND class_id = $2)
       ,0) + 1)
     )`;
-  const queryParams = [schoolId, classId, name];
+  const queryParams = [schoolId, classId, name, status];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };
 
-const updateSection = async (payload) => {
-  const { classId, sectionId, name, schoolId } = payload;
+export const updateSection = async (payload) => {
+  const { classId, sectionId, name, schoolId, status } = payload;
   const query = `
     UPDATE sections
-    SET name = $1
-    WHERE school_id = $2 AND class_id = $3 AND id = $4
+    SET
+      name = $1,
+      is_active = $2,
+      class_id = $3,
+      sort_order = (COALESCE((
+        SELECT MAX(sort_order) FROM sections
+        WHERE school_id = $4 AND class_id = $3)
+      ,0) + 1)
+    WHERE school_id = $4 AND id = $5
   `;
-  const queryParams = [name, schoolId, classId, sectionId];
+  const queryParams = [name, status, classId, schoolId, sectionId];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
-};
-
-const updateSectionStatus = async (payload) => {
-  const { schoolId, classId, sectionId, status } = payload;
-  const query = `
-    UPDATE sections
-    SET is_active = $4::boolean
-    WHERE school_id = $1 AND class_id = $2 AND id = $3
-  `;
-  const queryParams = [schoolId, classId, sectionId, status];
-  const { rowCount } = await processDBRequest({ query, queryParams });
-  return rowCount;
-};
-
-const getAllClassTeachers = async (schoolId) => {
-  const query = `
-    SELECT
-      t1.id,
-      t2.id AS "classId",
-      t2.name AS "className",
-      t3.name AS "teacherName"
-    FROM class_teachers t1
-    JOIN classes t2 ON t2.id = t1.class_id
-    LEFT JOIN users t3 ON t3.id = t1.teacher_id
-    WHERE t1.school_id = $1
-  `;
-  const queryParams = [schoolId];
-  const { rows } = await processDBRequest({ query, queryParams });
-  return rows;
-};
-
-const assignClassTeacher = async (payload) => {
-  const { classId, teacherId, schoolId } = payload;
-  const query = `
-    INSERT INTO class_teachers (school_id, class_id, teacher_id)
-    VALUES($1, $2, $3)
-    ON CONFLICT(school_id, class_id, teacher_id)
-    DO UPDATE
-    SET teacher_id = EXCLUDED.teacher_id
-  `;
-  const queryParams = [schoolId, classId, teacherId];
-  const { rowCount } = await processDBRequest({ query, queryParams });
-  return rowCount;
-};
-
-const deleteClassTeacher = async (payload) => {
-  const { schoolId, id } = payload;
-  const query = `DELETE FROM class_teachers WHERE school_id = $1 AND id = $2`;
-  const queryParams = [schoolId, id];
-  const { rowCount } = await processDBRequest({ query, queryParams });
-  return rowCount;
-};
-
-module.exports = {
-  getAllClasses,
-  addNewClass,
-  updateClassDetailById,
-  updateClassStatus,
-  getClassesWithSections,
-  addSection,
-  updateSection,
-  updateSectionStatus,
-  getAllClassTeachers,
-  assignClassTeacher,
-  deleteClassTeacher,
 };

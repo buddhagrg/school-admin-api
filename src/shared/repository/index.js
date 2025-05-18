@@ -1,9 +1,3 @@
-const { findUserById } = require("./find-user-by-id");
-const { insertRefreshToken } = require("./insert-refresh-token");
-const { checkIfSchoolExists } = require("./check-if-school-exists");
-
-module.exports = {
-  findUserById,
-  insertRefreshToken,
-  checkIfSchoolExists,
-};
+export { checkIfSchoolExists } from './check-if-school-exists.js';
+export { findUserById } from './find-user-by-id.js';
+export { insertRefreshToken } from './insert-refresh-token.js';

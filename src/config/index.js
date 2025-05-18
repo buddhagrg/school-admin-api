@@ -1,9 +1,3 @@
-const { corsPolicy } = require("./cors");
-const { db } = require("./db");
-const { env } = require("./env");
-
-module.exports = {
-  cors: corsPolicy,
-  db,
-  env,
-};
+export { corsPolicy as cors } from './cors.js';
+export { db } from './db.js';
+export { env } from './env.js';

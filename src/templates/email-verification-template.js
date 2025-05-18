@@ -1,6 +1,5 @@
-const emailVerificationTemplate = (link) => {
-    return (
-        `
+export const emailVerificationTemplate = (link) => {
+  return `
         <html>
             <head>
                 <style>
@@ -19,18 +18,14 @@ const emailVerificationTemplate = (link) => {
                 </style>
             </head>
             <body>
-                <div>Hi there,</div>
-                <span>Please click on the button below to verify your account.</span>
-                <br />
-                <a href=${link} class="btn">Verify</a>
-                <br />
-                <span>Alternatively, you can click on the link below.</span>
-                <br />
-                <a href=${link}>${link}</a>
+                Hi there,
+                <p>Please click on the button below to verify your account.</p>
+                <p><a href=${link} class="btn">Verify</a></p>
+                <p>
+                    Best,<br />
+                    The School Admin Team
+                </p> 
             </body>
         </html>
-        `
-    );
-}
-
-module.exports = { emailVerificationTemplate };
+        `;
+};

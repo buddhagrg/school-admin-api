@@ -1,16 +1,16 @@
-const { ERROR_MESSAGES } = require("../../constants");
-const { ApiError } = require("../../utils");
-const {
+import { ERROR_MESSAGES } from '../../constants/index.js';
+import { ApiError } from '../../utils/index.js';
+import {
   getStudentsForAttendance,
-  getStudentSubjectWiseAttendanceRecord,
+  // getStudentSubjectWiseAttendanceRecord,
   getStudentDailyAttendanceRecord,
   recordAttendance,
   getStaffForAttendance,
   getStaffDailyAttendanceRecord,
-  updateAttendanceStatus,
-} = require("./attendance-repository");
+  updateAttendanceStatus
+} from './attendance-repository.js';
 
-const processGetStudentsForAttendance = async (payload) => {
+export const processGetStudentsForAttendance = async (payload) => {
   const students = await getStudentsForAttendance(payload);
   if (!students || students.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
@@ -18,7 +18,7 @@ const processGetStudentsForAttendance = async (payload) => {
   return { students };
 };
 
-const processGetStaffForAttendance = async (payload) => {
+export const processGetStaffForAttendance = async (payload) => {
   const staff = await getStaffForAttendance(payload);
   if (!staff || staff.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
@@ -26,15 +26,15 @@ const processGetStaffForAttendance = async (payload) => {
   return { staff };
 };
 
-const processRecordAttendance = async (payload) => {
+export const processRecordAttendance = async (payload) => {
   const affectedRow = await recordAttendance(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to record user attendance");
+    throw new ApiError(500, 'Unable to record user attendance');
   }
-  return { message: "User attendance recorded successfully" };
+  return { message: 'User attendance recorded successfully' };
 };
 
-const processGetStudentsAttendanceRecord = async (payload) => {
+export const processGetStudentsAttendanceRecord = async (payload) => {
   let data = [];
   data = await getStudentDailyAttendanceRecord(payload);
   // if (payload.attendanceType === "S") {
@@ -48,7 +48,7 @@ const processGetStudentsAttendanceRecord = async (payload) => {
   return data;
 };
 
-const processGetStaffAttendanceRecord = async (payload) => {
+export const processGetStaffAttendanceRecord = async (payload) => {
   const data = await getStaffDailyAttendanceRecord(payload);
   if (!data) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
@@ -56,19 +56,10 @@ const processGetStaffAttendanceRecord = async (payload) => {
   return data;
 };
 
-const processUpdateAttendanceStatus = async (payload) => {
+export const processUpdateAttendanceStatus = async (payload) => {
   const affectedRow = await updateAttendanceStatus(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to update attendance status");
+    throw new ApiError(500, 'Unable to update attendance status');
   }
-  return { message: "Attendance status updated successfully" };
-};
-
-module.exports = {
-  processGetStudentsForAttendance,
-  processRecordAttendance,
-  processGetStudentsAttendanceRecord,
-  processGetStaffForAttendance,
-  processGetStaffAttendanceRecord,
-  processUpdateAttendanceStatus,
+  return { message: 'Attendance status updated successfully' };
 };

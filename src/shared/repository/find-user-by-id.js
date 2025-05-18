@@ -1,6 +1,6 @@
-const processDBRequest = require("../../utils/process-db-request");
+import { processDBRequest } from '../../utils/process-db-request.js';
 
-const findUserById = async (id) => {
+export const findUserById = async (id) => {
   const query = `
     SELECT
       id,
@@ -14,5 +14,3 @@ const findUserById = async (id) => {
   const { rows } = await processDBRequest({ query, queryParams });
   return rows[0];
 };
-
-module.exports = { findUserById };

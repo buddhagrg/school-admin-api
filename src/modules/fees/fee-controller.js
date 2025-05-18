@@ -1,5 +1,5 @@
-const asyncHandler = require("express-async-handler");
-const {
+import asyncHandler from 'express-async-handler';
+import {
   processAddFee,
   processUpdateFee,
   processGetFeesAssignedToStudent,
@@ -7,17 +7,17 @@ const {
   processDeleteFeeAssignedToStudent,
   processGetAllFees,
   processGetAllFeeStructures,
-  processAddOrUpdateFeeStructures,
-} = require("./fee-service");
+  processAddOrUpdateFeeStructures
+} from './fee-service.js';
 
-const handleAddFee = asyncHandler(async (req, res) => {
+export const handleAddFee = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const payload = req.body;
   const response = await processAddFee({ ...payload, schoolId });
   res.json(response);
 });
 
-const handleUpdateFee = asyncHandler(async (req, res) => {
+export const handleUpdateFee = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id: feeId } = req.params;
   const payload = req.body;
@@ -25,46 +25,46 @@ const handleUpdateFee = asyncHandler(async (req, res) => {
   res.json(response);
 });
 
-const handleGetAllFees = asyncHandler(async (req, res) => {
+export const handleGetAllFees = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const response = await processGetAllFees(schoolId);
   res.json(response);
 });
 
-const handleGetAllFeeStructures = asyncHandler(async (req, res) => {
+export const handleGetAllFeeStructures = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { classId, sectionId } = req.query;
   const response = await processGetAllFeeStructures({
     schoolId,
     classId,
-    sectionId,
+    sectionId
   });
   res.json(response);
 });
 
-const handleAddOrUpdateFeeStructures = asyncHandler(async (req, res) => {
+export const handleAddOrUpdateFeeStructures = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { id: classId } = req.params;
   const payload = req.body;
   const response = await processAddOrUpdateFeeStructures({
     ...payload,
     schoolId,
-    classId,
+    classId
   });
   res.json(response);
 });
 
-const handleGetFeesAssignedToStudent = asyncHandler(async (req, res) => {
+export const handleGetFeesAssignedToStudent = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { studentId } = req.params;
   const response = await processGetFeesAssignedToStudent({
     schoolId,
-    studentId,
+    studentId
   });
   res.json(response);
 });
 
-const handleAssignFeeToStudent = asyncHandler(async (req, res) => {
+export const handleAssignFeeToStudent = asyncHandler(async (req, res) => {
   const { schoolId, id: initiator } = req.user;
   const { studentId } = req.params;
   const { feeDetails } = req.body;
@@ -72,30 +72,17 @@ const handleAssignFeeToStudent = asyncHandler(async (req, res) => {
     schoolId,
     studentId,
     feeDetails,
-    initiator,
+    initiator
   });
   res.json(response);
 });
 
-const handleDeleteFeeAssignedToStudent = asyncHandler(
-  async (req, res) => {
-    const { schoolId } = req.user;
-    const payload = req.params;
-    const response = await processDeleteFeeAssignedToStudent({
-      ...payload,
-      schoolId,
-    });
-    res.json(response);
-  }
-);
-
-module.exports = {
-  handleAddFee,
-  handleUpdateFee,
-  handleGetAllFees,
-  handleGetAllFeeStructures,
-  handleAddOrUpdateFeeStructures,
-  handleAssignFeeToStudent,
-  handleGetFeesAssignedToStudent,
-  handleDeleteFeeAssignedToStudent,
-};
+export const handleDeleteFeeAssignedToStudent = asyncHandler(async (req, res) => {
+  const { schoolId } = req.user;
+  const payload = req.params;
+  const response = await processDeleteFeeAssignedToStudent({
+    ...payload,
+    schoolId
+  });
+  res.json(response);
+});

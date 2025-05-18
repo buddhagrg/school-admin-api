@@ -1,30 +1,28 @@
-const asyncHandler = require("express-async-handler");
-const {
+import asyncHandler from 'express-async-handler';
+import {
   processContactUs,
   processGetDashboardData,
-  processGetAllTeachersOfSchool,
-} = require("./misc.service");
+  processGetAllTeachersOfSchool
+} from './misc.service.js';
 
-const handleContactUs = asyncHandler(async (req, res) => {
+export const handleContactUs = asyncHandler(async (req, res) => {
   const payload = req.body;
   const response = await processContactUs(payload);
   res.json(response);
 });
 
-const handleGetDashboardData = asyncHandler(async (req, res) => {
-  const { id: userId } = req.user;
-  const response = await processGetDashboardData(userId);
+export const handleGetDashboardData = asyncHandler(async (req, res) => {
+  const { id: userId, staticRole, schoolId } = req.user;
+  const response = await processGetDashboardData({
+    userId,
+    staticRole,
+    schoolId
+  });
   res.json(response);
 });
 
-const handleGetAllTeachersOfSchool = asyncHandler(async (req, res) => {
+export const handleGetAllTeachersOfSchool = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const response = await processGetAllTeachersOfSchool(schoolId);
   res.json(response);
 });
-
-module.exports = {
-  handleContactUs,
-  handleGetDashboardData,
-  handleGetAllTeachersOfSchool,
-};

@@ -1,50 +1,13 @@
-const express = require("express");
+import express from 'express';
+import * as classController from './class-controller.js';
+import { checkApiAccess } from '../../middlewares/index.js';
+
 const router = express.Router();
-const classController = require("./class-controller");
-const { checkApiAccess } = require("../../middlewares");
 
-router.get(
-  "/sections",
-  checkApiAccess,
-  classController.handleGetClassesWithSections
-);
-router.get("", checkApiAccess, classController.handleFetchAllClasses);
-router.post("", checkApiAccess, classController.handleAddClass);
-router.put("/:id", checkApiAccess, classController.handleUpdateClass);
-router.patch(
-  "/:id/status",
-  checkApiAccess,
-  classController.handleUpdateClassStatus
-);
+router.get('/sections', checkApiAccess, classController.handleGetClassesWithSections);
+router.post('', checkApiAccess, classController.handleAddClass);
+router.put('/:id', checkApiAccess, classController.handleUpdateClass);
+router.post('/:id/sections', checkApiAccess, classController.handleAddSection);
+router.put('/:id/sections/:sectionId', checkApiAccess, classController.handleUpdateSection);
 
-//section
-router.post("/:id/sections", checkApiAccess, classController.handleAddSection);
-router.put(
-  "/:id/sections/:sectionId",
-  checkApiAccess,
-  classController.handleUpdateSection
-);
-router.patch(
-  "/:id/sections/:sectionId/status",
-  checkApiAccess,
-  classController.handleUpdateSectionStatus
-);
-
-//class-teacher
-router.put(
-  "/:id/teachers/:teacherId",
-  checkApiAccess,
-  classController.handleAssignClassTeacher
-);
-router.get(
-  "/teachers",
-  checkApiAccess,
-  classController.handleGetAllClassTeachers
-);
-router.delete(
-  "/teachers/:id",
-  checkApiAccess,
-  classController.handleDeleteClassTeacher
-);
-
-module.exports = { classRoutes: router };
+export { router as classRoutes };

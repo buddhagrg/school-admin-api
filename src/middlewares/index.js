@@ -1,21 +1,8 @@
-const { handle404Error } = require("./handle-404-error");
-const { authenticateToken } = require("./authenticate-token");
-const { csrfProtection } = require("./csrf-protection");
-const { handleGlobalError } = require("./handle-global-error");
-const {
-  handleEmailVerificationToken,
-} = require("./handle-email-verification-token");
-const { handlePasswordSetupToken } = require("./handle-password-setup-token");
-const { checkApiAccess } = require("./check-api-access");
-const { isUserAdminOrSuperAdmin } = require("./is-user-admin-or-super-admin");
-
-module.exports = {
-  authenticateToken,
-  csrfProtection,
-  handleGlobalError,
-  handle404Error,
-  handleEmailVerificationToken,
-  handlePasswordSetupToken,
-  checkApiAccess,
-  isUserAdminOrSuperAdmin,
-};
+export { authenticateToken } from './authenticate-token.js';
+export { checkApiAccess } from './check-api-access.js';
+export { csrfProtection } from './csrf-protection.js';
+export { handle404Error } from './handle-404-error.js';
+export { handleEmailVerificationToken } from './handle-email-verification-token.js';
+export { handleGlobalError } from './handle-global-error.js';
+export { handlePasswordSetupToken } from './handle-password-setup-token.js';
+export { isUserAdminOrSuperAdmin } from './is-user-admin-or-super-admin.js';

@@ -1,26 +1,17 @@
-const asyncHandler = require("express-async-handler");
-const { checkApiAccessOfRole } = require("../modules/roles/role-repository");
-const { ApiError } = require("../utils");
+import asyncHandler from 'express-async-handler';
+import { checkApiAccessOfRole } from '../modules/roles/role-repository.js';
+import { ApiError } from '../utils/index.js';
 
-const checkApiAccess = asyncHandler(async (req, res, next) => {
+export const checkApiAccess = asyncHandler(async (req, res, next) => {
   const {
     baseUrl,
     route: { path },
-    method,
+    method
   } = req;
-  const { staticRoleId, roleId, id: userId, schoolId } = req.user;
-  const originalUrl = baseUrl.startsWith("/")
-    ? `${baseUrl.slice(1)}${path}`
-    : `${baseUrl}${path}`;
-
-  if (staticRoleId !== 2) {
-    const affectedRow = await checkApiAccessOfRole(
-      schoolId,
-      roleId,
-      originalUrl,
-      method,
-      userId
-    );
+  const { staticRole, roleId, id: userId, schoolId } = req.user;
+  const originalUrl = baseUrl.startsWith('/') ? `${baseUrl.slice(1)}${path}` : `${baseUrl}${path}`;
+  if (staticRole !== 'ADMIN') {
+    const affectedRow = await checkApiAccessOfRole(schoolId, roleId, originalUrl, method, userId);
     if (affectedRow <= 0) {
       throw new ApiError(
         403,
@@ -30,5 +21,3 @@ const checkApiAccess = asyncHandler(async (req, res, next) => {
   }
   next();
 });
-
-module.exports = { checkApiAccess };

@@ -1,19 +1,20 @@
-const asyncHandler = require("express-async-handler");
-const {
+import asyncHandler from 'express-async-handler';
+import {
   addNewStudent,
-  getStudentDetail,
+  processGetStudentDetail,
   updateStudent,
   processGetStudentDueFees,
-} = require("./student-service");
+  processGetStudents
+} from './student-service.js';
 
-const handleAddStudent = asyncHandler(async (req, res) => {
+export const handleAddStudent = asyncHandler(async (req, res) => {
   const payload = req.body;
   const { schoolId } = req.user;
   const response = await addNewStudent({ ...payload, schoolId });
   res.json(response);
 });
 
-const handleUpdateStudent = asyncHandler(async (req, res) => {
+export const handleUpdateStudent = asyncHandler(async (req, res) => {
   const { id: userId } = req.params;
   const payload = req.body;
   const { schoolId } = req.user;
@@ -21,27 +22,33 @@ const handleUpdateStudent = asyncHandler(async (req, res) => {
   res.json(response);
 });
 
-const handleGetStudentDetail = asyncHandler(async (req, res) => {
-  const { id } = req.params;
+export const handleGetStudentDetail = asyncHandler(async (req, res) => {
+  const { id: userId } = req.params;
+  const { mode } = req.query;
   const { schoolId } = req.user;
-  const response = await getStudentDetail({ id, schoolId });
+  const response = await processGetStudentDetail({ userId, schoolId, mode });
   res.json(response);
 });
 
-const handleGetStudentDueFees = asyncHandler(async (req, res) => {
+export const handleGetStudentDueFees = asyncHandler(async (req, res) => {
   const { schoolId } = req.user;
   const { academicYearId, studentId } = req.query;
   const response = await processGetStudentDueFees({
     schoolId,
     academicYearId,
-    studentId,
+    studentId
   });
   res.json(response);
 });
 
-module.exports = {
-  handleGetStudentDetail,
-  handleAddStudent,
-  handleUpdateStudent,
-  handleGetStudentDueFees,
-};
+export const handleGetStudents = asyncHandler(async (req, res) => {
+  const { classId, sectionId, name } = req.query;
+  const { schoolId } = req.user;
+  const response = await processGetStudents({
+    classId,
+    sectionId,
+    name,
+    schoolId
+  });
+  res.json(response);
+});

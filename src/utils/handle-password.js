@@ -1,19 +1,14 @@
-const argon2 = require("argon2");
-const { ApiError } = require("./api-error");
+import * as argon2 from 'argon2';
+import { ApiError } from './api-error.js';
 
-const generateHashedPassword = async (password) => {
+export const generateHashedPassword = async (password) => {
   const hashedPassword = await argon2.hash(password);
   return hashedPassword;
 };
 
-const verifyPassword = async (passwordFromDb, passwordFromUser) => {
+export const verifyPassword = async (passwordFromDb, passwordFromUser) => {
   const isPasswordValid = await argon2.verify(passwordFromDb, passwordFromUser);
   if (!isPasswordValid) {
-    throw new ApiError(400, "Invalid credential");
+    throw new ApiError(400, 'Invalid credential');
   }
-};
-
-module.exports = {
-  generateHashedPassword,
-  verifyPassword,
 };

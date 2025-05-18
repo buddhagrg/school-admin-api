@@ -1,6 +1,6 @@
-const processDBRequest = require("../../utils/process-db-request");
+import { processDBRequest } from '../../utils/process-db-request.js';
 
-const getAllAcademicYears = async (schoolId) => {
+export const getAllAcademicYears = async (schoolId) => {
   const query = `
     SELECT
       t1.id,
@@ -22,7 +22,7 @@ const getAllAcademicYears = async (schoolId) => {
   return rows;
 };
 
-const addAcademicYear = async (payload) => {
+export const addAcademicYear = async (payload) => {
   const { schoolId, name, startDate, endDate, academicLevelId } = payload;
   const query = `
   INSERT INTO academic_years(school_id, academic_level_id, name, start_date, end_date)
@@ -33,53 +33,26 @@ const addAcademicYear = async (payload) => {
   return rowCount;
 };
 
-const updateAcademicYear = async (payload) => {
-  const {
-    schoolId,
-    name,
-    startDate,
-    endDate,
-    academicYearId,
-    academicLevelId,
-  } = payload;
+export const updateAcademicYear = async (payload) => {
+  const { schoolId, name, startDate, endDate, academicYearId, academicLevelId, isActive } = payload;
   const query = `
     UPDATE academic_years
     SET name = $1,
-        start_date = $2,
-        end_date = $3,
-        academic_level_id = $4
-    WHERE school_id = $5 AND id = $6
-    `;
+      start_date = $2,
+      end_date = $3,
+      academic_level_id = $4,
+      is_active = $5
+    WHERE school_id = $6 AND id = $7
+  `;
   const queryParams = [
     name,
     startDate,
     endDate,
     academicLevelId,
+    isActive,
     schoolId,
-    academicYearId,
+    academicYearId
   ];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
-};
-
-const activateAcademicYear = async (payload) => {
-  const { schoolId, academicYearId } = payload;
-  const query = `
-    UPDATE academic_years
-    SET is_active = CASE
-      WHEN id = $1 THEN TRUE
-      ELSE FALSE
-    END
-    WHERE school_id = $2
-  `;
-  const queryParams = [academicYearId, schoolId];
-  const { rowCount } = await processDBRequest({ query, queryParams });
-  return rowCount;
-};
-
-module.exports = {
-  addAcademicYear,
-  updateAcademicYear,
-  getAllAcademicYears,
-  activateAcademicYear,
 };

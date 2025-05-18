@@ -1,6 +1,6 @@
-const { ERROR_MESSAGES } = require("../../constants");
-const { ApiError } = require("../../utils");
-const {
+import { ERROR_MESSAGES } from '../../constants/index.js';
+import { ApiError } from '../../utils/index.js';
+import {
   getAllExamNames,
   addExamName,
   updateExamName,
@@ -12,10 +12,10 @@ const {
   getExamDetail,
   updateExamDetail,
   updateMarks,
-  getMarks,
-} = require("./exam-repository");
+  getMarks
+} from './exam-repository.js';
 
-const processGetAllExamNames = async (schoolId) => {
+export const processGetAllExamNames = async (schoolId) => {
   const exams = await getAllExamNames(schoolId);
   if (exams.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
@@ -23,47 +23,47 @@ const processGetAllExamNames = async (schoolId) => {
   return { exams };
 };
 
-const processAddExamName = async (payload) => {
+export const processAddExamName = async (payload) => {
   const affectedRow = await addExamName(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to add exam name");
+    throw new ApiError(500, 'Unable to add exam name');
   }
-  return { message: "Exam name added successfully" };
+  return { message: 'Exam name added successfully' };
 };
 
-const processUpdateExamName = async (payload) => {
+export const processUpdateExamName = async (payload) => {
   const affectedRow = await updateExamName(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to update exam name");
+    throw new ApiError(500, 'Unable to update exam name');
   }
-  return { message: "Exam name updated successfully" };
+  return { message: 'Exam name updated successfully' };
 };
 
-const processDeleteExamName = async (payload) => {
+export const processDeleteExamName = async (payload) => {
   const affectedRow = await deleteExamName(payload);
   if (affectedRow <= 0) {
-    throw new ApiError(500, "Unable to delete exam name");
+    throw new ApiError(500, 'Unable to delete exam name');
   }
-  return { message: "Exam name deleted successfully" };
+  return { message: 'Exam name deleted successfully' };
 };
 
-const processAddExamDetail = async (payload) => {
+export const processAddExamDetail = async (payload) => {
   const result = await addExamDetail(payload);
   if (!result || !result.status) {
-    throw new ApiError(500, result.message || "Unable to add exam detail");
+    throw new ApiError(500, result.message || 'Unable to add exam detail');
   }
   return { message: result.message };
 };
 
-const processUpdateExamDetail = async (payload) => {
+export const processUpdateExamDetail = async (payload) => {
   const result = await updateExamDetail(payload);
   if (!result || !result.status) {
-    throw new ApiError(500, result.message || "Unable to update exam detail");
+    throw new ApiError(500, result.message || 'Unable to update exam detail');
   }
   return { message: result.message };
 };
 
-const processGetExamRoutine = async (payload) => {
+export const processGetExamRoutine = async (payload) => {
   const routines = await getExamRoutine(payload);
   if (routines.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
@@ -71,7 +71,7 @@ const processGetExamRoutine = async (payload) => {
   return { routines };
 };
 
-const processGetMarks = async (payload) => {
+export const processGetMarks = async (payload) => {
   const marks = await getMarks(payload);
   if (marks.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
@@ -79,23 +79,23 @@ const processGetMarks = async (payload) => {
   return { marks };
 };
 
-const processAddMarks = async (payload) => {
+export const processAddMarks = async (payload) => {
   const result = await addMarks(payload);
   if (!result || !result.status) {
-    throw new ApiError(500, result.message || "Unable to add marks");
+    throw new ApiError(500, result.message || 'Unable to add marks');
   }
   return { message: result.message };
 };
 
-const processUpdateMarks = async (payload) => {
+export const processUpdateMarks = async (payload) => {
   const result = await updateMarks(payload);
   if (!result || !result.status) {
-    throw new ApiError(500, result.message || "Unable to update marks");
+    throw new ApiError(500, result.message || 'Unable to update marks');
   }
   return { message: result.message };
 };
 
-const processGetExamMarksheet = async (payload) => {
+export const processGetExamMarksheet = async (payload) => {
   const marksheets = await getExamMarksheet(payload);
   if (marksheets.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
@@ -103,25 +103,10 @@ const processGetExamMarksheet = async (payload) => {
   return { marksheets };
 };
 
-const processGetExamDetail = async (payload) => {
+export const processGetExamDetail = async (payload) => {
   const examDetails = await getExamDetail(payload);
   if (examDetails.length <= 0) {
     throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
   }
   return { examDetails };
-};
-
-module.exports = {
-  processGetAllExamNames,
-  processAddExamName,
-  processUpdateExamName,
-  processDeleteExamName,
-  processAddExamDetail,
-  processGetExamRoutine,
-  processAddMarks,
-  processGetExamMarksheet,
-  processGetExamDetail,
-  processUpdateExamDetail,
-  processUpdateMarks,
-  processGetMarks,
 };

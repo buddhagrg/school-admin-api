@@ -1,6 +1,6 @@
-const processDBRequest = require("../../utils/process-db-request");
+import { processDBRequest } from '../../utils/process-db-request.js';
 
-const addFiscalYear = async (payload) => {
+export const addFiscalYear = async (payload) => {
   const { schoolId, name, startDate, endDate } = payload;
   const query = `
     INSERT INTO fiscal_years(school_id, name, start_date, end_date)
@@ -11,7 +11,7 @@ const addFiscalYear = async (payload) => {
   return rowCount;
 };
 
-const updateFiscalYear = async (payload) => {
+export const updateFiscalYear = async (payload) => {
   const { schoolId, name, startDate, endDate, fiscalYearId } = payload;
   const query = `
     UPDATE fiscal_years
@@ -26,7 +26,7 @@ const updateFiscalYear = async (payload) => {
   return rowCount;
 };
 
-const getAllFiscalYears = async (schoolId) => {
+export const getAllFiscalYears = async (schoolId) => {
   const query = `
     SELECT
       id,
@@ -45,7 +45,7 @@ const getAllFiscalYears = async (schoolId) => {
   return rows;
 };
 
-const activateFiscalYear = async (payload) => {
+export const activateFiscalYear = async (payload) => {
   const { schoolId, fiscalYearId } = payload;
   const query = `
     UPDATE fiscal_years
@@ -58,11 +58,4 @@ const activateFiscalYear = async (payload) => {
   const queryParams = [fiscalYearId, schoolId];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
-};
-
-module.exports = {
-  addFiscalYear,
-  updateFiscalYear,
-  getAllFiscalYears,
-  activateFiscalYear,
 };

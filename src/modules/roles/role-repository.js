@@ -1,34 +1,35 @@
-const processDBRequest = require("../../utils/process-db-request");
+import { processDBRequest } from '../../utils/process-db-request.js';
 
-const getRoleDetail = async (id) => {
-  const query = "SELECT * FROM roles WHERE id = $1";
+export const getRoleDetail = async (id) => {
+  const query = 'SELECT * FROM roles WHERE id = $1';
   const queryParams = [id];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows[0];
 };
 
-const addRole = async (payload) => {
+export const addRole = async (payload) => {
   const { name, schoolId } = payload;
-  const STATIC_ROLE_ID = 10;
+  const STATIC_ROLE = 'STAFF';
   const query = `
-    INSERT INTO roles(name, school_id, static_role_id)
+    INSERT INTO roles(name, school_id, static_role)
     VALUES($1, $2, $3)`;
-  const queryParams = [name, schoolId, STATIC_ROLE_ID];
+  const queryParams = [name, schoolId, STATIC_ROLE];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };
 
-const getRoles = async (schoolId) => {
+export const getRoles = async (schoolId) => {
   const query = `
     SELECT
       t1.id,
       t1.name,
       COUNT(t2.id) AS "usersAssociated",
       t1.is_active AS status,
-      t1.static_role_id AS "staticRoleId"
+      t1.static_role AS "staticRole",
+      t1.is_editable AS "isEditable"
     FROM roles t1
     LEFT JOIN users t2 ON t2.role_id = t1.id
-    WHERE t1.school_id = $1 AND t1.static_role_id != 1
+    WHERE t1.school_id = $1
     GROUP BY (t1.id, t1.name)
     ORDER BY t1.id, t1.name, t1.is_active
 `;
@@ -37,20 +38,20 @@ const getRoles = async (schoolId) => {
   return rows;
 };
 
-const updateRole = async ({ id, name, schoolId }) => {
+export const updateRole = async ({ id, name, schoolId, status }) => {
   const query = `
     UPDATE roles 
-    SET name = $1
-    WHERE id = $2
-      AND is_editable = true
+    SET name = $1, is_active = $2
+    WHERE is_editable = true
       AND school_id = $3
+      AND id = $4
   `;
-  const queryParams = [name, id, schoolId];
+  const queryParams = [name, status, schoolId, id];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
 };
 
-const updateRoleStatus = async ({ id, status, schoolId }) => {
+export const updateRoleStatus = async ({ id, status, schoolId }) => {
   const query = `
     UPDATE roles
     SET is_active = $1::boolean
@@ -63,44 +64,15 @@ const updateRoleStatus = async ({ id, status, schoolId }) => {
   return rowCount;
 };
 
-const assignPermissionsForRole = async (payload) => {
+export const saveRolePermissions = async (payload) => {
   const { schoolId, roleId, permissions } = payload;
-  const query = `
-    INSERT INTO role_permissions(school_id, role_id, permission_id, type)
-    SELECT
-      $1,
-      $2,
-      t1.id,
-      t1.type
-    FROM UNNEST($3::int[]) AS permission_id
-    JOIN permissions t1 ON t1.id = permission_id
-    ON CONFLICT(school_id, role_id, permission_id) DO NOTHING`;
-  const queryParams = [schoolId, roleId, permissions];
-  const { rowCount } = await processDBRequest({ query, queryParams });
-  return rowCount;
-};
-
-const deletePermissionsOfRole = async (payload) => {
-  const { schoolId, roleId, permissions } = payload;
-  const query = `
-    DELETE FROM role_permissions
-    WHERE school_id = $1
-      AND role_id = $2
-      AND permission_id = ANY($3::INT[])
-  `;
-  const queryParams = [schoolId, roleId, permissions];
-  const { rowCount } = await processDBRequest({ query, queryParams });
-  return rowCount;
-};
-
-const getStaticRoleIdById = async (roleId) => {
-  const query = `SELECT static_role_id FROM roles WHERE id = $1`;
-  const queryParams = [roleId];
+  const query = `SELECT * FROM save_role_permissions($1, $2, $3)`;
+  const queryParams = [schoolId, roleId, JSON.stringify(permissions)];
   const { rows } = await processDBRequest({ query, queryParams });
-  return rows[0].static_role_id;
+  return rows[0];
 };
 
-const getRolePermissions = async (payload) => {
+export const getRolePermissions = async (payload) => {
   const { roleId, schoolId } = payload;
   const query = `
     SELECT
@@ -115,13 +87,13 @@ const getRolePermissions = async (payload) => {
   return rows;
 };
 
-const getRoleUsers = async (payload) => {
+export const getRoleUsers = async (payload) => {
   const { roleId, schoolId } = payload;
   const query = `
     SELECT
       id,
       name,
-      last_login AS "lastLogin"
+      email
     FROM users
     WHERE role_id = $1 AND school_id = $2
   `;
@@ -130,13 +102,7 @@ const getRoleUsers = async (payload) => {
   return rows;
 };
 
-const checkApiAccessOfRole = async (
-  schoolId,
-  roleId,
-  apiPath,
-  apiMethod,
-  userId
-) => {
+export const checkApiAccessOfRole = async (schoolId, roleId, apiPath, apiMethod, userId) => {
   const query = `
     SELECT 1
     FROM role_permissions t1
@@ -151,18 +117,4 @@ const checkApiAccessOfRole = async (
   const queryParams = [schoolId, roleId, apiPath, apiMethod, userId];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;
-};
-
-module.exports = {
-  addRole,
-  getRoles,
-  getRoleDetail,
-  updateRole,
-  updateRoleStatus,
-  getRolePermissions,
-  getRoleUsers,
-  assignPermissionsForRole,
-  checkApiAccessOfRole,
-  deletePermissionsOfRole,
-  getStaticRoleIdById,
 };
