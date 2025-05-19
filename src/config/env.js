@@ -16,5 +16,6 @@ export const env = {
   UI_URL: process.env.UI_URL,
   API_URL: process.env.API_URL,
   COOKIE_DOMAIN: process.env.COOKIE_DOMAIN,
-  RESEND_API_KEY: process.env.RESEND_API_KEY
+  RESEND_API_KEY: process.env.RESEND_API_KEY,
+  CORS_ORIGINS: process.env.CORS_ORIGINS
 };
