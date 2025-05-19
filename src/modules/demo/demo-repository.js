@@ -23,7 +23,8 @@ export const bookDemo = async (payload) => {
         additional_information
     )
     VALUES($1, $2, $3, $4, $5, $6, $7, $8 )
-    `;
+    RETURNING id
+  `;
   const queryParams = [
     contactPerson,
     email,
@@ -34,8 +35,8 @@ export const bookDemo = async (payload) => {
     schoolSize,
     additionalInfo
   ];
-  const { rowCount } = await processDBRequest({ query, queryParams });
-  return rowCount;
+  const { rows } = await processDBRequest({ query, queryParams });
+  return rows[0].id;
 };
 
 export const updateDemoDateTime = async (payload) => {
@@ -126,10 +127,9 @@ export const confirmInvite = async (demoId, client) => {
   return rowCount;
 };
 
-export const passwordSetup = async (payload) => {
-  const { demoId, hashedPassword } = payload;
-  const query = `SELECT * FROM setup_school_and_user($1, $2)`;
-  const queryParams = [demoId, hashedPassword];
+export const getDemoDetail = async (demoId) => {
+  const query = `SELECT * FROM demo_requests WHERE id = $1`;
+  const queryParams = [demoId];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows[0];
 };

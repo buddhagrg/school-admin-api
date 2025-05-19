@@ -5,12 +5,10 @@ import {
   logout,
   getNewAccessAndCsrfToken,
   processAccountEmailVerify,
-  processPasswordSetup,
+  processSetupPassword,
   processResendEmailVerification,
   processResendPwdSetupLink,
-  processPwdReset,
-  processSetupSchoolProfile,
-  processSetupAdminProfile
+  processPwdReset
 } from './auth-service.js';
 import {
   setAccessTokenCookie,
@@ -66,10 +64,10 @@ export const handleAccountEmailVerify = asyncHandler(async (req, res) => {
   res.json(response);
 });
 
-export const handleAccountPasswordSetup = asyncHandler(async (req, res) => {
-  const { id: userId } = req.user;
-  const { email, password } = req.body;
-  const response = await processPasswordSetup({ userId, email, password });
+export const handleSetupPassword = asyncHandler(async (req, res) => {
+  const { demoId } = req.user;
+  const { password } = req.body;
+  const response = await processSetupPassword({ demoId, password });
   res.json(response);
 });
 
@@ -88,17 +86,5 @@ export const handleResendPwdSetupLink = asyncHandler(async (req, res) => {
 export const handlePwdReset = asyncHandler(async (req, res) => {
   const { userId } = req.body;
   const response = await processPwdReset(userId);
-  res.json(response);
-});
-
-export const handleSetupSchoolProfile = asyncHandler(async (req, res) => {
-  const payload = req.body;
-  const response = await processSetupSchoolProfile(payload);
-  res.json(response);
-});
-
-export const handleSetupAdminProfile = asyncHandler(async (req, res) => {
-  const payload = req.body;
-  const response = await processSetupAdminProfile(payload);
   res.json(response);
 });

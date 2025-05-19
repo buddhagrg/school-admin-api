@@ -50,6 +50,6 @@ router.use('/deposits', authenticateToken, csrfProtection, depositRoutes);
 router.use('/fees', authenticateToken, csrfProtection, feeRoutes);
 router.use('/payments', authenticateToken, csrfProtection, paymentRoutes);
 router.use('/academic/levels', authenticateToken, csrfProtection, academicLevelRoutes);
-router.use('/demo-requests', demoRoutes);
+router.use('/demo', demoRoutes);
 
 export { router as v1Routes };

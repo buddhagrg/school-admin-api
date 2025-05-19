@@ -8,9 +8,7 @@ import {
   verifyPassword,
   generateHashedPassword,
   sendAccountVerificationEmail,
-  formatMyPermission,
-  sendMail,
-  getSchoolId
+  formatMyPermission
 } from '../../utils/index.js';
 import {
   findUserByEmail,
@@ -20,20 +18,10 @@ import {
   saveUserLastLoginDetail,
   deleteOldRefreshTokenByUserId,
   verifyAccountEmail,
-  doesEmailExist,
-  setupUserPassword,
-  setupSchoolProfile,
-  addAdminStaff,
-  addStaticSchoolRoles,
-  updateSchoolUserId
+  setupPassword
 } from './auth-repository.js';
 import { env, db } from '../../config/index.js';
-import { schoolProfileCreatedTemplate } from '../../templates/index.js';
-import {
-  checkIfSchoolExists,
-  findUserById,
-  insertRefreshToken
-} from '../../shared/repository/index.js';
+import { findUserById, insertRefreshToken } from '../../shared/repository/index.js';
 import { DB_TXN } from '../../constants/index.js';
 
 const PWD_SETUP_EMAIL_SEND_SUCCESS = 'Password setup link emailed successfully.';
@@ -214,24 +202,15 @@ export const processAccountEmailVerify = async (userId) => {
   }
 };
 
-export const processPasswordSetup = async (payload) => {
-  const { userId, email, password } = payload;
-  const emailCount = await doesEmailExist({ userId, email });
-  if (emailCount <= 0) {
-    throw new ApiError(404, 'Bad request');
-  }
+export const processSetupPassword = async (payload) => {
+  const { demoId, password } = payload;
   const hashedPassword = await generateHashedPassword(password);
-  const affectedRow = await setupUserPassword({
-    userId,
-    email,
-    password: hashedPassword
-  });
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to setup password');
+  const result = await setupPassword({ demoId, hashedPassword });
+  console.log(result)
+  if (!result || !result.status) {
+    throw new ApiError(500, result.message);
   }
-  return {
-    message: 'Password setup successful. Please login now using your email and password.'
-  };
+  return { message: result.message };
 };
 
 export const processResendEmailVerification = async (userId) => {
@@ -309,114 +288,5 @@ export const processPwdReset = async (userId) => {
     } else {
       throw new ApiError(500, 'Unable to reset password');
     }
-  }
-};
-
-export const sendSchoolRegistrationEmail = async ({ schoolId, schoolName, email }) => {
-  const mailOptions = {
-    from: env.MAIL_FROM_USER,
-    to: email,
-    subject: 'School Profile Created',
-    html: schoolProfileCreatedTemplate(schoolId, schoolName)
-  };
-  await sendMail(mailOptions);
-};
-
-export const processSetupSchoolProfile = async (payload) => {
-  const SCHOOL_PROFILE_CREATE_FAIL = 'Unable to create school profile';
-  const client = await db.connect();
-  try {
-    await client.query(DB_TXN.BEGIN);
-    const schoolId = await getSchoolId(client);
-    const updatedPayload = {
-      ...payload,
-      schoolId
-    };
-    const result = await setupSchoolProfile({
-      payload: updatedPayload,
-      client
-    });
-    if (!result) {
-      throw new ApiError(500, SCHOOL_PROFILE_CREATE_FAIL);
-    }
-    await sendSchoolRegistrationEmail({
-      schoolId,
-      schoolName: payload.name,
-      email: payload.email
-    });
-    await client.query(DB_TXN.COMMIT);
-    return {
-      schoolId,
-      message: 'School profile created successfully'
-    };
-  } catch (error) {
-    await client.query(DB_TXN.ROLLBACK);
-    if (error instanceof ApiError) {
-      throw error;
-    } else {
-      throw new ApiError(500, SCHOOL_PROFILE_CREATE_FAIL);
-    }
-  } finally {
-    client.release();
-  }
-};
-
-export const processSetupAdminProfile = async (payload) => {
-  const ADMIN_PROFILE_ADD_FAIL = 'Unable to add admin profile';
-  const SCHOOL_NOT_FOUND = 'School does not exist';
-  const ADMIN_PROFILE_ADD_AND_VERIFICATION_EMAIL_SENT_SUCCESS =
-    'Admin profile created. Please check your email to verify your account.';
-  const ADMIN_PROFILE_ADD_SUCCESS_BUT_VERIFICATION_EMAIL_SENT_FAIL =
-    'Admin profile created but fail to send account verification email.';
-  const client = await db.connect();
-  try {
-    await client.query(DB_TXN.BEGIN);
-    const school = await checkIfSchoolExists({
-      schoolId: payload.schoolId,
-      client
-    });
-    if (!school) {
-      throw new ApiError(404, SCHOOL_NOT_FOUND);
-    }
-    const roles = await addStaticSchoolRoles({
-      schoolId: payload.schoolId,
-      client
-    });
-    if (roles.length <= 0) {
-      throw new ApiError(500, 'Unable to add roles for the school');
-    }
-    const adminRoleId = roles.find((role) => role.static_role === 'ADMIN')?.id || null;
-    const updatedPayload = {
-      ...payload,
-      role: adminRoleId
-    };
-    const result = await addAdminStaff({ payload: updatedPayload, client });
-    if (!result.status) {
-      throw new ApiError(500, result.message);
-    }
-    try {
-      await sendAccountVerificationEmail({
-        userId: result.userId,
-        userEmail: school.email
-      });
-      await updateSchoolUserId({
-        lastModifieddBy: result.userId,
-        schoolId: payload.schoolId,
-        client
-      });
-      await client.query(DB_TXN.COMMIT);
-      return { message: ADMIN_PROFILE_ADD_AND_VERIFICATION_EMAIL_SENT_SUCCESS };
-    } catch (error) {
-      throw new ApiError(500, ADMIN_PROFILE_ADD_SUCCESS_BUT_VERIFICATION_EMAIL_SENT_FAIL);
-    }
-  } catch (error) {
-    await client.query(DB_TXN.ROLLBACK);
-    if (error instanceof ApiError) {
-      throw error;
-    } else {
-      throw new ApiError(500, ADMIN_PROFILE_ADD_FAIL);
-    }
-  } finally {
-    client.release();
   }
 };

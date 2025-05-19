@@ -1,5 +1,5 @@
 import { db, env } from '../../config/index.js';
-import { DB_TXN } from '../../constants/index.js';
+import { DB_TXN, ERROR_MESSAGES } from '../../constants/index.js';
 import {
   accountVerificationInviteTemplate,
   directAccessRequestDenied,
@@ -19,18 +19,52 @@ import {
   updateStatusAndGetDemoDetail,
   manageDirectAccessRequest,
   confirmInvite,
-  passwordSetup
+  getDemoDetail
 } from './demo-repository.js';
+
+const VERIFY_AND_REGISTER = `Invitation verification email sent successfully. Please check your inbox to complete the registration process.`;
 
 export const processBookDemo = async (payload) => {
   //todo
   //need to integrate react-calendly for calendar invite email sed for demo date time
   const status = 'DEMO_CONFIRMATION_REQUEST_SENT';
-  const affectedRow = await bookDemo({ ...payload, status });
-  if (affectedRow <= 0) {
+  const demoId = await bookDemo({ ...payload, status });
+  if (!demoId) {
     throw new ApiError(500, 'Unable to save demo request');
   }
   return { message: 'Demo request saved successfully' };
+};
+
+export const processRequestAcountSetupAccess_temp = async (payload) => {
+  const client = await db.connect();
+  try {
+    await client.query(DB_TXN.BEGIN);
+
+    const status = 'ACCOUNT_SETUP_REQUEST_RECEIVED';
+    const demoId = await bookDemo({ ...payload, status });
+    if (!demoId) {
+      throw new ApiError(500, 'Unable to request direct system access');
+    }
+    await sendDirectAccessAccountVerificationEmail(demoId, payload.email);
+    const body = {
+      demoId,
+      status: 'ACCOUNT_VERIFICATION_EMAIL_SENT'
+    };
+    const affectedRow = await manageDirectAccessRequest(body, client);
+    if (affectedRow <= 0) {
+      throw new ApiError(500, 'Verification email sent but unable to update demo status');
+    }
+
+    await client.query(DB_TXN.COMMIT);
+    return {
+      message: VERIFY_AND_REGISTER
+    };
+  } catch (error) {
+    await client.query(DB_TXN.ROLLBACK);
+    throw error;
+  } finally {
+    client.release();
+  }
 };
 
 export const processRequestAcountSetupAccess = async (payload) => {
@@ -64,7 +98,7 @@ export const sendAccountVerificationInviteEmail = async (demoId, email) => {
     env.EMAIL_VERIFICATION_TOKEN_SECRET,
     env.EMAIL_VERIFICATION_TOKEN_TIME_IN_MS
   );
-  const link = `${env.API_URL}/v1/demo-requests/confirm-invite/${token}`;
+  const link = `${env.API_URL}/v1/demo/confirm-invite/${token}`;
   const mailOptions = {
     from: env.MAIL_FROM_USER,
     to: email,
@@ -105,7 +139,7 @@ export const sendDirectAccessAccountVerificationEmail = async (demoId, email) =>
     env.EMAIL_VERIFICATION_TOKEN_SECRET,
     env.EMAIL_VERIFICATION_TOKEN_TIME_IN_MS
   );
-  const link = `${env.API_URL}/v1/demo-requests/confirm-invite/${token}`;
+  const link = `${env.API_URL}/v1/demo/confirm-invite/${token}`;
   const mailOptions = {
     from: env.MAIL_FROM_USER,
     to: email,
@@ -139,10 +173,7 @@ export const processApproveDirectAccessRequest = async (demoId) => {
     }
     await sendDirectAccessAccountVerificationEmail(demoId, email);
     await client.query(DB_TXN.COMMIT);
-    return {
-      message: `Invitation verification email sent successfully.
-      Please check your inbox to complete the registration process.`
-    };
+    return { message: VERIFY_AND_REGISTER };
   } catch (error) {
     await client.query(DB_TXN.ROLLBACK);
     if (error instanceof ApiError) {
@@ -159,6 +190,13 @@ export const processDenyDirectAccessRequest = async (demoId) => {
   const client = await db.connect();
   try {
     await client.query(DB_TXN.BEGIN);
+
+    const { email } = await getDemoDetail(demoId);
+    if (!email) {
+      throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
+    }
+    await sendDirectAccessDeniedEmail(email);
+
     const payload = {
       demoId,
       status: 'ACCOUNT_SETUP_REQUEST_DENIED'
@@ -167,7 +205,7 @@ export const processDenyDirectAccessRequest = async (demoId) => {
     if (affectedRow <= 0) {
       throw new ApiError(404, 'Demo ID not found');
     }
-    await sendDirectAccessDeniedEmail(email);
+
     await client.query(DB_TXN.COMMIT);
     return {
       message: 'Access request has been denied. Please contact support for more details.'
@@ -188,11 +226,18 @@ export const processConfirmInvite = async (demoId) => {
   const client = await db.connect();
   try {
     await client.query(DB_TXN.BEGIN);
-    const affectedRow = await confirmInvite(demoId, client);
-    if (affectedRow <= 0) {
-      throw new ApiError(404, 'Demo ID not found');
+
+    const { email } = await getDemoDetail(demoId);
+    if (!email) {
+      throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
     }
     await sendPasswordSetupEmail({ email, demoId });
+
+    const affectedRow = await confirmInvite(demoId, client);
+    if (affectedRow <= 0) {
+      throw new ApiError(500, 'Password setup email sent but unable to update demo status');
+    }
+
     await client.query(DB_TXN.COMMIT);
     return {
       message: 'Password setup email sent successfully.'
@@ -207,14 +252,4 @@ export const processConfirmInvite = async (demoId) => {
   } finally {
     client.release();
   }
-};
-
-export const processPasswordSetup = async (payload) => {
-  const { demoId, password } = payload;
-  const hashedPassword = await generateHashedPassword(password);
-  const result = await passwordSetup({ demoId, hashedPassword });
-  if (!result || !result.status) {
-    throw new ApiError(500, result.message);
-  }
-  return { message: result.message };
 };

@@ -20,10 +20,10 @@ export const directAccessRequestApproved = (link) => {
             <body>
                 <p>Hi there,</p>
                 We are pleased to inform you that your request for system access has been approved.
-                To complete your registration, please set up your account password by clicking the link below:
+                To verify your email, please click the link below:
                 
                 <br />
-                <a href=${link} class="btn">Set Up Password</a>
+                <a href=${link} class="btn">Verify Email</a>
 
                 <p>
                     This link will expire in 48 hours.
