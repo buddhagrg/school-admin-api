@@ -126,64 +126,10 @@ export const verifyAccountEmail = async (id) => {
   return rows[0];
 };
 
-export const doesEmailExist = async ({ userId, email }) => {
-  const query = `SELECT 1 FROM users WHERE email = $1 AND id = $2`;
-  const queryParams = [email, userId];
-  const { rowCount } = await processDBRequest({ query, queryParams });
-  return rowCount;
-};
-
-export const setupUserPassword = async (payload) => {
-  const { userId, email, password } = payload;
-  const query = `
-    WITH updateUser AS (
-      UPDATE users SET password = $1
-      WHERE id = $2 AND email = $3
-      RETURNING school_id
-    )
-    UPDATE schools
-    SET is_active = true
-    WHERE school_id = (SELECT school_id FROM updateUser)
-    RETURNING id
-  `;
-  const queryParams = [password, userId, email];
-  const { rowCount } = await processDBRequest({ query, queryParams });
-  return rowCount;
-};
-
-export const setupSchoolProfile = async ({ payload, client }) => {
-  const { name, email, phone, schoolId } = payload;
-  const query = `INSERT INTO schools(name, email, phone, school_id) VALUES($1, $2, $3, $4) RETURNING *`;
-  const queryParams = [name, email, phone, schoolId];
-  const { rows } = await processDBRequest({ query, queryParams, client });
+export const setupPassword = async (payload) => {
+  const { demoId, hashedPassword } = payload;
+  const query = `SELECT * FROM setup_school_and_user($1, $2)`;
+  const queryParams = [demoId, hashedPassword];
+  const { rows } = await processDBRequest({ query, queryParams });
   return rows[0];
-};
-
-export const addAdminStaff = async ({ payload, client }) => {
-  const query = `SELECT * FROM staff_add_update($1)`;
-  const queryParams = [payload];
-  const { rows } = await processDBRequest({ query, queryParams, client });
-  return rows[0];
-};
-
-export const updateSchoolUserId = async (payload) => {
-  const { lastModifieddBy, schoolId, client } = payload;
-  const query = `UPDATE schools SET last_modified_by = $1 WHERE school_id = $2`;
-  const queryParams = [lastModifieddBy, schoolId];
-  await processDBRequest({ query, queryParams, client });
-};
-
-export const addStaticSchoolRoles = async ({ schoolId, client }) => {
-  const query = `
-    INSERT INTO roles(static_role, name, is_editable, school_id)
-    VALUES
-      (2, 'Admin', false, $1),
-      (3, 'Teacher', false, $1),
-      (4, 'Student', false, $1),
-      (5, 'Parents', false, $1)
-    RETURNING *
-  `;
-  const queryParams = [schoolId];
-  const { rows } = await processDBRequest({ query, queryParams, client });
-  return rows;
 };

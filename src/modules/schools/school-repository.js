@@ -18,17 +18,6 @@ const getSchoolCommonQuery = `
   WHERE 1=1
 `;
 
-export const addSchool = async (payload) => {
-  const { name, email, phone, schoolId, userId, dateFormat, pan } = payload;
-  const query = `
-    INSERT INTO schools(name, email, phone, school_id, last_modified_by, date_format, pan)
-    VALUES($1, $2, $3, $4, $5, $6, $7)
-  `;
-  const queryParams = [name, email, phone, schoolId, userId, dateFormat, pan];
-  const { rowCount } = await processDBRequest({ query, queryParams });
-  return rowCount;
-};
-
 export const getAllSchools = async () => {
   const query = getSchoolCommonQuery;
   const { rows } = await processDBRequest({ query });
@@ -48,15 +37,15 @@ export const updateSchool = async (payload) => {
   const query = `
     UPDATE schools
     SET
-        name = $1,
-        email = $2,
-        phone = $3,
-        date_format = $4,
-        pan = $5,
-        last_modified_by = $6,
-        updated_date = $7
+      name = $1,
+      email = $2,
+      phone = $3,
+      date_format = $4,
+      pan = $5,
+      last_modified_by = $6,
+      updated_date = $7
     WHERE school_id = $8
-    `;
+  `;
   const queryParams = [name, email, phone, dateFormat, pan, userId, now, schoolId];
   const { rowCount } = await processDBRequest({ query, queryParams });
   return rowCount;

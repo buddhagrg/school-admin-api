@@ -3,12 +3,11 @@ import {
   processBookDemo,
   processUpdateDemoDetail,
   processUpdateDemoDateTime,
-  processRequestAcountSetupAccess,
   processInviteUser,
   processApproveDirectAccessRequest,
   processDenyDirectAccessRequest,
   processConfirmInvite,
-  processPasswordSetup
+  processRequestAcountSetupAccess_temp
 } from './demo-service.js';
 
 export const handleBookDemo = asyncHandler(async (req, res) => {
@@ -19,7 +18,7 @@ export const handleBookDemo = asyncHandler(async (req, res) => {
 
 export const handleRequestAcountSetupAccess = asyncHandler(async (req, res) => {
   const payload = req.body;
-  const response = await processRequestAcountSetupAccess(payload);
+  const response = await processRequestAcountSetupAccess_temp(payload);
   res.json(response);
 });
 
@@ -58,12 +57,5 @@ export const handleDenyAccessRequest = asyncHandler(async (req, res) => {
 export const handleConfirmInvite = asyncHandler(async (req, res) => {
   const { demoId } = req.user;
   const response = await processConfirmInvite(demoId);
-  res.json(response);
-});
-
-export const handlePasswordSetup = asyncHandler(async (req, res) => {
-  const { demoId } = req.user;
-  const { password } = req.body;
-  const response = await processPasswordSetup({ demoId, password });
   res.json(response);
 });

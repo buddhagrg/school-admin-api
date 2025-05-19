@@ -2,7 +2,6 @@ import asyncHandler from 'express-async-handler';
 import {
   processGetAllSchools,
   processGetSchool,
-  processAddSchool,
   processUpdateSchool,
   processDeleteSchool,
   processGetMySchool,
@@ -17,13 +16,6 @@ export const handleGetAllSchools = asyncHandler(async (req, res) => {
 export const handleGetSchool = asyncHandler(async (req, res) => {
   const { id: schoolId } = req.params;
   const response = await processGetSchool(schoolId);
-  res.json(response);
-});
-
-export const handleAddSchool = asyncHandler(async (req, res) => {
-  const payload = await req.body;
-  const { id: userId } = req.user;
-  const response = await processAddSchool({ ...payload, userId });
   res.json(response);
 });
 

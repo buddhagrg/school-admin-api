@@ -4,7 +4,6 @@ export * from './csrf-handle.js';
 export { formatMyPermission } from './format-my-permission.js';
 export { generateSixDigitRandomNumber } from './generate-six-digit-random-number.js';
 export { getAccessItemHierarchy } from './get-access-item-hierarchy.js';
-export { getSchoolId } from './get-school-id.js';
 export * from './handle-password.js';
 export * from './jwt-handle.js';
 export { sendAccountVerificationEmail } from './send-account-verification-email.js';

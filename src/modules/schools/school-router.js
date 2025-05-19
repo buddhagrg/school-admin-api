@@ -14,7 +14,6 @@ router.put(
   isUserAdminOrSuperAdmin(['SYSTEM_ADMIN', 'ADMIN']),
   schoolController.handleUpdateMySchool
 );
-router.post('', isUserAdminOrSuperAdmin(['SYSTEM_ADMIN']), schoolController.handleAddSchool);
 router.put(
   '/:id',
   isUserAdminOrSuperAdmin(['SYSTEM_ADMIN', 'ADMIN']),
