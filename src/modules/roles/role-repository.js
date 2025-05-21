@@ -72,17 +72,33 @@ export const saveRolePermissions = async (payload) => {
   return rows[0];
 };
 
+const isUserAdmin = async (schoolId, roleId) => {
+  const query = `SELECT static_role FROM roles WHERE school_id = $1 AND id = $2`;
+  const queryParams = [schoolId, roleId];
+  const { rows } = await processDBRequest({ query, queryParams });
+  return rows[0].static_role;
+};
+
 export const getRolePermissions = async (payload) => {
   const { roleId, schoolId } = payload;
-  const query = `
+  const isAdmin = (await isUserAdmin(schoolId, roleId)) === 'ADMIN';
+  const adminQuery = `
+    SELECT
+      id, name
+    FROM permissions
+    WHERE direct_allowed_role IN ('ADMIN', 'SYSTEM_ADMIN_AND_ADMIN')
+  `;
+  const generalQuery = `
     SELECT
       t2.id,
       t2.name
     FROM role_permissions t1
     JOIN permissions t2 ON t2.id = t1.permission_id
-    WHERE t1.role_id = $1 AND t1.school_id = $2
+    WHERE t1.school_id = $1 AND t1.role_id = $2
   `;
-  const queryParams = [roleId, schoolId];
+
+  const query = isAdmin ? adminQuery : generalQuery;
+  const queryParams = isAdmin ? [] : [schoolId, roleId];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
 };
