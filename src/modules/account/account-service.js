@@ -14,7 +14,7 @@ import { ACCOUNT_MESSAGES } from './account-messages.js';
 import { ERROR_MESSAGES } from '../../constants/error-messages.js';
 
 export const processPasswordChange = async (payload) => {
-  if (payload.userId === 2) {
+  if (Number(payload.userId) === 2) {
     throw new ApiError(500, ERROR_MESSAGES.DISABLED_IN_DEMO_ACCOUNT);
   }
 

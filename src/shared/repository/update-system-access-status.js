@@ -4,7 +4,7 @@ import { ApiError } from '../../utils/index.js';
 
 export const updateUserSystemAccessStatus = async (payload) => {
   const { hasSystemAccess, userId, schoolId } = payload;
-  if (userId === 2) {
+  if (Number(userId) === 2) {
     throw new ApiError(500, ERROR_MESSAGES.DISABLED_IN_DEMO_ACCOUNT);
   }
 
