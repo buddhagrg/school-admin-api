@@ -260,6 +260,10 @@ export const processResendPwdSetupLink = async (userId) => {
 };
 
 export const processRequestPwdReset = async (email) => {
+  if (email === 'admin@school-admin.xyz') {
+    throw new ApiError(ERROR_MESSAGES.DISABLED_IN_DEMO_ACCOUNT);
+  }
+
   const user = await findUserByEmail(email);
   if (!user) {
     throw new ApiError(404, AUTH_MESSAGES.INVALID_EMAIL);

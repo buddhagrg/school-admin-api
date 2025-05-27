@@ -11,8 +11,13 @@ import {
 import { changePassword } from './account-repository.js';
 import { insertRefreshToken, findUserById } from '../../shared/repository/index.js';
 import { ACCOUNT_MESSAGES } from './account-messages.js';
+import { ERROR_MESSAGES } from '../../constants/error-messages.js';
 
 export const processPasswordChange = async (payload) => {
+  if (payload.userId === 2) {
+    throw new ApiError(500, ERROR_MESSAGES.DISABLED_IN_DEMO_ACCOUNT);
+  }
+
   return withTransaction(async (client) => {
     const { userId, currentPassword, newPassword, schoolId, roleName } = payload;
 

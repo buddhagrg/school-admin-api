@@ -8,7 +8,7 @@ import {
   authenticateRefreshToken
 } from '../../middlewares/index.js';
 import * as authController from './auth-controller.js';
-import { validateRequest } from '../../utils/index.js';
+import { restrictAdminFeature, validateRequest } from '../../utils/index.js';
 import { LoginSchema } from './auth-schema.js';
 
 const router = express.Router();
@@ -24,6 +24,7 @@ router.get(
 router.post(
   '/email/resend-verification',
   authenticateAccessToken,
+  restrictAdminFeature,
   authenticateCsrfToken,
   checkApiAccess,
   authController.handleResendEmailVerification
@@ -31,6 +32,7 @@ router.post(
 router.post(
   '/password/resend-setup-link',
   authenticateAccessToken,
+  restrictAdminFeature,
   authenticateCsrfToken,
   checkApiAccess,
   authController.handleResendPwdSetupLink

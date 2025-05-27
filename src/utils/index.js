@@ -11,3 +11,4 @@ export * from './token-checks.js';
 export * from './token-services.js';
 export * from './db-utils.js';
 export * from './date-utils.js';
+export { restrictAdminFeature } from './restrict-admin-feature.js';
