@@ -9,5 +9,6 @@ router.post('', checkApiAccess, studentController.handleAddStudent);
 router.get('/:id', checkApiAccess, studentController.handleGetStudentDetail);
 router.put('/:id', checkApiAccess, studentController.handleUpdateStudent);
 router.get('/:id/fees/due', checkApiAccess, studentController.handleGetStudentDueFees);
+router.patch('/:id/status', checkApiAccess, studentController.handleUpdateStudentStatus);
 
 export { router as studentRoutes };

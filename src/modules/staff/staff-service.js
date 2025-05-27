@@ -18,6 +18,7 @@ import {
 } from './staff-repository.js';
 import { STAFF_MESSAGES } from './staff-messages.js';
 import { env } from '../../config/env.js';
+import { updateUserSystemAccessStatus } from '../../shared/repository/index.js';
 
 export const processAddStaff = async (payload) => {
   return withTransaction(async (client) => {
@@ -64,4 +65,12 @@ export const processGetStaffDetail = async (payload) => {
 export const processUpdateStaff = async (payload) => {
   const result = await assertFunctionResult(addOrUpdateStaff(payload));
   return { message: result.message };
+};
+
+export const processUpdateStaffStatus = async (payload) => {
+  await assertRowCount(
+    updateUserSystemAccessStatus(payload),
+    ERROR_MESSAGES.UPDATE_SYSTEM_ACCESS_STATUS_FAIL
+  );
+  return { message: ERROR_MESSAGES.UPDATE_SYSTEM_ACCESS_STATUS_SUCCESS };
 };

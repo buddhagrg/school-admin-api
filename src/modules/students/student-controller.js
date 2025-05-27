@@ -4,7 +4,8 @@ import {
   processGetStudentDetail,
   updateStudent,
   processGetStudentDueFees,
-  processGetStudents
+  processGetStudents,
+  processUpdateStudentStatus
 } from './student-service.js';
 
 export const handleAddStudent = asyncHandler(async (req, res) => {
@@ -50,5 +51,13 @@ export const handleGetStudents = asyncHandler(async (req, res) => {
     name,
     schoolId
   });
+  res.json(response);
+});
+
+export const handleUpdateStudentStatus = asyncHandler(async (req, res) => {
+  const { id: userId } = req.params;
+  const { hasSystemAccess } = req.body;
+  const { schoolId } = req.user;
+  const response = await processUpdateStudentStatus({ hasSystemAccess, userId, schoolId });
   res.json(response);
 });

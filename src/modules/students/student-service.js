@@ -20,6 +20,7 @@ import {
 } from './student-repository.js';
 import { STUDENT_MESSAGES } from './student-messages.js';
 import { env } from '../../config/env.js';
+import { updateUserSystemAccessStatus } from '../../shared/repository/index.js';
 
 export const addNewStudent = async (payload) => {
   return withTransaction(async (client) => {
@@ -71,4 +72,12 @@ export const updateStudent = async (payload) => {
 
 export const processGetStudentDueFees = async (payload) => {
   return handleArryResponse(() => getStudentDueFees(payload), 'dueFees');
+};
+
+export const processUpdateStudentStatus = async (payload) => {
+  await assertRowCount(
+    updateUserSystemAccessStatus(payload),
+    ERROR_MESSAGES.UPDATE_SYSTEM_ACCESS_STATUS_FAIL
+  );
+  return { message: ERROR_MESSAGES.UPDATE_SYSTEM_ACCESS_STATUS_SUCCESS };
 };
