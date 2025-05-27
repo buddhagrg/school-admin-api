@@ -1,4 +1,4 @@
-import { processDBRequest } from '../../utils/process-db-request';
+import { processDBRequest } from '../../utils/process-db-request.js';
 
 export const updateUserSystemAccessStatus = async (payload) => {
   const { hasSystemAccess, userId, schoolId } = payload;
