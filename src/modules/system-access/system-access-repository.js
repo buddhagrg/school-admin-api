@@ -46,9 +46,9 @@ export const updateRequestStatus = async (payload, client) => {
   return rowCount;
 };
 
-export const getRequestDetail = async (systemAccessRequestId) => {
+export const getRequestDetail = async (systemAccessRequestId, client) => {
   const query = `SELECT * FROM system_access_requests WHERE id = $1`;
   const queryParams = [systemAccessRequestId];
-  const { rows } = await processDBRequest({ query, queryParams });
+  const { rows } = await processDBRequest({ query, queryParams, client });
   return rows[0];
 };

@@ -7,7 +7,8 @@ import {
   generateTokenAndHash,
   assertRowCount,
   withTransaction,
-  getDateFromMilliseconds
+  getDateFromMilliseconds,
+  generateSHA256Hash
 } from '../../utils/index.js';
 import {
   getRequestDetail,
@@ -61,7 +62,7 @@ export const processVerifySystemAccess = async ({ identifier, purpose, resetKey 
       ERROR_MESSAGES.LINK_EXPIRED
     );
 
-    const { email } = await getRequestDetail(identifier);
+    const { email } = await getRequestDetail(identifier, client);
     if (!email) {
       throw new ApiError(404, SYSTEM_ACCESS_MESSAGES.EMAIL_NOT_FOUND);
     }
