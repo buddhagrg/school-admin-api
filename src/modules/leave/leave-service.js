@@ -1,6 +1,10 @@
-import { db } from '../../config/index.js';
-import { ERROR_MESSAGES, DB_TXN } from '../../constants/index.js';
-import { ApiError } from '../../utils/index.js';
+import {
+  ApiError,
+  assertRowCount,
+  handleArryResponse,
+  handleObjectResponse,
+  withTransaction
+} from '../../utils/index.js';
 import {
   addNewLeavePolicy,
   updateLeavePolicy,
@@ -22,151 +26,66 @@ import {
   insertUserAttendance,
   deleteAttendanceRecord
 } from './leave-repository.js';
-
-export const processAddNewLeavePolicy = async (payload) => {
-  const affectedRow = await addNewLeavePolicy(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to add leave policy');
-  }
-  return { message: 'Leave policy added successfully' };
-};
-
-export const processUpdateLeavePolicy = async (payload) => {
-  const affectedRow = await updateLeavePolicy(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to update policy');
-  }
-  return { message: 'Policy updated successfully' };
-};
+import { LEAVE_MESSAGES } from './leave-messages.js';
 
 export const processGetLeavePolicies = async (schoolId) => {
-  const leavePolicies = await getLeavePolicies(schoolId);
-  if (!Array.isArray(leavePolicies) || leavePolicies.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return { leavePolicies };
+  return handleArryResponse(() => getLeavePolicies(schoolId), 'leavePolicies');
 };
 
 export const processGetMyLeavePolicy = async (payload) => {
-  const leavePolicies = await getMyLeavePolicy(payload);
-  if (!Array.isArray(leavePolicies) || leavePolicies.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return { leavePolicies };
+  return handleArryResponse(() => getMyLeavePolicy(payload), 'leavePolicies');
 };
 
 export const processGetPolicyUsers = async (payload) => {
-  const users = await getPolicyUsers(payload);
-  if (!Array.isArray(users) || users.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return { users };
-};
-
-export const processLinkPolicyUsers = async (payload) => {
-  const affectedRow = await linkPolicyUsers(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(404, 'Unable to add users to policy');
-  }
-  return { message: 'Users added to policy successfully' };
-};
-
-export const processUnlinkPolicyUser = async (payload) => {
-  const affectedRow = await unlinkPolicyUser(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to delete user from policy');
-  }
-  return { message: 'User deleted from policy successfully' };
-};
-
-export const processUpdateLeavePolicyStatus = async (payload) => {
-  const affectedRow = await updateLeavePolicyStatus(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, `Unable to update policy status`);
-  }
-  return { message: `Policy status updated successfully` };
+  return handleArryResponse(() => getPolicyUsers(payload), 'users');
 };
 
 export const processGetPolicyEligibleUsers = async (schoolId) => {
-  const users = await getPolicyEligibleUsers(schoolId);
-  if (!Array.isArray(users) || users.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return { users };
-};
-
-export const processAddNewLeaveRequest = async (payload) => {
-  const affectedRow = await addNewLeaveRequest(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to add new leave request');
-  }
-  return { message: 'Leave request added successfully' };
-};
-
-export const processUpdateLeaveRequest = async (payload) => {
-  const affectedRow = await updateLeaveRequest(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to update leave request');
-  }
-  return { message: 'Leave request updated successfully' };
+  return handleArryResponse(() => getPolicyEligibleUsers(schoolId), 'users');
 };
 
 export const processGetUserLeaveHistory = async (payload) => {
-  const leaveHistory = await getUserLeaveHistory(payload);
-  if (!Array.isArray(leaveHistory) || leaveHistory.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return { leaveHistory };
+  return handleArryResponse(() => getUserLeaveHistory(payload), 'leaveHistory');
+};
+
+export const processAddNewLeavePolicy = async (payload) => {
+  await assertRowCount(addNewLeavePolicy(payload), LEAVE_MESSAGES.ADD_NEW_LEAVE_POLICY_FAIL);
+  return { message: LEAVE_MESSAGES.ADD_NEW_LEAVE_POLICY_SUCCESS };
 };
 
 export const processDeleteLeaveRequest = async (payload) => {
-  const client = await db.connect();
-  try {
-    await client.query(DB_TXN.BEGIN);
-    await deleteAttendanceRecord({
-      payload,
-      client
-    });
-    const leaveDeleteCount = await deleteLeaveRequest({ payload, client });
-    if (leaveDeleteCount <= 0) {
-      throw new ApiError(500, 'Unable to delete leave data');
-    }
-    await client.query(DB_TXN.COMMIT);
-    return { message: 'Leave deleted successfully' };
-  } catch (error) {
-    await client.query(DB_TXN.ROLLBACK);
-    throw error;
-  } finally {
-    client.release();
-  }
+  return withTransaction(async (client) => {
+    await assertRowCount(
+      await deleteAttendanceRecord(payload, client),
+      LEAVE_MESSAGES.LEAVE_DELETE_FAIL
+    );
+
+    await assertRowCount(
+      await deleteLeaveRequest(payload, client),
+      LEAVE_MESSAGES.LEAVE_DELETE_FAIL
+    );
+
+    return { message: LEAVE_MESSAGES.LEAVE_DELETE_SUCCESS };
+  }, LEAVE_MESSAGES.LEAVE_DELETE_FAIL);
 };
 
 export const processGetPendingLeaveRequests = async (schoolId) => {
-  const pendingLeaves = await getPendingLeaveRequests(schoolId);
-  if (!Array.isArray(pendingLeaves) || pendingLeaves.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return { pendingLeaves };
+  return handleArryResponse(() => getPendingLeaveRequests(schoolId), 'pendingLeaves');
 };
 
 export const processUpdateLeaveStatus = async (payload) => {
   const { reviewerUserId, requestId, status, schoolId, rejectionReason } = payload;
-  const client = await db.connect();
-  try {
-    await client.query(DB_TXN.BEGIN);
-    const data = await updatePendingLeaveRequestStatus({
-      payload: {
-        reviewerUserId,
-        requestId,
-        status,
-        schoolId,
-        rejectionReason
-      },
+
+  return withTransaction(async (client) => {
+    const data = await updatePendingLeaveRequestStatus(
+      { reviewerUserId, requestId, status, schoolId, rejectionReason },
       client
-    });
+    );
+
     if (!data) {
-      throw new ApiError(500, 'Unable to update leave status');
+      throw new ApiError(500, LEAVE_MESSAGES.LEAVE_STATUS_UPDATE_FAIL);
     }
+
     if (status === 'APPROVED') {
       const attendancePayload = {
         note: data.note,
@@ -177,41 +96,60 @@ export const processUpdateLeaveStatus = async (payload) => {
         from: data.from_date,
         to: data.to_date
       };
-      await insertUserAttendance({ payload: attendancePayload, client });
+
+      await assertRowCount(
+        insertUserAttendance(attendancePayload, client),
+        LEAVE_MESSAGES.SAVE_ATTENDANCE_FAIL
+      );
     }
-    await client.query(DB_TXN.COMMIT);
-    return { message: 'Success' };
-  } catch (error) {
-    await client.query(DB_TXN.ROLLBACK);
-    throw error;
-  } finally {
-    client.release();
-  }
+
+    return { message: LEAVE_MESSAGES.LEAVE_STATUS_UPDATE_SUCCESS };
+  }, LEAVE_MESSAGES.LEAVE_STATUS_UPDATE_FAIL);
 };
 
 export const processGetUserWithLeavePolicies = async (payload) => {
-  const result = await getUserWithLeavePolicies(payload);
-  if (!result || Object.keys(result.user).length === 0 || result.leavePolicies.length === 0) {
-    throw new ApiError(404, `${ERROR_MESSAGES.DATA_NOT_FOUND} for user id: ${payload.userId}`);
-  }
-  return result;
+  return handleObjectResponse(() => getUserWithLeavePolicies(payload));
 };
 
 export const processApplyUserLeaveRequest = async (payload) => {
-  const client = await db.connect();
-  try {
-    await client.query(DB_TXN.BEGIN);
-    const userLeaveId = await insertUserLeave({ payload, client });
-    await insertUserAttendance({
-      payload: { ...payload, userLeaveId },
-      client
-    });
-    await client.query(DB_TXN.COMMIT);
-    return { message: 'Leave request applied for user successfully' };
-  } catch (error) {
-    await client.query(DB_TXN.ROLLBACK);
-    throw new ApiError(500, 'Unable to apply leave request for user');
-  } finally {
-    client.release();
-  }
+  return withTransaction(async (client) => {
+    const userLeaveId = await insertUserLeave(payload, client);
+
+    await assertRowCount(
+      insertUserAttendance({ ...payload, userLeaveId }, client),
+      LEAVE_MESSAGES.APPLY_LEAVE_REQUEST_FAIL
+    );
+
+    return { message: LEAVE_MESSAGES.APPLY_LEAVE_REQUEST_SUCCESS };
+  }, LEAVE_MESSAGES.APPLY_LEAVE_REQUEST_FAIL);
+};
+
+export const processUpdateLeavePolicy = async (payload) => {
+  await assertRowCount(updateLeavePolicy(payload), LEAVE_MESSAGES.UPDATE_POLICY_STATUS_FAIL);
+  return { message: LEAVE_MESSAGES.UPDATE_POLICY_STATUS_SUCCESS };
+};
+
+export const processLinkPolicyUsers = async (payload) => {
+  await assertRowCount(linkPolicyUsers(payload), LEAVE_MESSAGES.LINK_POLICY_USERS_FAIL);
+  return { message: LEAVE_MESSAGES.LINK_POLICY_USERS_SUCCESS };
+};
+
+export const processUnlinkPolicyUser = async (payload) => {
+  await assertRowCount(unlinkPolicyUser(payload), LEAVE_MESSAGES.UNLINK_POLICY_USER_FAIL);
+  return { message: LEAVE_MESSAGES.UNLINK_POLICY_USER_SUCCESS };
+};
+
+export const processUpdateLeavePolicyStatus = async (payload) => {
+  await assertRowCount(updateLeavePolicyStatus(payload), LEAVE_MESSAGES.UPDATE_POLICY_STATUS_FAIL);
+  return { message: LEAVE_MESSAGES.UPDATE_POLICY_STATUS_SUCCESS };
+};
+
+export const processAddNewLeaveRequest = async (payload) => {
+  await assertRowCount(addNewLeaveRequest(payload), LEAVE_MESSAGES.ADD_LEAVE_REQUEST_FAIL);
+  return { message: LEAVE_MESSAGES.ADD_LEAVE_REQUEST_SUCCESS };
+};
+
+export const processUpdateLeaveRequest = async (payload) => {
+  await assertRowCount(updateLeaveRequest(payload), LEAVE_MESSAGES.UPDATE_LEAVE_REQUEST_FAIL);
+  return { message: LEAVE_MESSAGES.UPDATE_LEAVE_REQUEST_SUCCESS };
 };

@@ -8,7 +8,7 @@ import {
 } from './payment-service.js';
 
 export const handleDoGeneralPayment = asyncHandler(async (req, res) => {
-  const { schoolId, id: initiator } = req.user;
+  const { schoolId, userId: initiator } = req.user;
   const payload = req.body;
   const response = await processDoGeneralPayment({
     ...payload,

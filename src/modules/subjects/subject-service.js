@@ -1,35 +1,22 @@
-import { ERROR_MESSAGES } from '../../constants/index.js';
-import { ApiError } from '../../utils/index.js';
+import { assertRowCount, handleArryResponse } from '../../utils/index.js';
 import { addSubject, updateSubject, deleteSubject, getAllSubjects } from './subject-repository.js';
+import { SUBJECT_MESSAGES } from './subject-messages.js';
 
 export const processAddSubject = async (payload) => {
-  const affectedRow = await addSubject(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to add subject');
-  }
-  return { message: 'Subject added successfully' };
+  await assertRowCount(addSubject(payload), SUBJECT_MESSAGES.ADD_SUBJECT_FAIL);
+  return { message: SUBJECT_MESSAGES.ADD_SUBJECT_SUCCESS };
 };
 
 export const processUpdateSubject = async (payload) => {
-  const affectedRow = await updateSubject(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to update subject');
-  }
-  return { message: 'Subject updated successfully' };
+  await assertRowCount(updateSubject(payload), SUBJECT_MESSAGES.UPDATE_SUBJECT_FAIL);
+  return { message: SUBJECT_MESSAGES.UPDATE_SUBJECT_SUCCESS };
 };
 
 export const processDeleteSubject = async (payload) => {
-  const affectedRow = await deleteSubject(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to delete subject');
-  }
-  return { message: 'Subject deleted successfully' };
+  await assertRowCount(deleteSubject(payload), SUBJECT_MESSAGES.DELETE_SUBJECT_FAIL);
+  return { message: SUBJECT_MESSAGES.DELETE_SUBJECT_SUCCESS };
 };
 
 export const processGetAllSubjects = async (payload) => {
-  const subjects = await getAllSubjects(payload);
-  if (subjects.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return { subjects };
+  return handleArryResponse(() => getAllSubjects(payload), 'subjects');
 };

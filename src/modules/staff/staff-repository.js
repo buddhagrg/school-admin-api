@@ -93,9 +93,9 @@ export const getStaffDetailForEdit = async ({ userId, schoolId }) => {
   return rows[0];
 };
 
-export const addOrUpdateStaff = async (payload) => {
+export const addOrUpdateStaff = async (payload, client) => {
   const query = `SELECT * FROM staff_add_update($1)`;
   const queryParams = [payload];
-  const { rows } = await processDBRequest({ query, queryParams });
+  const { rows } = await processDBRequest({ query, queryParams, client });
   return rows[0];
 };

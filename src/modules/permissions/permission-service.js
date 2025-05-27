@@ -1,5 +1,10 @@
-import { ERROR_MESSAGES } from '../../constants/index.js';
-import { ApiError, getAccessItemHierarchy, formatMyPermission } from '../../utils/index.js';
+import {
+  ApiError,
+  getAccessItemHierarchy,
+  formatMyPermission,
+  assertRowCount,
+  handleArryResponse
+} from '../../utils/index.js';
 import {
   getAllPermissions,
   getMyPermissions,
@@ -7,20 +12,16 @@ import {
   updatePermission,
   deletePermission
 } from './permission-repository.js';
+import { PERMISSION_MESSAGES } from './permission-messages.js';
 
 export const processGetAllPermissions = async (staticRole) => {
-  const data = await getAllPermissions(staticRole);
-  if (!data || data.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  const permissions = getAccessItemHierarchy(data);
-  return { permissions };
+  return handleArryResponse(() => getAllPermissions(staticRole), 'permissions', getAccessItemHierarchy);
 };
 
 export const processGetMyPermissions = async (payload) => {
   const permissions = await getMyPermissions(payload);
   if (permissions.length <= 0) {
-    throw new ApiError(404, 'You do not have permission to the system.');
+    throw new ApiError(404, PERMISSION_MESSAGES.NO_MY_PERMISSION);
   }
   const { hierarchialMenus, apis, uis } = formatMyPermission(permissions);
   return {
@@ -31,25 +32,16 @@ export const processGetMyPermissions = async (payload) => {
 };
 
 export const processAddPermission = async (payload) => {
-  const affectedRow = await addPermission(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to add access control');
-  }
-  return { message: 'New access control added successfully' };
+  await assertRowCount(addPermission(payload), PERMISSION_MESSAGES.ADD_PERMISSION_FAIL);
+  return { message: PERMISSION_MESSAGES.ADD_PERMISSION_SUCCESS };
 };
 
 export const processUpdatePermission = async (payload) => {
-  const affectedRow = await updatePermission(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to update access control');
-  }
-  return { message: 'Access control updated successfully' };
+  await assertRowCount(updatePermission(payload), PERMISSION_MESSAGES.UPDATE_PERMISSION_FAIL);
+  return { message: PERMISSION_MESSAGES.UPDATE_PERMISSION_SUCCESS };
 };
 
 export const processDeletePermission = async (id) => {
-  const affectedRow = await deletePermission(id);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unabe to delete access control');
-  }
-  return { message: 'Access control deleted successfully' };
+  await assertRowCount(deletePermission(id), PERMISSION_MESSAGES.DELETE_PERMISSION_FAIL);
+  return { message: PERMISSION_MESSAGES.DELETE_PERMISSION_SUCCESS };
 };

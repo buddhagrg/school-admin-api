@@ -52,26 +52,27 @@ export const deleteLevel = async (payload) => {
   return rowCount;
 };
 
-export const reorderPeriods = async (payload) => {
+export const updatePeriodOrderToNegative = async (payload, client) => {
   const { schoolId, periods, academicLevelId } = payload;
-  const client = await db.connect();
-  try {
-    await client.query(DB_TXN.BEGIN);
-    const periodsList = periods.map(({ id }) => id).join(', ');
-    const negativeOrderQueryParams = [schoolId, academicLevelId];
-    const negativeOrderQuery = `
-      UPDATE academic_Periods
-      SET sort_order = -sort_order
-      WHERE school_id = $1
-        AND academic_level_id = $2
-        AND id IN(${periodsList});
-    `;
-    await processDBRequest({
-      query: negativeOrderQuery,
-      queryParams: negativeOrderQueryParams,
-      client
-    });
-    const query = `
+  const periodsList = periods.map(({ id }) => id).join(', ');
+  const query = [schoolId, academicLevelId];
+  const queryParams = `
+    UPDATE academic_Periods
+    SET sort_order = -sort_order
+    WHERE school_id = $1
+      AND academic_level_id = $2
+      AND id IN(${periodsList});
+  `;
+  const { rowCount } = await processDBRequest({
+    query,
+    queryParams,
+    client
+  });
+  return rowCount;
+};
+
+export const updatePeriodOrder = async (schoolId, client) => {
+  const query = `
     UPDATE academic_periods
     SET sort_order = CASE
       ${periods
@@ -85,16 +86,9 @@ export const reorderPeriods = async (payload) => {
     END
     WHERE school_id = $1 AND id IN (${periodsList})
   `;
-    const queryParams = [schoolId];
-    const { rowCount } = await processDBRequest({ query, queryParams, client });
-    await client.query(DB_TXN.COMMIT);
-    return rowCount;
-  } catch (error) {
-    await client.query(DB_TXN.ROLLBACK);
-    return 0;
-  } finally {
-    client.release();
-  }
+  const queryParams = [schoolId];
+  const { rowCount } = await processDBRequest({ query, queryParams, client });
+  return rowCount;
 };
 
 export const getPeriodsOfLevel = async (payload) => {

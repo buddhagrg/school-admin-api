@@ -1,65 +1,67 @@
-import { ERROR_MESSAGES } from '../../constants/index.js';
-import { ApiError, sendAccountVerificationEmail } from '../../utils/index.js';
+import { ERROR_MESSAGES, VERIFICATION_TOKEN_PURPOSE } from '../../constants/index.js';
+import { saveVerificationToken } from '../../shared/repository/save-verification-token.js';
+import {
+  assertFunctionResult,
+  assertRowCount,
+  generateTokenAndHash,
+  getDateFromMilliseconds,
+  handleArryResponse,
+  handleObjectResponse,
+  sendAccountVerificationEmail,
+  withTransaction
+} from '../../utils/index.js';
 import {
   addOrUpdateStaff,
   getStaffDetailForView,
   getAllStaff,
   getStaffDetailForEdit
 } from './staff-repository.js';
+import { STAFF_MESSAGES } from './staff-messages.js';
+import { env } from '../../config/env.js';
+
+export const processAddStaff = async (payload) => {
+  return withTransaction(async (client) => {
+    const result = await assertFunctionResult(addOrUpdateStaff(payload, client));
+    if (!payload.hasSystemAccess) {
+      return { message: STAFF_MESSAGES.ADD_STAFF_SUCCESS };
+    }
+
+    try {
+      const identifier = result.userId;
+      const purpose = VERIFICATION_TOKEN_PURPOSE.USER_EMAIL_VERIFICATION;
+      const { raw: resetKey, hash } = generateTokenAndHash();
+      await sendAccountVerificationEmail({
+        tokenPayload: { identifier, purpose, resetKey },
+        email: payload.email
+      });
+
+      const expiryAt = getDateFromMilliseconds(env.EMAIL_VERIFICATION_TOKEN_TIME_IN_MS);
+      await assertRowCount(
+        saveVerificationToken({ identifier, purpose, hash, expiryAt }, client),
+        ERROR_MESSAGES.VERIFICATION_TOKEN_NOT_SAVED
+      );
+
+      return { message: STAFF_MESSAGES.ADD_STAFF_AND_EMAIL_SEND_SUCCESS };
+    } catch (error) {
+      return { message: STAFF_MESSAGES.ADD_STAFF_AND_BUT_EMAIL_SEND_FAIL };
+    }
+  }, STAFF_MESSAGES.ADD_STAFF_FAIL);
+};
 
 export const processGetAllStaff = async (schoolId) => {
-  const staff = await getAllStaff(schoolId);
-  if (!staff || staff.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return { staff };
+  return handleArryResponse(() => getAllStaff(schoolId), 'staff');
 };
 
 export const processGetStaffDetail = async (payload) => {
   const { mode } = payload;
-  let staff = null;
-  if (mode === 'view') {
-    staff = await getStaffDetailForView(payload);
-  } else if (mode === 'edit') {
-    staff = await getStaffDetailForEdit(payload);
+  if (mode === 'edit') {
+    return handleObjectResponse(() => getStaffDetailForEdit(payload));
   }
-  if (!staff) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return staff;
-};
 
-export const processAddStaff = async (payload) => {
-  const ADD_STAFF_SUCCESS = 'Staff added successfully.';
-  const ADD_STAFF_AND_EMAIL_SEND_SUCCESS = 'Staff added and verification email sent successfully.';
-  const ADD_STAFF_AND_BUT_EMAIL_SEND_FAIL = 'Staff added, but failed to send verification email.';
-  try {
-    const result = await addOrUpdateStaff(payload);
-    if (!result.status) {
-      throw new ApiError(500, result.message);
-    }
-    if (!payload.hasSystemAccess) {
-      return { message: ADD_STAFF_SUCCESS };
-    }
-    try {
-      await sendAccountVerificationEmail({
-        userId: result.userId,
-        userEmail: payload.email
-      });
-      return { message: ADD_STAFF_AND_EMAIL_SEND_SUCCESS };
-    } catch (error) {
-      return { message: ADD_STAFF_AND_BUT_EMAIL_SEND_FAIL };
-    }
-  } catch (error) {
-    console.log(error);
-    throw new ApiError(500, 'Unable to add staff');
-  }
+  return handleObjectResponse(() => getStaffDetailForView(payload));
 };
 
 export const processUpdateStaff = async (payload) => {
-  const result = await addOrUpdateStaff(payload);
-  if (!result.status) {
-    throw new ApiError(500, result.message);
-  }
+  const result = await assertFunctionResult(addOrUpdateStaff(payload));
   return { message: result.message };
 };

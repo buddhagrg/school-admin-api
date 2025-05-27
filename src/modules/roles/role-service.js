@@ -1,5 +1,4 @@
-import { ERROR_MESSAGES } from '../../constants/index.js';
-import { ApiError } from '../../utils/index.js';
+import { assertFunctionResult, assertRowCount, handleArryResponse } from '../../utils/index.js';
 import {
   getRoles,
   updateRole,
@@ -9,59 +8,36 @@ import {
   getRolePermissions,
   getRoleUsers
 } from './role-repository.js';
-
-export const processAddRole = async (payload) => {
-  const affectedRow = await addRole(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to add role');
-  }
-  return { message: 'Role added successfully' };
-};
+import { ROLE_MESSAGES } from './role-messages.js';
 
 export const processGetRoles = async (schoolId) => {
-  const roles = await getRoles(schoolId);
-  if (!Array.isArray(roles) || roles.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return { roles };
+  return handleArryResponse(() => getRoles(schoolId), 'roles');
+};
+
+export const processAddRole = async (payload) => {
+  await assertRowCount(addRole(payload), ROLE_MESSAGES.ADD_ROLE_FAIL);
+  return { message: ROLE_MESSAGES.ADD_ROLE_SUCCESS };
 };
 
 export const processUpdateRole = async (payload) => {
-  const affectedRow = await updateRole(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to update role');
-  }
-  return { message: 'Role updated successfully' };
+  await assertRowCount(updateRole(payload), ROLE_MESSAGES.UPDATE_ROLE_FAIL);
+  return { message: ROLE_MESSAGES.UPDATE_ROLE_SUCCESS };
 };
 
 export const processUpdateRoleStatus = async (payload) => {
-  const affectedRow = await updateRoleStatus(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to update role status');
-  }
-  return { message: `Role status updated successfully` };
+  await assertRowCount(updateRoleStatus(payload), ROLE_MESSAGES.UPDATE_ROLE_STATUS_FAIL);
+  return { message: ROLE_MESSAGES.UPDATE_ROLE_STATUS_SUCCESS };
 };
 
 export const processSaveRolePermissions = async (payload) => {
-  const result = await saveRolePermissions(payload);
-  if (!result || !result.status) {
-    throw new ApiError(500, result.message);
-  }
+  const result = await assertFunctionResult(saveRolePermissions(payload));
   return { message: result.message };
 };
 
 export const processGetRolePermissions = async (payload) => {
-  const permissions = await getRolePermissions(payload);
-  if (permissions.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return { permissions };
+  return handleArryResponse(() => getRolePermissions(payload), 'permissions');
 };
 
 export const processGetRoleUsers = async (payload) => {
-  const users = await getRoleUsers(payload);
-  if (!Array.isArray(users) || users.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return { users };
+  return handleArryResponse(() => getRoleUsers(payload), 'users');
 };

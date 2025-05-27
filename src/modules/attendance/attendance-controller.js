@@ -30,7 +30,7 @@ export const handleGetStaffForAttendance = asyncHandler(async (req, res) => {
 
 export const handleRecordAttendance = asyncHandler(async (req, res) => {
   const payload = req.body;
-  const { schoolId, id: attendanceRecorder } = req.user;
+  const { schoolId, userId: attendanceRecorder } = req.user;
   const response = await processRecordAttendance({
     ...payload,
     schoolId,

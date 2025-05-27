@@ -12,7 +12,7 @@ export const handleContactUs = asyncHandler(async (req, res) => {
 });
 
 export const handleGetDashboardData = asyncHandler(async (req, res) => {
-  const { id: userId, staticRole, schoolId } = req.user;
+  const { userId, staticRole, schoolId } = req.user;
   const response = await processGetDashboardData({
     userId,
     staticRole,

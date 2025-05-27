@@ -1,5 +1,4 @@
-import { ERROR_MESSAGES } from '../../constants/index.js';
-import { ApiError } from '../../utils/index.js';
+import { assertRowCount, handleArryResponse } from '../../utils/index.js';
 import {
   addNewClass,
   updateClassDetailById,
@@ -7,21 +6,26 @@ import {
   addSection,
   updateSection
 } from './class-repository.js';
+import { CLASS_MESSAGES, SECTION_MESSAGES } from './class-messages.js';
 
 export const addClass = async (payload) => {
-  const affectedRow = await addNewClass(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to add new class');
-  }
-  return { message: 'Class added successfully' };
+  await assertRowCount(addNewClass(payload), CLASS_MESSAGES.ADD_CLASS_FAIL);
+  return { message: CLASS_MESSAGES.ADD_CLASS_SUCCESS };
 };
 
 export const updateClassDetail = async (payload) => {
-  const affectedRow = await updateClassDetailById(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to update class detail');
-  }
-  return { message: 'Class detail updated successfully' };
+  await assertRowCount(updateClassDetailById(payload), CLASS_MESSAGES.UPDATE_CLASS_FAIL);
+  return { message: CLASS_MESSAGES.UPDATE_CLASS_SUCCESS };
+};
+
+export const processAddSection = async (payload) => {
+  await assertRowCount(addSection(payload), SECTION_MESSAGES.ADD_SECTION_FAIL);
+  return { message: SECTION_MESSAGES.ADD_SECTION_SUCCESS };
+};
+
+export const processUpdateSection = async (payload) => {
+  await assertRowCount(updateSection(payload), SECTION_MESSAGES.UPDATE_SECTION_FAIL);
+  return { message: SECTION_MESSAGES.UPDATE_SECTION_SUCCESS };
 };
 
 const formatResponse = (data) =>
@@ -53,26 +57,5 @@ const formatResponse = (data) =>
     });
 
 export const processGetClassesWithSections = async (payload) => {
-  const data = await getClassesWithSections(payload);
-  if (!Array.isArray(data) || data.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  const classesWithSections = formatResponse(data);
-  return { classesWithSections };
-};
-
-export const processAddSection = async (payload) => {
-  const affectedRow = await addSection(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to add new section');
-  }
-  return { message: 'Section added successfully' };
-};
-
-export const processUpdateSection = async (payload) => {
-  const affectedRow = await updateSection(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to update section');
-  }
-  return { message: 'Section updated successfully' };
+  return handleArryResponse(() => getClassesWithSections(payload), 'classesWithSections', formatResponse);
 };

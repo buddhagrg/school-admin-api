@@ -1,4 +1,4 @@
-export const accountVerificationInviteTemplate = (link) => {
+export const pwdResetRequestTemplate = (link, expiry) => {
   return `
         <html>
             <head>
@@ -7,26 +7,27 @@ export const accountVerificationInviteTemplate = (link) => {
                     background-color: #04AA6D;
                     border: none;
                     color: white !important;
-                    padding: 8px;
+                    padding: 10px 15px;
                     text-align: center;
                     text-decoration: none;
                     display: inline-block;
-                    font-size: 14px;
+                    font-size: 16px;
                     cursor: pointer;
                     margin: 10px 0px;
                 }
                 </style>
             </head>
             <body>
-                <p>Hi there,</p>
-                <p>Thank you for attending our demo session. We hope you found it helpful!</p>
-                <p>If you're interested in using the system, please confirm by clicking the button below:</p>
-                <p><a href=${link} class="btn">Yes, I am Interested</a></p>
-                <p>If you have any questions, feel free to reach out.</p>
+                Hi there,
+                <p>Reset your account password clicking the button below:</p>
+                <p><a href=${link} class="btn">Reset password</a></p>
+
+                <p>This link will expire in <strong>${expiry}</strong>.</p>
+
                 <p>
-                    Best,<br />
+                    Thank you,<br />
                     The School Admin Team
-                </p>
+                </p>                
             </body>
         </html>
     `;

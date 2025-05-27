@@ -33,8 +33,8 @@ export const handleGetLeavePolicies = asyncHandler(async (req, res) => {
 });
 
 export const handleGetMyLeavePolicy = asyncHandler(async (req, res) => {
-  const { id, schoolId } = req.user;
-  const response = await processGetMyLeavePolicy({ id, schoolId });
+  const { userId, schoolId } = req.user;
+  const response = await processGetMyLeavePolicy({ userId, schoolId });
   res.json(response);
 });
 
@@ -80,7 +80,7 @@ export const handleGetPolicyEligibleUsers = asyncHandler(async (req, res) => {
 });
 
 export const handleAddNewLeaveRequest = asyncHandler(async (req, res) => {
-  const { id: userId, schoolId } = req.user;
+  const { userId, schoolId } = req.user;
   const { policyId, fromDate: from, toDate: to, note } = req.body;
   const response = await processAddNewLeaveRequest({
     policyId,
@@ -96,7 +96,7 @@ export const handleAddNewLeaveRequest = asyncHandler(async (req, res) => {
 export const handleUpdateLeaveStatus = asyncHandler(async (req, res) => {
   const status = req.url.includes('approve') ? 'APPROVED' : 'REJECTED';
   const rejectionReason = status === 'REJECTED' ? req.body.note : '';
-  const { id: reviewerUserId, schoolId } = req.user;
+  const { userId: reviewerUserId, schoolId } = req.user;
   const { id: requestId } = req.params;
   const response = await processUpdateLeaveStatus({
     reviewerUserId,
@@ -130,7 +130,7 @@ export const handleUpdateLeaveRequest = asyncHandler(async (req, res) => {
 });
 
 export const handleGetUserLeaveHistory = asyncHandler(async (req, res) => {
-  const { id: userId, schoolId } = req.user;
+  const { userId, schoolId } = req.user;
   const { policyId, statusId, fromDate, toDate } = req.query;
   const response = await processGetUserLeaveHistory({
     userId,
@@ -164,7 +164,7 @@ export const handleGetUserWithLeavePolicies = asyncHandler(async (req, res) => {
 });
 
 export const handleApplyUserLeaveRequest = asyncHandler(async (req, res) => {
-  const { schoolId, id: reviewerId } = req.user;
+  const { schoolId, userId: reviewerId } = req.user;
   const { id: userId } = req.params;
   const { policyId, from, to, note } = req.body;
   const response = await processApplyUserLeaveRequest({

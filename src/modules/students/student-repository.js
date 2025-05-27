@@ -37,10 +37,10 @@ export const getStudents = async (payload) => {
   return rows;
 };
 
-export const addOrUpdateStudent = async (payload) => {
+export const addOrUpdateStudent = async (payload, client) => {
   const query = 'SELECT * FROM student_add_update($1)';
   const queryParams = [payload];
-  const { rows } = await processDBRequest({ query, queryParams });
+  const { rows } = await processDBRequest({ query, queryParams, client });
   return rows[0];
 };
 

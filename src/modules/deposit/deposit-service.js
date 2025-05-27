@@ -1,5 +1,4 @@
-import { ERROR_MESSAGES } from '../../constants/index.js';
-import { ApiError } from '../../utils/index.js';
+import { assertRowCount, handleArryResponse, handleObjectResponse } from '../../utils/index.js';
 import {
   addDeposit,
   getDeposit,
@@ -7,43 +6,27 @@ import {
   getDeposits,
   refundDeposit
 } from './deposit-repository.js';
+import { DEPOSIT_MESSAGES } from './deposit-messages.js';
 
 export const processAddDeposit = async (payload) => {
-  const affectedRow = await addDeposit(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to add deposit');
-  }
-  return { message: 'Deposit added successfully' };
-};
-
-export const processGetDeposit = async (payload) => {
-  const deposit = await getDeposit(payload);
-  if (!deposit) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return deposit;
+  await assertRowCount(addDeposit(payload), DEPOSIT_MESSAGES.ADD_DEPOSIT_FAIL);
+  return { message: DEPOSIT_MESSAGES.ADD_DEPOSIT_SUCCESS };
 };
 
 export const processUpdateDeposit = async (payload) => {
-  const affectedRow = await updateDeposit(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to update deposit');
-  }
-  return { message: 'Deposit updated successfully' };
-};
-
-export const processGetDeposits = async (schoolId) => {
-  const deposits = await getDeposits(schoolId);
-  if (deposits.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return deposits;
+  await assertRowCount(updateDeposit(payload), DEPOSIT_MESSAGES.UPDATE_DEPOSIT_FAIL);
+  return { message: DEPOSIT_MESSAGES.UPDATE_DEPOSIT_SUCCESS };
 };
 
 export const processRefundDeposit = async (payload) => {
-  const affectedRow = await refundDeposit(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to refund deposit');
-  }
-  return { message: 'Deposit refunded successfully' };
+  await assertRowCount(refundDeposit(payload), DEPOSIT_MESSAGES.REFUND_DEPOSIT_FAIL);
+  return { message: DEPOSIT_MESSAGES.REFUND_DEPOSIT_SUCCESS };
+};
+
+export const processGetDeposit = async (payload) => {
+  return handleObjectResponse(() => getDeposit(payload));
+};
+
+export const processGetDeposits = async (schoolId) => {
+  return handleArryResponse(() => getDeposits(schoolId), 'deposits');
 };

@@ -1,5 +1,9 @@
-import { ERROR_MESSAGES } from '../../constants/index.js';
-import { ApiError } from '../../utils/index.js';
+import {
+  ApiError,
+  assertFunctionResult,
+  assertRowCount,
+  handleArryResponse
+} from '../../utils/index.js';
 import {
   generateInvoice,
   getInvoiceById,
@@ -11,12 +15,33 @@ import {
   cancelInvoice,
   removeInvoiceItem
 } from './invoice-repository.js';
+import { INVOICE_MESSAGES } from './invoice-messages.js';
+
+export const processDisputeInvoice = async (payload) => {
+  await assertRowCount(disputeInvoice(payload), INVOICE_MESSAGES.DISPUTE_INVOICE_FAIL);
+  return { message: INVOICE_MESSAGES.DISPUTE_INVOICE_SUCCESS };
+};
+
+export const processResolveDisputeInvoice = async (payload) => {
+  await assertRowCount(
+    resolveDisputeInvoice(payload),
+    INVOICE_MESSAGES.RESOLVE_INVOICE_DISPUTE_FAIL
+  );
+  return { message: INVOICE_MESSAGES.RESOLVE_INVOICE_DISPUTE_SUCCESS };
+};
+
+export const processCancelInvoice = async (payload) => {
+  await assertRowCount(cancelInvoice(payload), INVOICE_MESSAGES.CANCEL_INVOICE_FAIL);
+  return { message: INVOICE_MESSAGES.CANCEL_INVOICE_SUCCESS };
+};
+
+export const processRemoveInvoiceItem = async (payload) => {
+  await assertRowCount(removeInvoiceItem(payload), INVOICE_MESSAGES.REMOVE_INVOICE_ITEM_FAIL);
+  return { message: INVOICE_MESSAGES.REMOVE_INVOICE_ITEM_SUCCESS };
+};
 
 export const processGenerateInvoice = async (payload) => {
-  const result = await generateInvoice(payload);
-  if (!result || !result.status) {
-    throw new ApiError(500, result.message);
-  }
+  const result = await assertFunctionResult(generateInvoice(payload));
   return { message: result.message };
 };
 
@@ -29,57 +54,15 @@ export const processGetInvoiceById = async (payload) => {
 };
 
 export const processGetAllInvoices = async (payload) => {
-  const invoices = await getAllInvoices(payload);
-  if (invoices.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return { invoices };
+  return handleArryResponse(() => getAllInvoices(payload), 'invoices');
 };
 
 export const processPayInvoice = async (payload) => {
-  const result = await payInvoice(payload);
-  if (!result || !result.status) {
-    throw new ApiError(500, result.message);
-  }
+  const result = await assertFunctionResult(payInvoice(payload));
   return { message: result.message };
 };
 
 export const processRefundInvoice = async (payload) => {
-  const result = await refundInvoice(payload);
-  if (!result || !result.status) {
-    throw new ApiError(500, result.message);
-  }
+  const result = await assertFunctionResult(refundInvoice(payload));
   return { message: result.message };
-};
-
-export const processDisputeInvoice = async (payload) => {
-  const affectedRow = await disputeInvoice(payload);
-  if (affectedRow.length <= 0) {
-    throw new ApiError(500, 'Unable to dispute invoice');
-  }
-  return { message: 'Invoice disputed successfully' };
-};
-
-export const processResolveDisputeInvoice = async (payload) => {
-  const affectedRow = await resolveDisputeInvoice(payload);
-  if (affectedRow.length <= 0) {
-    throw new ApiError(500, 'Unable to resolve invoice dispute');
-  }
-  return { message: 'Invoice disput resolved successfully' };
-};
-
-export const processCancelInvoice = async (payload) => {
-  const affectedRow = await cancelInvoice(payload);
-  if (affectedRow.length <= 0) {
-    throw new ApiError(500, 'Unable to cancel invoice');
-  }
-  return { message: 'Invoice cancelled successfully' };
-};
-
-export const processRemoveInvoiceItem = async (payload) => {
-  const affectedRow = await removeInvoiceItem(payload);
-  if (affectedRow.length <= 0) {
-    throw new ApiError(500, 'Unable to remove invoice item');
-  }
-  return { message: 'Invoice item deleted successfully' };
 };

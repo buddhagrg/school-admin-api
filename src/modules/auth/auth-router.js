@@ -1,10 +1,11 @@
 import express from 'express';
 import {
-  authenticateToken,
-  csrfProtection,
-  handleEmailVerificationToken,
-  handleSetupPasswordToken,
-  checkApiAccess
+  authenticateAccessToken,
+  authenticateCsrfToken,
+  authenticateEmailVerificationToken,
+  authenticatePwdManageToken,
+  checkApiAccess,
+  authenticateRefreshToken
 } from '../../middlewares/index.js';
 import * as authController from './auth-controller.js';
 import { validateRequest } from '../../utils/index.js';
@@ -13,35 +14,29 @@ import { LoginSchema } from './auth-schema.js';
 const router = express.Router();
 
 router.post('/login', validateRequest(LoginSchema), authController.handleLogin);
-router.get('/refresh', authController.handleTokenRefresh);
+router.get('/refresh', authenticateRefreshToken, authController.handleTokenRefresh);
+router.post('/logout', authenticateAccessToken, authenticateCsrfToken, authController.handleLogout);
 router.get(
-  '/verify-email/:token',
-  handleEmailVerificationToken,
+  '/email/verify',
+  authenticateEmailVerificationToken,
   authController.handleAccountEmailVerify
 );
-router.post('/setup-password', handleSetupPasswordToken, authController.handleSetupPassword);
-
-router.post('/logout', authenticateToken, csrfProtection, authController.handleLogout);
 router.post(
-  '/resend-email-verification',
-  authenticateToken,
-  csrfProtection,
+  '/email/resend-verification',
+  authenticateAccessToken,
+  authenticateCsrfToken,
   checkApiAccess,
   authController.handleResendEmailVerification
 );
 router.post(
-  '/resend-pwd-setup-link',
-  authenticateToken,
-  csrfProtection,
+  '/password/resend-setup-link',
+  authenticateAccessToken,
+  authenticateCsrfToken,
   checkApiAccess,
   authController.handleResendPwdSetupLink
 );
-router.post(
-  '/reset-pwd',
-  authenticateToken,
-  csrfProtection,
-  checkApiAccess,
-  authController.handlePwdReset
-);
+router.post('/password/reset/request', authController.handleRequestPwdReset);
+router.patch('/password/reset/confirm', authenticatePwdManageToken, authController.handlePwdReset);
+router.post('/password/setup', authenticatePwdManageToken, authController.handleSetupPassword);
 
 export { router as authRoutes };

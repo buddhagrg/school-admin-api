@@ -2,7 +2,7 @@ import { processDBRequest } from '../../utils/process-db-request.js';
 
 const getSchoolCommonQuery = `
   SELECT
-    t1.school_id AS "schoolId",
+    t1.id,
     t1.name,
     t1.email,
     t1.phone,
@@ -25,7 +25,7 @@ export const getAllSchools = async () => {
 };
 
 export const getSchool = async (schoolId) => {
-  const query = `${getSchoolCommonQuery} AND t1.school_id = $1`;
+  const query = `${getSchoolCommonQuery} AND t1.id = $1`;
   const queryParams = [schoolId];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows[0];
@@ -44,7 +44,7 @@ export const updateSchool = async (payload) => {
       pan = $5,
       last_modified_by = $6,
       updated_date = $7
-    WHERE school_id = $8
+    WHERE id = $8
   `;
   const queryParams = [name, email, phone, dateFormat, pan, userId, now, schoolId];
   const { rowCount } = await processDBRequest({ query, queryParams });
@@ -52,14 +52,13 @@ export const updateSchool = async (payload) => {
 };
 
 export const deleteSchool = async (schoolId) => {
-  const query = `DELETE FROM schools WHERE school_id = $1`;
+  const query = `DELETE FROM schools WHERE id = $1`;
   const queryParams = [schoolId];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
 };
 
-export const getMySchool = async (payload) => {
-  const { schoolId, userId } = payload;
+export const getMySchool = async (schoolId) => {
   const query = `
     SELECT
       id,
@@ -76,8 +75,8 @@ export const getMySchool = async (payload) => {
       registration_number AS "registrationNumber",
       website_url AS "websiteUrl"
     FROM schools
-    WHERE school_id = $1 AND admin_id = $2`;
-  const queryParams = [schoolId, userId];
+    WHERE school_id = $1`;
+  const queryParams = [schoolId];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows[0];
 };
@@ -85,7 +84,6 @@ export const getMySchool = async (payload) => {
 export const updateMySchool = async (payload) => {
   const {
     schoolId,
-    userId,
     name,
     code,
     email,
@@ -101,21 +99,20 @@ export const updateMySchool = async (payload) => {
   const query = `
   UPDATE schools
   SET
-    name = $3,
-    school_code = $4,
-    email = $5,
-    phone = $6,
-    pan = $7,
-    calendar_type = $8,
-    established_year = $9,
-    motto = $10,
-    address = $11,
-    registration_number = $12,
-    website_url = $13
-  WHERE school_id = $1 AND admin_id = $2`;
+    name = $2,
+    school_code = $3,
+    email = $4,
+    phone = $5,
+    pan = $6,
+    calendar_type = $7,
+    established_year = $8,
+    motto = $9,
+    address = $10,
+    registration_number = $11,
+    website_url = $12
+  WHERE school_id = $1`;
   const queryParams = [
     schoolId,
-    userId,
     name,
     code,
     email,

@@ -1,91 +1,83 @@
-import { ERROR_MESSAGES } from '../../constants/index.js';
-import { ApiError } from '../../utils/index.js';
+import {
+  ApiError,
+  assertFunctionResult,
+  assertRowCount,
+  handleArryResponse,
+  withTransaction
+} from '../../utils/index.js';
 import {
   getAllLevels,
   updateLevel,
   addLevel,
   deleteLevel,
-  reorderPeriods,
   getPeriodsOfLevel,
   addPeriod,
   updatePeriod,
-  deletePeriod
+  deletePeriod,
+  updatePeriodOrderToNegative,
+  updatePeriodOrder
 } from './level-repository.js';
+import { LEVEL_MESSAGES, PERIOD_MESSAGES } from './level-messages.js';
 
 export const processAddLevel = async (payload) => {
-  const affectedRow = await addLevel(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unabel to add school level');
-  }
-  return { message: 'School level added successfully' };
+  await assertRowCount(addLevel(payload), LEVEL_MESSAGES.ADD_LEVEL_FAIL);
+  return { message: LEVEL_MESSAGES.ADD_LEVEL_SUCCESS };
 };
 
 export const processUpdateLevel = async (payload) => {
-  const affectedRow = await updateLevel(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unabel to updated school level');
-  }
-  return { message: 'School level updated successfully' };
+  await assertRowCount(updateLevel(payload), LEVEL_MESSAGES.UPDATE_LEVEL_FAIL);
+  return { message: LEVEL_MESSAGES.UPDATE_LEVEL_SUCCESS };
 };
+
 export const processGetLevels = async (schoolId) => {
-  const academicLevels = await getAllLevels(schoolId);
-  if (academicLevels.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return { academicLevels };
+  return handleArryResponse(() => getAllLevels(schoolId), 'academicLevels');
 };
 
 export const processDeleteLevel = async (payload) => {
-  const affectedRow = await deleteLevel(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to delete academic level');
-  }
-  return { message: 'Academic Level deleted successfully' };
+  await assertRowCount(deleteLevel(payload), LEVEL_MESSAGES.DELETE_LEVEL_FAIL);
+  return { message: LEVEL_MESSAGES.DELETE_LEVEL_SUCCESS };
 };
 
 export const processReorderPeriods = async (payload) => {
   const { periods } = payload;
+
   if (!Array.isArray(periods) || periods.length <= 0) {
-    throw new ApiError(400, 'Bad request');
+    throw new ApiError(400, PERIOD_MESSAGES.PERIODS_CANNOT_BE_EMPTY);
   }
-  const affectedRow = await reorderPeriods(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to manage period order');
-  }
-  return { message: 'Period order updated successfully' };
+
+  return withTransaction(async (client) => {
+    await assertRowCount(
+      updatePeriodOrderToNegative(payload, client),
+      PERIOD_MESSAGES.PERIOD_REORDER_FAIL
+    );
+    await assertRowCount(
+      updatePeriodOrder(payload.schoolId, client),
+      PERIOD_MESSAGES.PERIOD_REORDER_FAIL
+    );
+
+    return { message: PERIOD_MESSAGES.PERIOD_REORDER_SUCCESS };
+  }, PERIOD_MESSAGES.PERIOD_REORDER_FAIL);
 };
 
 export const processGetPeriodsOfLevel = async (payload) => {
-  const academicPeriods = await getPeriodsOfLevel(payload);
-  if (academicPeriods.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  const res = academicPeriods
-    .sort((a, b) => a.sortOrder - b.sortOrder)
-    .map(({ sortOrder, ...item }) => item);
-  return { academicPeriods: res };
+  return handleArryResponse(
+    () => getPeriodsOfLevel(payload),
+    'academicPeriods',
+    (data) => data.sort((a, b) => a.sortOrder - b.sortOrder).map(({ sortOrder, ...item }) => item)
+  );
 };
 
 export const processAddPeriod = async (payload) => {
-  const affectedRow = await addPeriod(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to add academic period');
-  }
-  return { message: 'Academic Period added successfully' };
+  await assertRowCount(addPeriod(payload), PERIOD_MESSAGES.ADD_PERIOD_FAIL);
+  return { message: PERIOD_MESSAGES.ADD_PERIOD_SUCCESS };
 };
 
 export const processUpdatePeriod = async (payload) => {
-  const affectedRow = await updatePeriod(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to update academic period');
-  }
-  return { message: 'Academic Period updated successfully' };
+  await assertRowCount(updatePeriod(payload), PERIOD_MESSAGES.UPDATE_PERIOD_FAIL);
+  return { message: PERIOD_MESSAGES.UPDATE_PERIOD_SUCCESS };
 };
 
 export const processDeletePeriod = async (payload) => {
-  const result = await deletePeriod(payload);
-  if (!result || !result.status) {
-    throw new ApiError(500, result.message);
-  }
+  const result = await assertFunctionResult(deletePeriod(payload));
   return { message: result.message };
 };

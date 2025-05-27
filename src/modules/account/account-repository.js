@@ -1,6 +1,6 @@
 import { processDBRequest } from '../../utils/process-db-request.js';
 
-export const changePassword = async ({ userId, hashedPassword, schoolId, client }) => {
+export const changePassword = async ({ userId, hashedPassword, schoolId }, client) => {
   const query = `
     UPDATE users
     SET password = $1

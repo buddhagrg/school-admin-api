@@ -1,53 +1,46 @@
 import { v4 as uuidV4 } from 'uuid';
-import { env, db } from '../../config/index.js';
 import {
   ApiError,
   generateHashedPassword,
-  generateToken,
   generateCsrfHmacHash,
-  verifyPassword
+  verifyPassword,
+  generateAccesstoken,
+  generateRefreshtoken,
+  withTransaction
 } from '../../utils/index.js';
 import { changePassword } from './account-repository.js';
 import { insertRefreshToken, findUserById } from '../../shared/repository/index.js';
-import { DB_TXN } from '../../constants/index.js';
+import { ACCOUNT_MESSAGES } from './account-messages.js';
 
 export const processPasswordChange = async (payload) => {
-  const client = await db.connect();
-  try {
+  return withTransaction(async (client) => {
     const { userId, currentPassword, newPassword, schoolId, roleName } = payload;
-    await client.query(DB_TXN.BEGIN);
+
     const user = await findUserById(userId);
     if (!user) {
-      throw new ApiError(404, 'User does not exist');
+      throw new ApiError(404, ACCOUNT_MESSAGES.USER_DOES_NOT_EXIST);
     }
+
     const { password: passwordFromDB } = user;
     await verifyPassword(passwordFromDB, currentPassword);
     const hashedPassword = await generateHashedPassword(newPassword);
-    await changePassword({ userId, hashedPassword, schoolId, client });
+    await changePassword({ userId, hashedPassword, schoolId }, client);
+
     const csrfToken = uuidV4();
     const csrfHmacHash = generateCsrfHmacHash(csrfToken);
-    const accessToken = generateToken(
-      { id: userId, role: roleName, csrf_hmac: csrfHmacHash },
-      env.JWT_ACCESS_TOKEN_SECRET,
-      env.JWT_ACCESS_TOKEN_TIME_IN_MS
-    );
-    const refreshToken = generateToken(
-      { id: userId },
-      env.JWT_REFRESH_TOKEN_SECRET,
-      env.JWT_REFRESH_TOKEN_TIME_IN_MS
-    );
-    await insertRefreshToken({ userId, refreshToken, schoolId, client });
-    await client.query(DB_TXN.COMMIT);
+    const accessToken = generateAccesstoken({
+      userId,
+      role: roleName,
+      csrf_hmac: csrfHmacHash
+    });
+    const refreshToken = generateRefreshtoken({ userId });
+    await insertRefreshToken({ userId, refreshToken, schoolId }, client);
+
     return {
       refreshToken,
       accessToken,
       csrfToken,
-      message: 'Password changed successfully'
+      message: ACCOUNT_MESSAGES.PWD_CHANGE_SUCCESS
     };
-  } catch (error) {
-    await client.query(DB_TXN.ROLLBACK);
-    throw error;
-  } finally {
-    client.release();
-  }
+  }, ACCOUNT_MESSAGES.PWD_CHANGE_FAIL);
 };

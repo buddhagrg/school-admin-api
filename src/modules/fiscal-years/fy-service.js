@@ -1,40 +1,27 @@
-import { ERROR_MESSAGES } from '../../constants/index.js';
-import { ApiError } from '../../utils/index.js';
+import { assertRowCount, handleArryResponse } from '../../utils/index.js';
 import {
   addFiscalYear,
   updateFiscalYear,
   getAllFiscalYears,
   activateFiscalYear
 } from './fy-repository.js';
+import { FISCAL_YEAR_MESSAGES } from './fy-messages.js';
 
 export const processAddFiscalYear = async (payload) => {
-  const affectedRow = await addFiscalYear(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to add fiscal year');
-  }
-  return { message: 'Fiscal year added successfully' };
+  await assertRowCount(addFiscalYear(payload), FISCAL_YEAR_MESSAGES.ADD_FY_FAIL);
+  return { message: FISCAL_YEAR_MESSAGES.ADD_FY_SUCCESS };
 };
 
 export const processUpdateFiscalYear = async (payload) => {
-  const affectedRow = await updateFiscalYear(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to update fiscal year');
-  }
-  return { message: 'Fiscal year updated successfully' };
-};
-
-export const processGetAllFiscalYears = async (schoolId) => {
-  const fiscalYears = await getAllFiscalYears(schoolId);
-  if (fiscalYears.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return { fiscalYears };
+  await assertRowCount(updateFiscalYear(payload), FISCAL_YEAR_MESSAGES.UPDATE_FY_FAIL);
+  return { message: FISCAL_YEAR_MESSAGES.UPDATE_FY_SUCCESS };
 };
 
 export const processActivateFiscalYear = async (payload) => {
-  const affectedRow = await activateFiscalYear(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to activate fiscal year');
-  }
-  return { message: 'Fiscal year activated successfully' };
+  await assertRowCount(activateFiscalYear(payload), FISCAL_YEAR_MESSAGES.ACTIVATE_FY_FAIL);
+  return { message: FISCAL_YEAR_MESSAGES.ACTIVATE_FY_SUCCESS };
+};
+
+export const processGetAllFiscalYears = async (schoolId) => {
+  return handleArryResponse(() => getAllFiscalYears(schoolId), 'fiscalYears');
 };

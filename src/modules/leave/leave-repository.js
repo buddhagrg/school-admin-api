@@ -63,7 +63,7 @@ export const getLeavePolicies = async (schoolId) => {
 };
 
 export const getMyLeavePolicy = async (payload) => {
-  const { id, schoolId } = payload;
+  const { userId, schoolId } = payload;
   const query = `
     SELECT
       t2.id,
@@ -80,7 +80,7 @@ export const getMyLeavePolicy = async (payload) => {
     WHERE t1.user_id = $1 AND t1.school_id = $2
     GROUP BY t2.id, t2.name
   `;
-  const queryParams = [id, schoolId];
+  const queryParams = [userId, schoolId];
   const { rows } = await processDBRequest({ query, queryParams });
   return rows;
 };
@@ -222,7 +222,7 @@ export const getUserLeaveHistory = async (payload) => {
   return rows;
 };
 
-export const deleteLeaveRequest = async ({ payload, client }) => {
+export const deleteLeaveRequest = async (payload, client) => {
   const { id, schoolId } = payload;
   const query = `
     DELETE FROM user_leaves
@@ -235,7 +235,7 @@ export const deleteLeaveRequest = async ({ payload, client }) => {
   return rowCount;
 };
 
-export const deleteAttendanceRecord = async ({ payload, client }) => {
+export const deleteAttendanceRecord = async (payload, client) => {
   const { schoolId, id } = payload;
   const query = `
     DELETE FROM attendances
@@ -244,7 +244,8 @@ export const deleteAttendanceRecord = async ({ payload, client }) => {
       AND attendance_date > now()::date
   `;
   const queryParams = [schoolId, id];
-  await processDBRequest({ query, queryParams, client });
+  const { rowCount } = await processDBRequest({ query, queryParams, client });
+  return rowCount;
 };
 
 export const getPendingLeaveRequests = async (schoolId) => {
@@ -258,7 +259,7 @@ export const getPendingLeaveRequests = async (schoolId) => {
   return rows;
 };
 
-export const updatePendingLeaveRequestStatus = async ({ payload, client }) => {
+export const updatePendingLeaveRequestStatus = async (payload, client) => {
   const { reviewerUserId, requestId, status, schoolId, rejectionReason } = payload;
   const now = new Date();
   const query = `
@@ -331,7 +332,7 @@ export const getUserWithLeavePolicies = async (payload) => {
   return rows[0];
 };
 
-export const insertUserLeave = async ({ payload, client }) => {
+export const insertUserLeave = async (payload, client ) => {
   const { schoolId, userId, note, from, to, reviewerId, policyId } = payload;
   const now = new Date();
   const leaveRequestStatus = 'APPROVED';
@@ -373,7 +374,7 @@ export const insertUserLeave = async ({ payload, client }) => {
   return rows[0].id;
 };
 
-export const insertUserAttendance = async ({ payload, client }) => {
+export const insertUserAttendance = async (payload, client ) => {
   const { schoolId, userId, note, from, to, reviewerId, userLeaveId } = payload;
   const attendanceStatus = 'ON_LEAVE';
   const query = `
@@ -393,5 +394,6 @@ export const insertUserAttendance = async ({ payload, client }) => {
       user_leave_id = EXCLUDED.user_leave_id;
   `;
   const queryParams = [schoolId, userId, userLeaveId, attendanceStatus, note, reviewerId, from, to];
-  await processDBRequest({ query, queryParams, client });
+  const { rowCount } = await processDBRequest({ query, queryParams, client });
+  return rowCount;
 };

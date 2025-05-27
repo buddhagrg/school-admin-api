@@ -1,5 +1,4 @@
-import { ERROR_MESSAGES } from '../../constants/index.js';
-import { ApiError } from '../../utils/index.js';
+import { assertRowCount, handleArryResponse } from '../../utils/index.js';
 import {
   doGeneralPayment,
   getAllPaymentMethods,
@@ -7,43 +6,28 @@ import {
   updatePaymentMethod,
   deactivatePaymentMethod
 } from './payment-repository.js';
-
-export const processDoGeneralPayment = async (payload) => {
-  const affectedRow = await doGeneralPayment(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to do payment');
-  }
-  return { message: 'Payment successfull' };
-};
+import { PAYMENT_MESSAGES } from './payment-messages.js';
 
 export const processGetAllPaymentMethods = async (schoolId) => {
-  const paymentMethods = await getAllPaymentMethods(schoolId);
-  if (paymentMethods.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return { paymentMethods };
+  return handleArryResponse(() => getAllPaymentMethods(schoolId), 'paymentMethods');
+};
+
+export const processDoGeneralPayment = async (payload) => {
+  await assertRowCount(doGeneralPayment(payload), PAYMENT_MESSAGES.PAYMENT_FAIL);
+  return { message: PAYMENT_MESSAGES.PAYMENT_SUCCESS };
 };
 
 export const processAddPaymentMethod = async (payload) => {
-  const affectedRow = await addPaymentMethod(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to add payment method');
-  }
-  return { message: 'Payment methods added successfully' };
+  await assertRowCount(addPaymentMethod(payload), PAYMENT_MESSAGES.ADD_METHOD_FAIL);
+  return { message: PAYMENT_MESSAGES.ADD_METHOD_SUCCESS };
 };
 
 export const processUpdatePaymentMethod = async (payload) => {
-  const affectedRow = await updatePaymentMethod(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to update payment method');
-  }
-  return { message: 'Payment methods updated successfully' };
+  await assertRowCount(updatePaymentMethod(payload), PAYMENT_MESSAGES.UPDATE_METHOD_FAIL);
+  return { message: PAYMENT_MESSAGES.UPDATE_METHOD_SUCCESS };
 };
 
 export const processDeactivatePaymentMethod = async (payload) => {
-  const affectedRow = await deactivatePaymentMethod(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to deactivate payment method');
-  }
-  return { message: 'Payment methods deactivated successfully' };
+  await assertRowCount(deactivatePaymentMethod(payload), PAYMENT_MESSAGES.DEACTIVATE_METHOD_FAIL);
+  return { message: PAYMENT_MESSAGES.DEACTIVATE_METHOD_SUCCESS };
 };

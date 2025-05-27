@@ -5,10 +5,11 @@ import {
   logout,
   getNewAccessAndCsrfToken,
   processAccountEmailVerify,
-  processSetupPassword,
   processResendEmailVerification,
   processResendPwdSetupLink,
-  processPwdReset
+  processRequestPwdReset,
+  processPwdReset,
+  processSetupPassword
 } from './auth-service.js';
 import {
   setAccessTokenCookie,
@@ -59,15 +60,8 @@ export const handleTokenRefresh = asyncHandler(async (req, res) => {
 });
 
 export const handleAccountEmailVerify = asyncHandler(async (req, res) => {
-  const { id: userId } = req.user;
-  const response = await processAccountEmailVerify(userId);
-  res.json(response);
-});
-
-export const handleSetupPassword = asyncHandler(async (req, res) => {
-  const { demoId } = req.user;
-  const { password } = req.body;
-  const response = await processSetupPassword({ demoId, password });
+  const { identifier, purpose, resetKey } = req.user;
+  const response = await processAccountEmailVerify({ identifier, purpose, resetKey });
   res.json(response);
 });
 
@@ -83,8 +77,22 @@ export const handleResendPwdSetupLink = asyncHandler(async (req, res) => {
   res.json(response);
 });
 
+export const handleRequestPwdReset = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const response = await processRequestPwdReset(email);
+  res.json(response);
+});
+
 export const handlePwdReset = asyncHandler(async (req, res) => {
-  const { userId } = req.body;
-  const response = await processPwdReset(userId);
+  const { identifier, purpose, resetKey } = req.user;
+  const { password } = req.body;
+  const response = await processPwdReset({ identifier, purpose, resetKey, password });
+  res.json(response);
+});
+
+export const handleSetupPassword = asyncHandler(async (req, res) => {
+  const { identifier, purpose, resetKey } = req.user;
+  const { password } = req.body;
+  const response = await processSetupPassword({ identifier, purpose, resetKey, password });
   res.json(response);
 });

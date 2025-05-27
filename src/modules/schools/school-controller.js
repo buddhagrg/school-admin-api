@@ -22,7 +22,7 @@ export const handleGetSchool = asyncHandler(async (req, res) => {
 export const handleUpdateSchool = asyncHandler(async (req, res) => {
   const { id: schoolId } = req.params;
   const payload = await req.body;
-  const { id: userId } = req.user;
+  const { userId } = req.user;
   const response = await processUpdateSchool({ ...payload, userId, schoolId });
   res.json(response);
 });
@@ -34,18 +34,17 @@ export const handleDeleteSchool = asyncHandler(async (req, res) => {
 });
 
 export const handleGetMySchool = asyncHandler(async (req, res) => {
-  const { schoolId, id: userId } = req.user;
-  const response = await processGetMySchool({ schoolId, userId });
+  const { schoolId } = req.user;
+  const response = await processGetMySchool(schoolId);
   res.json(response);
 });
 
 export const handleUpdateMySchool = asyncHandler(async (req, res) => {
-  const { schoolId, id: userId } = req.user;
+  const { schoolId } = req.user;
   const payload = req.body;
   const response = await processUpdateMySchool({
     ...payload,
-    schoolId,
-    userId
+    schoolId
   });
   res.json(response);
 });

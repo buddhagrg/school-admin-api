@@ -1,8 +1,9 @@
-export { authenticateToken } from './authenticate-token.js';
 export { checkApiAccess } from './check-api-access.js';
-export { csrfProtection } from './csrf-protection.js';
 export { handle404Error } from './handle-404-error.js';
-export { handleEmailVerificationToken } from './handle-email-verification-token.js';
 export { handleGlobalError } from './handle-global-error.js';
-export { handleSetupPasswordToken } from './handle-setup-password-token.js';
 export { isUserAdminOrSuperAdmin } from './is-user-admin-or-super-admin.js';
+export { authenticateAccessToken } from './authenticate-access-token.js';
+export { authenticateRefreshToken } from './authenticate-refresh-token.js';
+export { authenticateCsrfToken } from './authenticate-csrf-token.js';
+export { authenticatePwdManageToken } from './authenticate-pwd-manage-token.js';
+export { authenticateEmailVerificationToken } from './authenticate-email-verification-token.js';

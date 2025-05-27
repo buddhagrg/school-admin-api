@@ -1,27 +1,16 @@
-import { ERROR_MESSAGES } from '../../constants/index.js';
-import { ApiError } from '../../utils/index.js';
+import { assertRowCount, handleArryResponse, handleObjectResponse } from '../../utils/index.js';
 import { contactUs, getDashboardData, getAllTeachersOfSchool } from './misc.repository.js';
+import { MISC_MESSAGES } from './misc-messages.js';
 
 export const processContactUs = async (payload) => {
-  const affectedRow = await contactUs(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, "Message couldn't be sent. Please try again later.");
-  }
-  return { message: 'Your message has been sent successfully.' };
+  await assertRowCount(contactUs(payload), MISC_MESSAGES.CONTACT_FAIL);
+  return { message: MISC_MESSAGES.CONTACT_SUCCESS };
 };
 
 export const processGetDashboardData = async (payload) => {
-  const data = await getDashboardData(payload);
-  if (!data) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return data;
+  return handleObjectResponse(() => getDashboardData(payload));
 };
 
 export const processGetAllTeachersOfSchool = async (schoolId) => {
-  const teachers = await getAllTeachersOfSchool(schoolId);
-  if (!Array.isArray(teachers) || teachers.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return { teachers };
+  return handleArryResponse(() => getAllTeachersOfSchool(schoolId), 'teachers');
 };

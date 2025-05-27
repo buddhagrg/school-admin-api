@@ -66,7 +66,7 @@ export const getExamDetail = async (payload) => {
   `;
   const queryParams = [schoolId, examId, classId, sectionId, typeBySubject];
   const { rows } = await processDBRequest({ query, queryParams });
-  return rows[0];
+  return rows;
 };
 
 export const updateExamDetail = async (payload) => {

@@ -22,18 +22,28 @@ export const getAllAcademicYears = async (schoolId) => {
   return rows;
 };
 
-export const addAcademicYear = async (payload) => {
-  const { schoolId, name, startDate, endDate, academicLevelId } = payload;
+export const addAcademicYear = async (payload, client) => {
+  const { schoolId, name, startDate, endDate, academicLevelId, isActive } = payload;
   const query = `
-  INSERT INTO academic_years(school_id, academic_level_id, name, start_date, end_date)
-  VALUES($1, $2, $3, $4, $5)
+    INSERT INTO academic_years(school_id, academic_level_id, name, start_date, end_date, is_active)
+    VALUES($1, $2, $3, $4, $5, $6)
   `;
-  const queryParams = [schoolId, academicLevelId, name, startDate, endDate];
-  const { rowCount } = await processDBRequest({ query, queryParams });
+  const queryParams = [schoolId, academicLevelId, name, startDate, endDate, isActive];
+  const { rowCount } = await processDBRequest({ query, queryParams, client });
   return rowCount;
 };
 
-export const updateAcademicYear = async (payload) => {
+export const deactivateOtherAcademicYearStatus = async (schoolId, client) => {
+  const query = `
+    UPDATE academic_years
+    SET is_active = FALSE
+    WHERE school_id = $1
+  `;
+  const queryParams = [schoolId];
+  await processDBRequest({ query, queryParams, client });
+};
+
+export const updateAcademicYear = async (payload, client) => {
   const { schoolId, name, startDate, endDate, academicYearId, academicLevelId, isActive } = payload;
   const query = `
     UPDATE academic_years
@@ -53,6 +63,6 @@ export const updateAcademicYear = async (payload) => {
     schoolId,
     academicYearId
   ];
-  const { rowCount } = await processDBRequest({ query, queryParams });
+  const { rowCount } = await processDBRequest({ query, queryParams, client });
   return rowCount;
 };

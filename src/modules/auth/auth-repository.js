@@ -1,6 +1,6 @@
 import { processDBRequest } from '../../utils/process-db-request.js';
 
-export const findUserByEmail = async ({ email, client }) => {
+export const findUserByEmail = async (email) => {
   const query = `
     SELECT
       t1.id AS "userId",
@@ -20,8 +20,7 @@ export const findUserByEmail = async ({ email, client }) => {
   const queryParams = [email];
   const { rows } = await processDBRequest({
     query,
-    queryParams,
-    client
+    queryParams
   });
   return rows[0];
 };
@@ -62,7 +61,7 @@ export const updateUserRefreshToken = async (
   await processDBRequest({ query, queryParams });
 };
 
-export const getMenusByRoleId = async ({ staticRole, roleId, schoolId, client }) => {
+export const getMenusByRoleId = async ({ staticRole, roleId, schoolId }, client) => {
   const directAllowedRole =
     staticRole === 'ADMIN'
       ? ['ADMIN', 'SYSTEM_ADMIN_AND_ADMIN']
@@ -88,7 +87,7 @@ export const getMenusByRoleId = async ({ staticRole, roleId, schoolId, client })
   return rows;
 };
 
-export const saveUserLastLoginDetail = async ({ userId, client, schoolId, recentDeviceInfo }) => {
+export const saveUserLastLoginDetail = async ({ userId, schoolId, recentDeviceInfo }, client) => {
   const now = new Date();
   const query = `
     UPDATE users
@@ -98,38 +97,42 @@ export const saveUserLastLoginDetail = async ({ userId, client, schoolId, recent
     WHERE school_id = $3 AND id = $4
   `;
   const queryParams = [now, recentDeviceInfo, schoolId, userId];
-  await processDBRequest({
-    query,
-    queryParams,
-    client
-  });
+  await processDBRequest({ query, queryParams, client });
 };
 
-export const deleteOldRefreshTokenByUserId = async ({ userId, client }) => {
+export const deleteOldRefreshTokenByUserId = async (userId, client) => {
   const query = `DELETE FROM user_refresh_tokens WHERE user_id = $1`;
   const queryParams = [userId];
-  await processDBRequest({
-    query,
-    queryParams,
-    client
-  });
+  await processDBRequest({ query, queryParams, client });
 };
 
-export const verifyAccountEmail = async (id) => {
+export const verifyAccountEmail = async (id, client) => {
   const query = `
     UPDATE users SET is_email_verified = true
     WHERE id = $1
     RETURNING *
   `;
   const queryParams = [id];
-  const { rows } = await processDBRequest({ query, queryParams });
+  const { rows } = await processDBRequest({ query, queryParams, client });
   return rows[0];
 };
 
-export const setupPassword = async (payload) => {
-  const { demoId, hashedPassword } = payload;
+export const updatePassword = async (payload, client) => {
+  const { email, hashedPassword } = payload;
+  const query = `
+    UPDATE users
+    SET password = $1
+    WHERE email = $2
+  `;
+  const queryParams = [hashedPassword, email];
+  const { rowCount } = await processDBRequest({ query, queryParams, client });
+  return rowCount;
+};
+
+export const setupPasswordForAccessRequest = async (payload, client) => {
+  const { systemAccessRequestId, hashedPassword } = payload;
   const query = `SELECT * FROM setup_school_and_user($1, $2)`;
-  const queryParams = [demoId, hashedPassword];
-  const { rows } = await processDBRequest({ query, queryParams });
+  const queryParams = [systemAccessRequestId, hashedPassword];
+  const { rows } = await processDBRequest({ query, queryParams, client });
   return rows[0];
 };

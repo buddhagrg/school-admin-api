@@ -1,31 +1,21 @@
-import { ERROR_MESSAGES } from '../../constants/index.js';
-import { ApiError } from '../../utils/index.js';
+import { assertRowCount, handleArryResponse } from '../../utils/index.js';
 import {
   getAllClassTeachers,
   assignClassTeacher,
   updateClassTeacher
 } from './class-teachers.repository.js';
-
-export const processGetAllClassTeachers = async (schoolId) => {
-  const classTeachers = await getAllClassTeachers(schoolId);
-  if (!Array.isArray(classTeachers) || classTeachers.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return { classTeachers };
-};
+import { CLASS_TEACHER_MESSAGES } from './class-teacher-messages.js';
 
 export const processAssignClassTeacher = async (payload) => {
-  const affectedRow = await assignClassTeacher(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(404, 'Unable to assign class teacher');
-  }
-  return { message: 'Class Teacher assigned successfully' };
+  await assertRowCount(assignClassTeacher(payload), CLASS_TEACHER_MESSAGES.ASSIGN_FAIL);
+  return { message: CLASS_TEACHER_MESSAGES.ASSIGN_SUCCESS };
 };
 
 export const processUpdateClassTeacher = async (payload) => {
-  const affectedRow = await updateClassTeacher(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(404, 'Unable to update class teacher');
-  }
-  return { message: 'Class Teacher updated successfully' };
+  await assertRowCount(updateClassTeacher(payload), CLASS_TEACHER_MESSAGES.UPDATE_FAIL);
+  return { message: CLASS_TEACHER_MESSAGES.UPDATE_SUCCESS };
+};
+
+export const processGetAllClassTeachers = async (schoolId) => {
+  return handleArryResponse(() => getAllClassTeachers(schoolId), 'classTeachers');
 };

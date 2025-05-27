@@ -37,7 +37,7 @@ export const handleGetAllInvoices = asyncHandler(async (req, res) => {
 });
 
 export const handlePayInvoice = asyncHandler(async (req, res) => {
-  const { schoolId, id: initiator } = req.user;
+  const { schoolId, userId: initiator } = req.user;
   const { id: invoiceId } = req.params;
   const { amount: paymentAmount, method: paymentMethod } = req.body;
   const response = await processPayInvoice({
@@ -51,7 +51,7 @@ export const handlePayInvoice = asyncHandler(async (req, res) => {
 });
 
 export const handleRefundInvoice = asyncHandler(async (req, res) => {
-  const { schoolId, id: initiator } = req.user;
+  const { schoolId, userId: initiator } = req.user;
   const { id: invoiceId } = req.params;
   const { amount: refundAmount, method: refundMethod } = req.body;
   const response = await processRefundInvoice({

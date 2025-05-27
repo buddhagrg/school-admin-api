@@ -16,7 +16,7 @@ export const handleGetNoticeRecipients = asyncHandler(async (req, res) => {
 });
 
 export const handleGetNotices = asyncHandler(async (req, res) => {
-  const { id: userId } = req.user;
+  const { userId } = req.user;
   const { statusId, roleId, fromDate, toDate } = req.query;
   const response = await processGetNotices({
     userId,
@@ -29,7 +29,7 @@ export const handleGetNotices = asyncHandler(async (req, res) => {
 });
 
 export const handleAddNotice = asyncHandler(async (req, res) => {
-  const { id: authorId, schoolId } = req.user;
+  const { userId: authorId, schoolId } = req.user;
   const payload = req.body;
   const response = await processAddNotice({ ...payload, authorId, schoolId });
   res.json(response);
@@ -44,7 +44,7 @@ export const handleUpdateNotice = asyncHandler(async (req, res) => {
 });
 
 export const handleReviewNoticeStatus = asyncHandler(async (req, res) => {
-  const { id: reviewerId, schoolId } = req.user;
+  const { userId: reviewerId, schoolId } = req.user;
   const { id } = req.params;
   const { status } = req.body;
   const payload = {

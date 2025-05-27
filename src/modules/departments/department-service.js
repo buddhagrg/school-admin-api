@@ -1,40 +1,27 @@
-import { ERROR_MESSAGES } from '../../constants/index.js';
-import { ApiError } from '../../utils/index.js';
+import { assertRowCount, handleArryResponse } from '../../utils/index.js';
 import {
   getAllDepartments,
   addNewDepartment,
   updateDepartmentById,
   deleteDepartmentById
 } from './department-repository.js';
-
-export const processGetAllDepartments = async (schoolId) => {
-  const departments = await getAllDepartments(schoolId);
-  if (departments.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return { departments };
-};
+import { DEPARTMENT_MESSAGES } from './department-messages.js';
 
 export const processAddNewDepartment = async (payload) => {
-  const affectedRow = await addNewDepartment(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to add new department');
-  }
-  return { message: 'Department added successfully' };
+  await assertRowCount(addNewDepartment(payload), DEPARTMENT_MESSAGES.ADD_DEPARTMENT_FAIL);
+  return { message: DEPARTMENT_MESSAGES.ADD_DEPARTMENT_SUCCESS };
 };
 
 export const processUpdateDepartmentById = async (payload) => {
-  const affectedRow = await updateDepartmentById(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to update department detail');
-  }
-  return { message: 'Department updated successfully' };
+  await assertRowCount(updateDepartmentById(payload), DEPARTMENT_MESSAGES.UPDATE_DEPARTMENT_FAIL);
+  return { message: DEPARTMENT_MESSAGES.UPDATE_DEPARTMENT_SUCCESS };
 };
 
 export const processDeleteDepartmentById = async (payload) => {
-  const affectedRow = await deleteDepartmentById(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to delete department detail');
-  }
-  return { message: 'Department deleted successfully' };
+  await assertRowCount(deleteDepartmentById(payload), DEPARTMENT_MESSAGES.DELETE_DEPARTMENT_FAIL);
+  return { message: DEPARTMENT_MESSAGES.DELETE_DEPARTMENT_SUCCESS };
+};
+
+export const processGetAllDepartments = async (schoolId) => {
+  return handleArryResponse(() => getAllDepartments(schoolId), 'departments');
 };

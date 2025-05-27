@@ -1,14 +1,20 @@
 import { v4 as uuidV4 } from 'uuid';
 import {
   ApiError,
-  generateToken,
   generateCsrfHmacHash,
-  verifyToken,
   sendPasswordSetupEmail,
   verifyPassword,
   generateHashedPassword,
   sendAccountVerificationEmail,
-  formatMyPermission
+  formatMyPermission,
+  generateAccesstoken,
+  generateRefreshtoken,
+  generateTokenAndHash,
+  assertRowCount,
+  generateSHA256Hash,
+  assertFunctionResult,
+  withTransaction,
+  getDateFromMilliseconds
 } from '../../utils/index.js';
 import {
   findUserByEmail,
@@ -18,25 +24,25 @@ import {
   saveUserLastLoginDetail,
   deleteOldRefreshTokenByUserId,
   verifyAccountEmail,
-  setupPassword
+  updatePassword,
+  setupPasswordForAccessRequest
 } from './auth-repository.js';
-import { env, db } from '../../config/index.js';
-import { findUserById, insertRefreshToken } from '../../shared/repository/index.js';
-import { DB_TXN } from '../../constants/index.js';
-
-const PWD_SETUP_EMAIL_SEND_SUCCESS = 'Password setup link emailed successfully.';
-const USER_DOES_NOT_EXIST = 'User does not exist';
-const USER_HAVE_NO_SYSTEM_ACCESS = 'User do not have access to the system.';
-const EMAIL_NOT_VERIFIED = 'Email not verified yet. Please verify your email first.';
-const UNABLE_TO_VERIFY_EMAIL = 'Unable to verify email';
+import {
+  deleteVerificationToken,
+  findUserById,
+  insertRefreshToken,
+  saveVerificationToken
+} from '../../shared/repository/index.js';
+import { ERROR_MESSAGES, VERIFICATION_TOKEN_PURPOSE } from '../../constants/index.js';
+import { sendPasswordResetRequestEmail } from './utils/send-password-reset-request-email.js';
+import { AUTH_MESSAGES } from './utils/auth-messages.js';
+import { env } from '../../config/env.js';
 
 export const login = async (email, passwordFromUser, recentDeviceInfo) => {
-  const client = await db.connect();
-  try {
-    await client.query(DB_TXN.BEGIN);
-    const user = await findUserByEmail({ email, client });
+  return withTransaction(async (client) => {
+    const user = await findUserByEmail(email);
     if (!user) {
-      throw new ApiError(400, 'Invalid credential');
+      throw new ApiError(400, AUTH_MESSAGES.INVALID_CREDENTIAL);
     }
     const {
       userId,
@@ -46,51 +52,51 @@ export const login = async (email, passwordFromUser, recentDeviceInfo) => {
       hasSystemAccess,
       schoolId,
       roleName,
-      staticRole,
-      isSchoolActive
+      staticRole
     } = user;
-    if (!isSchoolActive) {
-      throw new ApiError(403, 'Your school account is disabled.');
-    }
     if (!hasSystemAccess) {
-      throw new ApiError(403, 'You do not have access to the system');
+      throw new ApiError(403, AUTH_MESSAGES.NO_SYSTEM_ACCESS);
     }
+
     await verifyPassword(passwordFromDB, passwordFromUser);
+    await deleteOldRefreshTokenByUserId(userId, client);
+
     const csrfToken = uuidV4();
     const csrfHmacHash = generateCsrfHmacHash(csrfToken);
-    const accessToken = generateToken(
-      {
-        id: userId,
-        role: roleName,
-        roleId: roleId,
-        csrf_hmac: csrfHmacHash,
-        schoolId,
-        staticRole
-      },
-      env.JWT_ACCESS_TOKEN_SECRET,
-      env.JWT_ACCESS_TOKEN_TIME_IN_MS
-    );
-    const refreshToken = generateToken(
-      { id: userId, role: roleName, roleId: roleId, staticRole },
-      env.JWT_REFRESH_TOKEN_SECRET,
-      env.JWT_REFRESH_TOKEN_TIME_IN_MS
-    );
-    await deleteOldRefreshTokenByUserId({ userId, client });
-    await insertRefreshToken({ userId, refreshToken, schoolId, client });
-    await saveUserLastLoginDetail({
+    const accessToken = generateAccesstoken({
       userId,
-      client,
+      role: roleName,
+      roleId: roleId,
+      csrf_hmac: csrfHmacHash,
       schoolId,
-      recentDeviceInfo
+      staticRole
     });
-    const permissions = await getMenusByRoleId({
-      staticRole,
-      roleId,
-      schoolId,
+    const refreshToken = generateRefreshtoken({
+      userId,
+      role: roleName,
+      roleId: roleId,
+      staticRole
+    });
+    await insertRefreshToken({ userId, refreshToken, schoolId }, client);
+
+    await saveUserLastLoginDetail(
+      {
+        userId,
+        schoolId,
+        recentDeviceInfo
+      },
       client
-    });
+    );
+
+    const permissions = await getMenusByRoleId(
+      {
+        staticRole,
+        roleId,
+        schoolId
+      },
+      client
+    );
     const { hierarchialMenus, apis, uis } = formatMyPermission(permissions);
-    await client.query(DB_TXN.COMMIT);
     const accountBasic = {
       id: userId,
       roleId: staticRole,
@@ -102,144 +108,120 @@ export const login = async (email, passwordFromUser, recentDeviceInfo) => {
       apis,
       appBase: staticRole === 'SYSTEM_ADMIN' ? '/admin' : ''
     };
+
     return { accessToken, refreshToken, csrfToken, accountBasic };
-  } catch (error) {
-    await client.query(DB_TXN.ROLLBACK);
-    throw error;
-  } finally {
-    client.release();
-  }
+  }, AUTH_MESSAGES.LOGIN_FAIL);
 };
 
 export const logout = async (refreshToken) => {
-  const affectedRow = await invalidateRefreshToken(refreshToken);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to logout');
-  }
-  return { message: 'Logged out successfully' };
+  await assertRowCount(invalidateRefreshToken(refreshToken), AUTH_MESSAGES.LOGOUT_FAIL);
+  return { message: AUTH_MESSAGES.LOGOUT_SUCCESS };
 };
 
 export const getNewAccessAndCsrfToken = async (refreshToken) => {
-  const client = await db.connect();
-  try {
-    await client.query(DB_TXN.BEGIN);
-    const decodedToken = verifyToken(refreshToken, env.JWT_REFRESH_TOKEN_SECRET);
-    if (!decodedToken || !decodedToken.id) {
-      throw new ApiError(401, 'Invalid refresh token');
-    }
-    const user = await findUserByRefreshToken(refreshToken);
-    if (!user) {
-      throw new ApiError(401, 'Token does not exist');
-    }
-    const {
-      id: userId,
-      role_id: roleId,
-      has_system_access,
-      school_id: schoolId,
-      staticRole,
-      roleName
-    } = user;
+  const user = await findUserByRefreshToken(refreshToken);
+  if (!user) {
+    throw new ApiError(401, AUTH_MESSAGES.TOKEN_NOT_FOUND);
+  }
+
+  const {
+    id: userId,
+    role_id: roleId,
+    has_system_access,
+    school_id: schoolId,
+    staticRole,
+    roleName
+  } = user;
+  if (!has_system_access) {
+    throw new ApiError(401, AUTH_MESSAGES.USER_HAVE_NO_SYSTEM_ACCESS);
+  }
+
+  const csrfToken = uuidV4();
+  const csrfHmacHash = generateCsrfHmacHash(csrfToken);
+  const accessToken = generateAccesstoken({
+    userId,
+    role: roleName,
+    roleId,
+    csrf_hmac: csrfHmacHash,
+    schoolId,
+    staticRole
+  });
+
+  return {
+    accessToken,
+    csrfToken,
+    message: AUTH_MESSAGES.TOKEN_REFRESH_SUCCESS
+  };
+};
+
+export const processAccountEmailVerify = async ({ identifier, purpose, resetKey }) => {
+  return withTransaction(async (client) => {
+    const { has_system_access } = await findUserById(identifier);
     if (!has_system_access) {
-      throw new ApiError(401, USER_HAVE_NO_SYSTEM_ACCESS);
+      throw new ApiError(400, AUTH_MESSAGES.USER_HAVE_NO_SYSTEM_ACCESS);
     }
-    const csrfToken = uuidV4();
-    const csrfHmacHash = generateCsrfHmacHash(csrfToken);
-    const accessToken = generateToken(
-      {
-        id: userId,
-        role: roleName,
-        roleId,
-        csrf_hmac: csrfHmacHash,
-        schoolId,
-        staticRole
-      },
-      env.JWT_ACCESS_TOKEN_SECRET,
-      env.JWT_ACCESS_TOKEN_TIME_IN_MS
+
+    //check and delete verification token
+    const hashKey = generateSHA256Hash(resetKey);
+    await assertRowCount(
+      deleteVerificationToken({ identifier, purpose, hashKey }, client),
+      ERROR_MESSAGES.LINK_EXPIRED
     );
-    await client.query(DB_TXN.COMMIT);
-    return {
-      accessToken,
-      csrfToken,
-      message: 'Refresh-token and csrf-token generated successfully'
-    };
-  } catch (error) {
-    await client.query(DB_TXN.ROLLBACK);
-    throw error;
-  } finally {
-    client.release();
-  }
-};
 
-export const processAccountEmailVerify = async (userId) => {
-  const EMAIL_VERIFIED_AND_EMAIL_SEND_SUCCESS =
-    'Email verified successfully. Please setup password using link provided in the email.';
-  const EMAIL_VERIFIED_BUT_EMAIL_SEND_FAIL =
-    'Email verified successfully but fail to send password setup email.';
-  try {
-    const { has_system_access, is_email_verified } = await findUserById(userId);
-    if (!has_system_access) {
-      throw new ApiError(400, USER_HAVE_NO_SYSTEM_ACCESS);
-    }
-    if (is_email_verified) {
-      throw new ApiError(400, 'Email already verified');
-    }
-    const user = await verifyAccountEmail(userId);
+    //set email as verified
+    const user = await verifyAccountEmail(identifier, client);
     if (!user) {
-      throw new ApiError(500, UNABLE_TO_VERIFY_EMAIL);
+      throw new ApiError(500, AUTH_MESSAGES.UNABLE_TO_VERIFY_EMAIL);
     }
-    try {
-      await sendPasswordSetupEmail({ userId, userEmail: user.email });
-      return { message: EMAIL_VERIFIED_AND_EMAIL_SEND_SUCCESS };
-    } catch (error) {
-      return { message: EMAIL_VERIFIED_BUT_EMAIL_SEND_FAIL };
-    }
-  } catch (error) {
-    if (error instanceof ApiError) {
-      throw error;
-    } else {
-      throw new ApiError(500, UNABLE_TO_VERIFY_EMAIL);
-    }
-  }
-};
 
-export const processSetupPassword = async (payload) => {
-  const { demoId, password } = payload;
-  const hashedPassword = await generateHashedPassword(password);
-  const result = await setupPassword({ demoId, hashedPassword });
-  console.log(result)
-  if (!result || !result.status) {
-    throw new ApiError(500, result.message);
-  }
-  return { message: result.message };
+    try {
+      const { raw, hash } = generateTokenAndHash();
+      const newPurpose = VERIFICATION_TOKEN_PURPOSE.USER_PWD_SETUP;
+      await sendPasswordSetupEmail({
+        tokenPayload: { identifier, purpose: newPurpose, resetKey: raw },
+        email: user.email
+      });
+
+      //save verification token
+      const expiryAt = getDateFromMilliseconds(env.PASSWORD_MANAGE_TOKEN_TIME_IN_MS);
+      await assertRowCount(
+        saveVerificationToken({ identifier, purpose: newPurpose, hash, expiryAt }, client),
+        ERROR_MESSAGES.VERIFICATION_TOKEN_NOT_SAVED
+      );
+
+      return { message: AUTH_MESSAGES.EMAIL_VERIFIED_AND_EMAIL_SEND_SUCCESS };
+    } catch (error) {
+      return { message: AUTH_MESSAGES.EMAIL_VERIFIED_BUT_EMAIL_SEND_FAIL };
+    }
+  }, AUTH_MESSAGES.UNABLE_TO_VERIFY_EMAIL);
 };
 
 export const processResendEmailVerification = async (userId) => {
   try {
     const user = await findUserById(userId);
     if (!user) {
-      throw new ApiError(404, USER_DOES_NOT_EXIST);
+      throw new ApiError(404, AUTH_MESSAGES.USER_DOES_NOT_EXIST);
     }
-    const { email, is_email_verified, has_system_access } = user;
+    const { email, has_system_access } = user;
     if (!has_system_access) {
-      throw new ApiError(400, USER_HAVE_NO_SYSTEM_ACCESS);
+      throw new ApiError(400, AUTH_MESSAGES.USER_HAVE_NO_SYSTEM_ACCESS);
     }
-    if (is_email_verified) {
-      throw new ApiError(
-        400,
-        'Email already verified. Please setup your account password using the link sent in the email.'
-      );
-    }
-    await sendAccountVerificationEmail({ userId, userEmail: email });
-    return {
-      message:
-        'Verification email sent successfully. Please setup password using link provided in the email.'
-    };
+
+    const identifier = userId;
+    const purpose = VERIFICATION_TOKEN_PURPOSE.USER_EMAIL_VERIFICATION_RESEND;
+    const { raw: resetKey, hash } = generateTokenAndHash();
+    await sendAccountVerificationEmail({ tokenPayload: { identifier, purpose, resetKey }, email });
+
+    //save verification token
+    const expiryAt = getDateFromMilliseconds(env.EMAIL_VERIFICATION_TOKEN_TIME_IN_MS);
+    await assertRowCount(
+      saveVerificationToken({ identifier, purpose, hash, expiryAt }),
+      ERROR_MESSAGES.VERIFICATION_TOKEN_NOT_SAVED
+    );
+
+    return { message: AUTH_MESSAGES.RESEND_EMAIL_SUCCESS };
   } catch (error) {
-    if (error instanceof ApiError) {
-      throw error;
-    } else {
-      throw new ApiError(500, 'Unable to send verification email');
-    }
+    throw error instanceof ApiError ? error : new ApiError(500, AUTH_MESSAGES.RESEND_EMAIL_FAIL);
   }
 };
 
@@ -247,46 +229,108 @@ export const processResendPwdSetupLink = async (userId) => {
   try {
     const user = await findUserById(userId);
     if (!user) {
-      throw new ApiError(404, USER_DOES_NOT_EXIST);
+      throw new ApiError(404, AUTH_MESSAGES.USER_DOES_NOT_EXIST);
     }
-    const { email, has_system_access, is_email_verified } = user;
+    const { email, has_system_access } = user;
     if (!has_system_access) {
-      throw new ApiError(400, USER_HAVE_NO_SYSTEM_ACCESS);
+      throw new ApiError(400, AUTH_MESSAGES.USER_HAVE_NO_SYSTEM_ACCESS);
     }
-    if (!is_email_verified) {
-      throw new ApiError(400, EMAIL_NOT_VERIFIED);
-    }
-    await sendPasswordSetupEmail({ userId, userEmail: email });
-    return { message: PWD_SETUP_EMAIL_SEND_SUCCESS };
+
+    const identifier = userId;
+    const purpose = VERIFICATION_TOKEN_PURPOSE.USER_PWD_SETUP_RESEND;
+    const { raw: resetKey, hash } = generateTokenAndHash();
+    await sendPasswordSetupEmail({
+      tokenPayload: { identifier, purpose, resetKey },
+      email
+    });
+
+    //save verification token
+    const expiryAt = getDateFromMilliseconds(env.PASSWORD_MANAGE_TOKEN_TIME_IN_MS);
+    await assertRowCount(
+      saveVerificationToken({ identifier, purpose, hash, expiryAt }),
+      ERROR_MESSAGES.VERIFICATION_TOKEN_NOT_SAVED
+    );
+
+    return { message: AUTH_MESSAGES.PWD_SETUP_EMAIL_SEND_SUCCESS };
   } catch (error) {
-    if (error instanceof ApiError) {
-      throw error;
-    } else {
-      throw new ApiError(500, 'Unable to send password setup email');
-    }
+    throw error instanceof ApiError
+      ? error
+      : new ApiError(500, AUTH_MESSAGES.RESEND_PWD_SETUP_FAIL);
   }
 };
 
-export const processPwdReset = async (userId) => {
-  try {
-    const user = await findUserById(userId);
-    if (!user) {
-      throw new ApiError(404, USER_DOES_NOT_EXIST);
-    }
-    const { email, is_email_verified, has_system_access } = user;
-    if (!has_system_access) {
-      throw new ApiError(400, USER_HAVE_NO_SYSTEM_ACCESS);
-    }
-    if (!is_email_verified) {
-      throw new ApiError(400, EMAIL_NOT_VERIFIED);
-    }
-    await sendPasswordSetupEmail({ userId, userEmail: email });
-    return { message: PWD_SETUP_EMAIL_SEND_SUCCESS };
-  } catch (error) {
-    if (error instanceof ApiError) {
-      throw error;
-    } else {
-      throw new ApiError(500, 'Unable to reset password');
-    }
+export const processRequestPwdReset = async (email) => {
+  const user = await findUserByEmail(email);
+  if (!user) {
+    throw new ApiError(404, AUTH_MESSAGES.INVALID_EMAIL);
   }
+
+  const identifier = email;
+  const purpose = VERIFICATION_TOKEN_PURPOSE.USER_PWD_RESET;
+  const { raw: resetKey, hash } = generateTokenAndHash();
+  await sendPasswordResetRequestEmail({
+    tokenPayload: { identifier, purpose, resetKey },
+    email
+  });
+
+  //save verification token
+  const expiryAt = getDateFromMilliseconds(env.PASSWORD_MANAGE_TOKEN_TIME_IN_MS);
+  await assertRowCount(
+    saveVerificationToken({ identifier, purpose, hash, expiryAt }),
+    ERROR_MESSAGES.VERIFICATION_TOKEN_NOT_SAVED
+  );
+
+  return { message: AUTH_MESSAGES.EMAIL_SEND_SUCCESS };
+};
+
+export const processPwdReset = async (payload) => {
+  const { identifier, purpose, resetKey, password } = payload;
+  return withTransaction(async (client) => {
+    //check and delete verification token
+    const hashKey = generateSHA256Hash(resetKey);
+    await assertRowCount(
+      deleteVerificationToken({ identifier, purpose, hashKey }, client),
+      ERROR_MESSAGES.LINK_EXPIRED
+    );
+
+    //update pwd in db
+    const hashedPassword = await generateHashedPassword(password);
+    await assertRowCount(
+      updatePassword({ email: identifier, hashedPassword }, client),
+      AUTH_MESSAGES.RESET_PWD_FAIL
+    );
+
+    return { message: AUTH_MESSAGES.RESET_PWD_SUCCESS };
+  }, AUTH_MESSAGES.RESET_PWD_FAIL);
+};
+
+export const processSetupPassword = async (payload) => {
+  const { identifier, purpose, resetKey, password } = payload;
+  return withTransaction(async (client) => {
+    //check and delete verification token
+    const hashKey = generateSHA256Hash(resetKey);
+    await assertRowCount(
+      deleteVerificationToken({ identifier, purpose, hashKey }, client),
+      ERROR_MESSAGES.LINK_EXPIRED
+    );
+
+    const hashedPassword = await generateHashedPassword(password);
+    if (purpose === VERIFICATION_TOKEN_PURPOSE.SYSTEM_ACCESS_PWD_SETUP) {
+      return await processAccessRequestPwdSetup(
+        { systemAccessRequestId: identifier, hashedPassword },
+        client
+      );
+    }
+    return await processAuthPwdSetup({ userId: identifier, hashedPassword }, client);
+  }, AUTH_MESSAGES.PWD_SETUP_FAIL);
+};
+
+const processAccessRequestPwdSetup = async (payload, client) => {
+  const result = await assertFunctionResult(setupPasswordForAccessRequest(payload, client));
+  return { message: result.message };
+};
+
+const processAuthPwdSetup = async (payload, client) => {
+  await assertRowCount(updatePassword(payload, client), AUTH_MESSAGES.PWD_SETUP_FAIL);
+  return { message: AUTH_MESSAGES.PWD_SETUP_SUCCESS };
 };

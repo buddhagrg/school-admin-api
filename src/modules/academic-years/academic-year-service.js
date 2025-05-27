@@ -1,31 +1,47 @@
-import { ERROR_MESSAGES } from '../../constants/index.js';
-import { ApiError } from '../../utils/index.js';
+import { assertRowCount, handleArryResponse, withTransaction } from '../../utils/index.js';
+import { ACADEMIC_YEAR_MESSAGES } from './academic-year-messages.js';
 import {
   getAllAcademicYears,
   addAcademicYear,
-  updateAcademicYear
+  updateAcademicYear,
+  deactivateOtherAcademicYearStatus
 } from './academic-year-repository.js';
 
 export const processGetAllAcademicYears = async (schoolId) => {
-  const academicYears = await getAllAcademicYears(schoolId);
-  if (academicYears.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return { academicYears };
+  return handleArryResponse(() => getAllAcademicYears(schoolId), 'academicYears');
 };
 
 export const processAddAcademicYear = async (payload) => {
-  const affectedRow = await addAcademicYear(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to add academic year');
-  }
-  return { message: 'Academic year added successfully' };
+  return withTransaction(async (client) => {
+    const { isActive, schoolId } = payload;
+    if ([true, 'true'].includes(isActive)) {
+      deactivateOtherAcademicYearStatus(schoolId, client),
+        ACADEMIC_YEAR_MESSAGES.ADD_ACADEMIC_YEAR_FAIL;
+    }
+
+    await assertRowCount(
+      addAcademicYear(payload, client),
+      ACADEMIC_YEAR_MESSAGES.ADD_ACADEMIC_YEAR_FAIL
+    );
+
+    return { message: ACADEMIC_YEAR_MESSAGES.ADD_ACADEMIC_YEAR_SUCCESS };
+  }, ACADEMIC_YEAR_MESSAGES.ADD_ACADEMIC_YEAR_FAIL);
 };
 
 export const processUpdateAcademicYear = async (payload) => {
-  const affectedRow = await updateAcademicYear(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to update academic year');
-  }
-  return { message: 'Academic year updated successfully' };
+  return withTransaction(async (client) => {
+    const { isActive, schoolId } = payload;
+    if ([true, 'true'].includes(isActive)) {
+      await assertRowCount(
+        deactivateOtherAcademicYearStatus(schoolId, client),
+        ACADEMIC_YEAR_MESSAGES.UPDATE_ACADEMIC_YEAR_FAIL
+      );
+    }
+
+    await assertRowCount(
+      updateAcademicYear(payload, client),
+      ACADEMIC_YEAR_MESSAGES.UPDATE_ACADEMIC_YEAR_FAIL
+    );
+    return { message: ACADEMIC_YEAR_MESSAGES.UPDATE_ACADEMIC_YEAR_SUCCESS };
+  }, ACADEMIC_YEAR_MESSAGES.UPDATE_ACADEMIC_YEAR_FAIL);
 };

@@ -6,7 +6,7 @@ import { processGetStaffDetail } from '../staff/staff-service.js';
 
 export const handlePasswordChange = asyncHandler(async (req, res) => {
   const { newPassword, currentPassword } = req.body;
-  const { id: userId, schoolId, role: roleName } = req.user;
+  const { userId, schoolId, role: roleName } = req.user;
   const { accessToken, refreshToken, csrfToken, message } = await processPasswordChange({
     userId,
     currentPassword,
@@ -21,7 +21,7 @@ export const handlePasswordChange = asyncHandler(async (req, res) => {
 
 export const handleGetAccountDetail = asyncHandler(async (req, res) => {
   const { mode } = req.query;
-  const { id: userId, schoolId, staticRole } = req.user;
+  const { userId, schoolId, staticRole } = req.user;
   const payload = { schoolId, mode, userId };
   const response =
     staticRole === 'STUDENT'

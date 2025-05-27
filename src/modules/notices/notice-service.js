@@ -1,5 +1,4 @@
-import { ERROR_MESSAGES } from '../../constants/index.js';
-import { ApiError } from '../../utils/index.js';
+import { assertRowCount, handleArryResponse } from '../../utils/index.js';
 import {
   addNotice,
   updateNotice,
@@ -9,59 +8,37 @@ import {
   reviewNoticeStatus,
   publishNotice
 } from './notice-repository.js';
+import { NOTICE_MESSAGES } from './notice-messages.js';
 
 export const processGetNoticeRecipients = async (schoolId) => {
-  const noticeRecipients = await getNoticeRecipients(schoolId);
-  if (!Array.isArray(noticeRecipients) || noticeRecipients.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return { noticeRecipients };
+  return handleArryResponse(() => getNoticeRecipients(schoolId), 'noticeRecipients');
 };
 
 export const processGetNotices = async (userId) => {
-  const notices = await getNotices(userId);
-  if (notices.length <= 0) {
-    throw new ApiError(404, ERROR_MESSAGES.DATA_NOT_FOUND);
-  }
-  return { notices };
+  return handleArryResponse(() => getNotices(userId), 'notices');
 };
 
 export const processAddNotice = async (payload) => {
-  const affectedRow = await addNotice(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to add new notice');
-  }
-  return { message: 'Notice added successfully' };
+  await assertRowCount(addNotice(payload), NOTICE_MESSAGES.ADD_NOTICE_FAIL);
+  return { message: NOTICE_MESSAGES.ADD_NOTICE_SUCCESS };
 };
 
 export const processUpdateNotice = async (payload) => {
-  const affectedRow = await updateNotice(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to update notice');
-  }
-  return { message: 'Notice updated successfully' };
+  await assertRowCount(updateNotice(payload), NOTICE_MESSAGES.UPDATE_NOTICE_FAIL);
+  return { message: NOTICE_MESSAGES.UPDATE_NOTICE_SUCCESS };
 };
 
 export const processReviewNoticeStatus = async (payload) => {
-  const affectedRow = await reviewNoticeStatus(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to review notice status');
-  }
-  return { message: 'Notice status reviewed successfully' };
+  await assertRowCount(reviewNoticeStatus(payload), NOTICE_MESSAGES.REVIEW_NOTICE_FAIL);
+  return { message: NOTICE_MESSAGES.REVIEW_NOTICE_SUCCESS };
 };
 
 export const processDeleteNotice = async (payload) => {
-  const affectedRow = await deleteNotice(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to delete notice');
-  }
-  return { message: 'Notice deleted successfully' };
+  await assertRowCount(deleteNotice(payload), NOTICE_MESSAGES.DELETE_NOTICE_FAIL);
+  return { message: NOTICE_MESSAGES.DELETE_NOTICE_SUCCESS };
 };
 
 export const processPublishNotice = async (payload) => {
-  const affectedRow = await publishNotice(payload);
-  if (affectedRow <= 0) {
-    throw new ApiError(500, 'Unable to publish notice');
-  }
-  return { message: 'Notice published successfully' };
+  await assertRowCount(publishNotice(payload), NOTICE_MESSAGES.PUBLISH_NOTICE_FAIL);
+  return { message: NOTICE_MESSAGES.PUBLISH_NOTICE_SUCCESS };
 };

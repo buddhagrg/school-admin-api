@@ -1,6 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import { checkApiAccessOfRole } from '../modules/roles/role-repository.js';
-import { ApiError } from '../utils/index.js';
+import { assertRowCount } from '../utils/index.js';
 
 export const checkApiAccess = asyncHandler(async (req, res, next) => {
   const {
@@ -8,16 +8,16 @@ export const checkApiAccess = asyncHandler(async (req, res, next) => {
     route: { path },
     method
   } = req;
-  const { staticRole, roleId, id: userId, schoolId } = req.user;
+  const { staticRole, roleId, userId, schoolId } = req.user;
   const originalUrl = baseUrl.startsWith('/') ? `${baseUrl.slice(1)}${path}` : `${baseUrl}${path}`;
+
+  const NO_PERMISSIONS = `You do not have permission to access to this resource - ${originalUrl}`;
   if (staticRole !== 'ADMIN') {
-    const affectedRow = await checkApiAccessOfRole(schoolId, roleId, originalUrl, method, userId);
-    if (affectedRow <= 0) {
-      throw new ApiError(
-        403,
-        `You do not have permission to access to this resource - ${originalUrl}`
-      );
-    }
+    await assertRowCount(
+      checkApiAccessOfRole(schoolId, roleId, originalUrl, method, userId),
+      NO_PERMISSIONS,
+      403
+    );
   }
   next();
 });

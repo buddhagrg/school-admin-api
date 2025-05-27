@@ -65,7 +65,7 @@ export const handleGetFeesAssignedToStudent = asyncHandler(async (req, res) => {
 });
 
 export const handleAssignFeeToStudent = asyncHandler(async (req, res) => {
-  const { schoolId, id: initiator } = req.user;
+  const { schoolId, userId: initiator } = req.user;
   const { studentId } = req.params;
   const { feeDetails } = req.body;
   const response = await processAssignFeeToStudent({
