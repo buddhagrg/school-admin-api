@@ -3,7 +3,8 @@ import {
   processUpdateStaff,
   processGetStaffDetail,
   processAddStaff,
-  processGetAllStaff
+  processGetAllStaff,
+  processUpdateStaffStatus
 } from './staff-service.js';
 
 export const handleGetAllStaff = asyncHandler(async (req, res) => {
@@ -32,5 +33,13 @@ export const handleUpdateStaff = asyncHandler(async (req, res) => {
   const payload = req.body;
   const { schoolId } = req.user;
   const response = await processUpdateStaff({ ...payload, userId, schoolId });
+  res.json(response);
+});
+
+export const handleUpdateStaffStatus = asyncHandler(async (req, res) => {
+  const { id: userId } = req.params;
+  const { hasSystemAccess } = req.body;
+  const { schoolId } = req.user;
+  const response = await processUpdateStaffStatus({ hasSystemAccess, userId, schoolId });
   res.json(response);
 });

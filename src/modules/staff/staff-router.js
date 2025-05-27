@@ -8,5 +8,6 @@ router.get('', checkApiAccess, staffController.handleGetAllStaff);
 router.post('', checkApiAccess, staffController.handleAddStaff);
 router.get('/:id', checkApiAccess, staffController.handleGetStaffDetail);
 router.put('/:id', checkApiAccess, staffController.handleUpdateStaff);
+router.patch('/:id/status', checkApiAccess, staffController.handleUpdateStaffStatus);
 
 export { router as staffRoutes };
