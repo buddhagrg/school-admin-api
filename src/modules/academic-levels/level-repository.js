@@ -1,5 +1,3 @@
-import { db } from '../../config/index.js';
-import { DB_TXN } from '../../constants/index.js';
 import { processDBRequest } from '../../utils/process-db-request.js';
 
 export const addLevel = async (payload) => {
