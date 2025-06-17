@@ -24,6 +24,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          echo ${{ secrets.SECRET_TOKEN }}
+
           git add ./api/.env.example
           git commit -m "update .env.example from service repo"
           git remote set-url origin https://x-access-token:${{ secrets.SCHOOL_ADMIN_PUSH_PAT }}@github.com/buddhagrg/school-admin.git
