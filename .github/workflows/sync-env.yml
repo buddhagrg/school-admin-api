@@ -1,0 +1,29 @@
+name: Sync .env.example to Docker config repo
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - '.env.example'
+
+jobs:
+  sync-env:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout service repo
+        uses: actions/checkout@v4
+
+      - name: Clone docker config repo
+        run: |
+          git clone https://github.com/buddhagrg/school-admin.git
+          cd school-admin
+          mkdir -p ./api
+          cp ../.env.example ./api/.env.example
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add ./api/.env.example
+          git commit -m "update .env.example from service repo"
+          git push https://github.com/buddhagrg/school-admin.git HEAD:master
