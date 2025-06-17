@@ -2,7 +2,8 @@ name: Sync .env.example to Docker config repo
 
 on:
   push:
-    branches: [master]
+    branches:
+      - master
     paths:
       - '.env.example'
 
@@ -11,28 +12,41 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout service repo
+      - name: Checkout Service Repository (Repo B)
         uses: actions/checkout@v4
 
-      - name: Clone docker config repo
+      - name: Clone Docker Config Repository (school-admin)
         run: |
-          git clone https://github.com/buddhagrg/school-admin.git
-          cd school-admin
-          mkdir -p ./api
+          git clone https://x-oauth-basic:${{ secrets.SCHOOL_ADMIN_PUSH_PAT }}@github.com/buddhagrg/school-admin.git school-admin-clone
+        env:
+          SCHOOL_ADMIN_PUSH_PAT: ${{ secrets.SCHOOL_ADMIN_PUSH_PAT }}
+
+      - name: Create API directory and copy .env.example
+        run: |
+          cd school-admin-clone
+          echo "Creating directory: ./api"
+          mkdir -p ./api # -p ensures parent directories are created if they don't exist
+          echo "Copying ../.env.example to ./api/.env.example"
+          # '..' refers to the root of the service repo checkout
           cp ../.env.example ./api/.env.example
 
+      - name: Configure Git and Push changes to Docker Config Repository
+        run: |
+          cd school-admin-clone
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          echo "Git configuration set for school-admin."
 
-          if [ -z "${{ secrets.SCHOOL_ADMIN_PUSH_PAT }}" ]; then
-              echo "Secret is NOT set!"
+          git add ./api/.env.example # Add only the specific file that was copied
+
+          # Check if there are any changes to commit before attempting to commit and push
+          if ! git diff-index --quiet HEAD; then
+            echo "Committing changes to school-admin..."
+            git commit -m "chore: Update .env.example from service repo workflow"
+            echo "Pushing changes to school-admin..."
+            # The push will automatically use the PAT from the initial clone URL
+            git push
+            echo "Changes pushed successfully to school-admin."
           else
-              echo "Secret is set (value hidden)"
+            echo "No changes detected in .env.example for school-admin, skipping commit and push."
           fi
-
-          git add ./api/.env.example
-          git commit -m "update .env.example from service repo"
-          git remote set-url origin https://x-access-token:${{ secrets.SCHOOL_ADMIN_PUSH_PAT }}@github.com/buddhagrg/school-admin.git
-
-          git remote -v
-          git push origin HEAD:master
