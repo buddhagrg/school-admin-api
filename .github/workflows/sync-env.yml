@@ -24,7 +24,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          if [ -z "${{ secrets.SECRET_TOKEN }}" ]; then
+          if [ -z "${{ secrets.SCHOOL_ADMIN_PUSH_PAT }}" ]; then
               echo "Secret is NOT set!"
           else
               echo "Secret is set (value hidden)"
