@@ -17,9 +17,9 @@ jobs:
 
       - name: Clone Docker Config Repository (school-admin)
         run: |
-          git clone https://x-oauth-basic:${{ secrets.SCHOOL_ADMIN_PUSH_PAT }}@github.com/buddhagrg/school-admin.git school-admin-clone
+          git clone https://x-oauth-basic:${{ secrets.SCHOOL_ADMIN_SCRECT }}@github.com/buddhagrg/school-admin.git school-admin-clone
         env:
-          SCHOOL_ADMIN_PUSH_PAT: ${{ secrets.SCHOOL_ADMIN_PUSH_PAT }}
+          SCHOOL_ADMIN_SCRECT: ${{ secrets.SCHOOL_ADMIN_SCRECT }}
 
       - name: Create API directory and copy .env.example
         run: |
