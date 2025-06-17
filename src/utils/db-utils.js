@@ -11,6 +11,7 @@ export const withTransaction = async (fn, errorMsg) => {
     await client.query(DB_TXN.COMMIT);
     return result;
   } catch (error) {
+    console.log(error)
     await client.query(DB_TXN.ROLLBACK);
     throw error instanceof ApiError ? error : new ApiError(500, errorMsg);
   } finally {
