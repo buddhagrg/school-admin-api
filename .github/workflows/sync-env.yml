@@ -26,5 +26,5 @@ jobs:
 
           git add ./api/.env.example
           git commit -m "update .env.example from service repo"
-          git remote set-url origin https://${{ secrets.GITHUB_TOKEN }}@github.com/buddhagrg/school-admin.git
-          git push https://github.com/buddhagrg/school-admin.git HEAD:master
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/buddhagrg/school-admin.git
+          git push origin HEAD:master
