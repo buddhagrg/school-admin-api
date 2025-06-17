@@ -21,7 +21,7 @@ jobs:
         env:
           SCHOOL_ADMIN_SCRECT: ${{ secrets.SCHOOL_ADMIN_SCRECT }}
 
-      - name: Create API directory and copy .env.example as /env
+      - name: Create API directory and copy .env.example as .env
         run: |
           cd school-admin-clone
           echo "Creating directory: ./api"
