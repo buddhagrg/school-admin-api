@@ -26,8 +26,8 @@ jobs:
           cd school-admin-clone
           echo "Creating directory: ./api"
           mkdir -p ./api
-          echo "Copying ../.env.example to ./api/.env"
-          cp ../.env.example ./api/.env
+          echo "Copying ../.env.example to ./api/.env.example"
+          cp ../.env.example ./api/.env.example
 
       - name: Configure Git and Push changes to Docker Config Repository
         run: |
@@ -40,7 +40,7 @@ jobs:
 
           if ! git diff-index --quiet HEAD; then
             echo "Committing changes to school-admin..."
-            git commit -m "chore: Update .env.example from service repo workflow"
+            git commit -m "Update .env.example from service repo workflow"
             echo "Pushing changes to school-admin..."
             git push
             echo "Changes pushed successfully to school-admin."
