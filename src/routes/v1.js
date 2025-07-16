@@ -24,9 +24,11 @@ import { paymentRoutes } from '../modules/payments/payment-router.js';
 import { miscRoutes } from '../modules/misc/misc.route.js';
 import { systemAccessRoutes } from '../modules/system-access/system-access-router.js';
 import { classTeacherRoute } from '../modules/class-teachers/class-teachers.route.js';
+import { pingRoute } from '../modules/ping.js';
 
 const router = express.Router();
 
+router.use('/ping', pingRoute);
 router.use('', miscRoutes);
 router.use('/permissions', authenticateAccessToken, authenticateCsrfToken, permissionRoutes);
 router.use('/schools', authenticateAccessToken, authenticateCsrfToken, schoolRoutes);
